@@ -1,0 +1,11 @@
+{
+  "src/main.tsx": {
+    "file": "main-B_R3PQ3f.js",
+    "name": "main",
+    "src": "src/main.tsx",
+    "isEntry": true,
+    "css": [
+      "main-BmnxwF_f.css"
+    ]
+  }
+}

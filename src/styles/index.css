@@ -1,0 +1,137 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Base styles for the app container */
+.frs-lead-pages-app {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Full-screen template */
+.frs-lead-pages-template {
+  min-height: 100vh;
+  width: 100%;
+}
+
+/* Animation keyframes */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Utility classes */
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-slide-in {
+  animation: slideInRight 0.3s ease-out;
+}
+
+/* Focus styles */
+.frs-lead-pages-app input:focus,
+.frs-lead-pages-app select:focus,
+.frs-lead-pages-app textarea:focus {
+  outline: none;
+  border-color: #0ea5e9;
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+}
+
+/* Button hover effects */
+.frs-lead-pages-app button:not(:disabled):hover {
+  transform: translateY(-1px);
+}
+
+.frs-lead-pages-app button:not(:disabled):active {
+  transform: translateY(0);
+}
+
+/* Glassmorphism utilities */
+.glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.glass-dark {
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Progress bar */
+.progress-step {
+  transition: background-color 0.3s ease;
+}
+
+/* Image selection */
+.image-option {
+  transition: all 0.2s ease;
+}
+
+.image-option:hover {
+  transform: scale(1.02);
+}
+
+.image-option.selected {
+  box-shadow: 0 0 0 3px #0ea5e9;
+}
+
+/* Radio button styles */
+.radio-option {
+  transition: all 0.2s ease;
+}
+
+.radio-option:hover:not(.selected) {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+
+.radio-option.selected {
+  border-color: #0ea5e9;
+  background: #f0f9ff;
+  color: #0ea5e9;
+}
+
+/* Loader */
+.loader {
+  animation: pulse 1.5s infinite;
+}
+
+/* Hide scrollbar but keep functionality */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

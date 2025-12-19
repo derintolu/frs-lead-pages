@@ -736,6 +736,7 @@ class Shortcodes {
                 .frs-icon-btn:hover { background: #e5e7eb; color: #111827; }
                 .frs-icon-btn.primary { background: #0ea5e9; color: #fff; }
                 .frs-icon-btn.primary:hover { background: #0284c7; }
+                .frs-delete-page-btn:hover { background: #fef2f2; border-color: #ef4444; color: #ef4444; }
                 .frs-icon-btn svg { width: 18px; height: 18px; }
 
                 /* Leads Table */
@@ -881,6 +882,9 @@ class Shortcodes {
                                     </button>
                                     <button class="frs-icon-btn frs-qr-btn" data-url="<?php echo esc_attr( get_permalink( $page_id ) ); ?>" data-title="<?php echo esc_attr( $property_address ?: get_the_title() ); ?>" title="QR Code">
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/><rect x="18" y="14" width="3" height="3"/><rect x="14" y="18" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/></svg>
+                                    </button>
+                                    <button class="frs-icon-btn frs-delete-page-btn" data-page-id="<?php echo esc_attr( $page_id ); ?>" title="Delete Page">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                                     </button>
                                 </div>
                             </div>
@@ -1138,6 +1142,45 @@ class Shortcodes {
                         })
                         .catch(() => {
                             alert('Failed to delete lead');
+                            this.innerHTML = originalHTML;
+                            this.disabled = false;
+                        });
+                    });
+                });
+
+                // Delete lead page
+                document.querySelectorAll('.frs-delete-page-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        if (!confirm('Are you sure you want to delete this lead page? This cannot be undone.')) return;
+
+                        const pageId = this.dataset.pageId;
+                        const row = this.closest('.frs-page-row');
+                        const originalHTML = this.innerHTML;
+
+                        // Show loading
+                        this.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"><animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/></path></svg>';
+                        this.disabled = true;
+
+                        fetch('<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                            body: 'action=frs_delete_lead_page&page_id=' + pageId + '&nonce=<?php echo wp_create_nonce( 'frs_delete_lead_page' ); ?>'
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                row.style.transition = 'opacity 0.3s, transform 0.3s';
+                                row.style.opacity = '0';
+                                row.style.transform = 'translateX(20px)';
+                                setTimeout(() => row.remove(), 300);
+                            } else {
+                                alert(data.data || 'Failed to delete page');
+                                this.innerHTML = originalHTML;
+                                this.disabled = false;
+                            }
+                        })
+                        .catch(() => {
+                            alert('Failed to delete page');
                             this.innerHTML = originalHTML;
                             this.disabled = false;
                         });

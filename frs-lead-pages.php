@@ -135,8 +135,9 @@ function init() {
         Routes\Api::register_routes();
     });
 
-    // AJAX handler for deleting leads from frontend
+    // AJAX handlers for deleting from frontend
     add_action( 'wp_ajax_frs_delete_lead', __NAMESPACE__ . '\\ajax_delete_lead' );
+    add_action( 'wp_ajax_frs_delete_lead_page', __NAMESPACE__ . '\\ajax_delete_lead_page' );
 
     // Generate QR code on page publish (Open House only)
     add_action( 'save_post_frs_lead_page', __NAMESPACE__ . '\\maybe_generate_qr', 10, 2 );
@@ -188,6 +189,51 @@ function ajax_delete_lead() {
         wp_send_json_success( 'Lead deleted' );
     } else {
         wp_send_json_error( 'Failed to delete lead' );
+    }
+}
+
+/**
+ * AJAX handler to delete a lead page
+ */
+function ajax_delete_lead_page() {
+    // Verify nonce
+    if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'frs_delete_lead_page' ) ) {
+        wp_send_json_error( 'Security check failed' );
+    }
+
+    // Check if user is logged in
+    if ( ! is_user_logged_in() ) {
+        wp_send_json_error( 'You must be logged in' );
+    }
+
+    $page_id = isset( $_POST['page_id'] ) ? absint( $_POST['page_id'] ) : 0;
+
+    if ( ! $page_id ) {
+        wp_send_json_error( 'Invalid page ID' );
+    }
+
+    // Check if it's a lead page
+    $post = get_post( $page_id );
+    if ( ! $post || $post->post_type !== 'frs_lead_page' ) {
+        wp_send_json_error( 'Invalid lead page' );
+    }
+
+    // Check if user owns this page (is the LO or realtor assigned)
+    $current_user_id = get_current_user_id();
+    $lo_id = get_post_meta( $page_id, '_frs_loan_officer_id', true );
+    $realtor_id = get_post_meta( $page_id, '_frs_realtor_id', true );
+
+    if ( $post->post_author != $current_user_id && $lo_id != $current_user_id && $realtor_id != $current_user_id && ! current_user_can( 'delete_others_posts' ) ) {
+        wp_send_json_error( 'You do not have permission to delete this page' );
+    }
+
+    // Delete the page
+    $deleted = wp_delete_post( $page_id, true );
+
+    if ( $deleted ) {
+        wp_send_json_success( 'Lead page deleted' );
+    } else {
+        wp_send_json_error( 'Failed to delete lead page' );
     }
 }
 

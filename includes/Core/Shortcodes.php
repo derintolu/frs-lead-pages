@@ -980,7 +980,39 @@ class Shortcodes {
                 </div>
             </div>
 
+            <!-- Confirm Modal -->
+            <div class="frs-confirm-modal" id="frs-confirm-modal">
+                <div class="frs-confirm-backdrop"></div>
+                <div class="frs-confirm-content">
+                    <div class="frs-confirm-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    </div>
+                    <h3 class="frs-confirm-title" id="frs-confirm-title">Are you sure?</h3>
+                    <p class="frs-confirm-message" id="frs-confirm-message">This action cannot be undone.</p>
+                    <div class="frs-confirm-actions">
+                        <button class="frs-confirm-btn frs-confirm-cancel" id="frs-confirm-cancel">Cancel</button>
+                        <button class="frs-confirm-btn frs-confirm-delete" id="frs-confirm-ok">Delete</button>
+                    </div>
+                </div>
+            </div>
+
             <style>
+                /* Confirm Modal Styles */
+                .frs-confirm-modal { display: none; position: fixed; inset: 0; z-index: 100000; align-items: center; justify-content: center; }
+                .frs-confirm-modal.open { display: flex; }
+                .frs-confirm-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
+                .frs-confirm-content { position: relative; background: #fff; border-radius: 16px; padding: 32px; max-width: 360px; width: 90%; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); animation: frs-modal-in 0.2s ease; text-align: center; }
+                .frs-confirm-icon { width: 56px; height: 56px; margin: 0 auto 16px; background: #fef2f2; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+                .frs-confirm-icon svg { width: 28px; height: 28px; stroke: #ef4444; }
+                .frs-confirm-title { margin: 0 0 8px; font-size: 18px; font-weight: 600; color: #111827; }
+                .frs-confirm-message { margin: 0 0 24px; font-size: 14px; color: #6b7280; }
+                .frs-confirm-actions { display: flex; gap: 12px; justify-content: center; }
+                .frs-confirm-btn { padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.15s; border: none; }
+                .frs-confirm-cancel { background: #f3f4f6; color: #374151; }
+                .frs-confirm-cancel:hover { background: #e5e7eb; }
+                .frs-confirm-delete { background: #ef4444; color: #fff; }
+                .frs-confirm-delete:hover { background: #dc2626; }
+
                 /* QR Modal Styles */
                 .frs-qr-modal { display: none; position: fixed; inset: 0; z-index: 99999; align-items: center; justify-content: center; }
                 .frs-qr-modal.open { display: flex; }
@@ -1110,10 +1142,50 @@ class Shortcodes {
                     }
                 });
 
+                // Confirm modal function
+                const confirmModal = document.getElementById('frs-confirm-modal');
+                const confirmTitle = document.getElementById('frs-confirm-title');
+                const confirmMessage = document.getElementById('frs-confirm-message');
+                const confirmOkBtn = document.getElementById('frs-confirm-ok');
+                const confirmCancelBtn = document.getElementById('frs-confirm-cancel');
+                const confirmBackdrop = confirmModal.querySelector('.frs-confirm-backdrop');
+
+                function showConfirm(title, message) {
+                    return new Promise((resolve) => {
+                        confirmTitle.textContent = title;
+                        confirmMessage.textContent = message;
+                        confirmModal.classList.add('open');
+                        document.body.style.overflow = 'hidden';
+
+                        function cleanup() {
+                            confirmModal.classList.remove('open');
+                            document.body.style.overflow = '';
+                            confirmOkBtn.removeEventListener('click', onOk);
+                            confirmCancelBtn.removeEventListener('click', onCancel);
+                            confirmBackdrop.removeEventListener('click', onCancel);
+                        }
+
+                        function onOk() {
+                            cleanup();
+                            resolve(true);
+                        }
+
+                        function onCancel() {
+                            cleanup();
+                            resolve(false);
+                        }
+
+                        confirmOkBtn.addEventListener('click', onOk);
+                        confirmCancelBtn.addEventListener('click', onCancel);
+                        confirmBackdrop.addEventListener('click', onCancel);
+                    });
+                }
+
                 // Delete lead
                 document.querySelectorAll('.frs-action-delete').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        if (!confirm('Are you sure you want to delete this lead?')) return;
+                    btn.addEventListener('click', async function() {
+                        const confirmed = await showConfirm('Delete Lead?', 'This will permanently remove this lead from your list.');
+                        if (!confirmed) return;
 
                         const leadId = this.dataset.leadId;
                         const row = this.closest('tr');
@@ -1150,8 +1222,9 @@ class Shortcodes {
 
                 // Delete lead page
                 document.querySelectorAll('.frs-delete-page-btn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        if (!confirm('Are you sure you want to delete this lead page? This cannot be undone.')) return;
+                    btn.addEventListener('click', async function() {
+                        const confirmed = await showConfirm('Delete Lead Page?', 'This will permanently delete this page and cannot be undone.');
+                        if (!confirmed) return;
 
                         const pageId = this.dataset.pageId;
                         const row = this.closest('.frs-page-row');

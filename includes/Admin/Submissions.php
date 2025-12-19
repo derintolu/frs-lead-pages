@@ -21,6 +21,44 @@ class Submissions {
 	public static function init() {
 		add_action( 'admin_menu', [ __CLASS__, 'add_menu_page' ] );
 		add_action( 'admin_init', [ __CLASS__, 'handle_csv_export' ] );
+		add_action( 'admin_init', [ __CLASS__, 'handle_delete_submission' ] );
+	}
+
+	/**
+	 * Handle delete submission
+	 */
+	public static function handle_delete_submission() {
+		if ( ! isset( $_GET['action'] ) || $_GET['action'] !== 'delete_submission' ) {
+			return;
+		}
+
+		if ( ! isset( $_GET['submission_id'] ) || ! isset( $_GET['_wpnonce'] ) ) {
+			return;
+		}
+
+		$submission_id = absint( $_GET['submission_id'] );
+
+		if ( ! wp_verify_nonce( $_GET['_wpnonce'], 'delete_submission_' . $submission_id ) ) {
+			wp_die( __( 'Security check failed', 'frs-lead-pages' ) );
+		}
+
+		if ( ! current_user_can( 'edit_posts' ) ) {
+			wp_die( __( 'Insufficient permissions', 'frs-lead-pages' ) );
+		}
+
+		// Delete from FluentForms
+		if ( function_exists( 'wpFluent' ) ) {
+			wpFluent()->table( 'fluentform_submissions' )->where( 'id', $submission_id )->delete();
+			wpFluent()->table( 'fluentform_entry_details' )->where( 'submission_id', $submission_id )->delete();
+		}
+
+		$redirect_url = admin_url( 'edit.php?post_type=frs_lead_page&page=frs-lead-pages-submissions&deleted=1' );
+		if ( isset( $_GET['lead_page_id'] ) ) {
+			$redirect_url .= '&lead_page_id=' . absint( $_GET['lead_page_id'] );
+		}
+
+		wp_redirect( $redirect_url );
+		exit;
 	}
 
 	/**
@@ -344,6 +382,21 @@ class Submissions_List_Table extends \WP_List_Table {
 				'<a href="%s" target="_blank">%s</a>',
 				esc_url( $page_url ),
 				__( 'View Page', 'frs-lead-pages' )
+			);
+		}
+
+		// Delete link
+		if ( ! empty( $item['submission_id'] ) ) {
+			$lead_page_param = isset( $_GET['lead_page_id'] ) ? '&lead_page_id=' . absint( $_GET['lead_page_id'] ) : '';
+			$delete_url = wp_nonce_url(
+				admin_url( 'edit.php?post_type=frs_lead_page&page=frs-lead-pages-submissions&action=delete_submission&submission_id=' . $item['submission_id'] . $lead_page_param ),
+				'delete_submission_' . $item['submission_id']
+			);
+			$actions['delete'] = sprintf(
+				'<a href="%s" class="submitdelete" onclick="return confirm(\'%s\');">%s</a>',
+				esc_url( $delete_url ),
+				esc_js( __( 'Are you sure you want to delete this submission?', 'frs-lead-pages' ) ),
+				__( 'Delete', 'frs-lead-pages' )
 			);
 		}
 

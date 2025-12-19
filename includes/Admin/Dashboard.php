@@ -20,6 +20,35 @@ class Dashboard {
 	 */
 	public static function init() {
 		add_action( 'admin_menu', [ __CLASS__, 'add_menu_page' ] );
+		add_action( 'admin_init', [ __CLASS__, 'handle_delete_action' ] );
+	}
+
+	/**
+	 * Handle delete action
+	 */
+	public static function handle_delete_action() {
+		if ( ! isset( $_GET['action'] ) || $_GET['action'] !== 'delete_lead_page' ) {
+			return;
+		}
+
+		if ( ! isset( $_GET['post_id'] ) || ! isset( $_GET['_wpnonce'] ) ) {
+			return;
+		}
+
+		$post_id = absint( $_GET['post_id'] );
+
+		if ( ! wp_verify_nonce( $_GET['_wpnonce'], 'delete_lead_page_' . $post_id ) ) {
+			wp_die( __( 'Security check failed', 'frs-lead-pages' ) );
+		}
+
+		if ( ! current_user_can( 'delete_post', $post_id ) ) {
+			wp_die( __( 'Insufficient permissions', 'frs-lead-pages' ) );
+		}
+
+		wp_delete_post( $post_id, true );
+
+		wp_redirect( admin_url( 'edit.php?post_type=frs_lead_page&page=frs-lead-pages-dashboard&deleted=1' ) );
+		exit;
 	}
 
 	/**
@@ -164,6 +193,10 @@ class Dashboard_List_Table extends \WP_List_Table {
 	public function column_title( $item ) {
 		$edit_url = get_edit_post_link( $item->ID );
 		$view_url = get_permalink( $item->ID );
+		$delete_url = wp_nonce_url(
+			admin_url( 'edit.php?post_type=frs_lead_page&page=frs-lead-pages-dashboard&action=delete_lead_page&post_id=' . $item->ID ),
+			'delete_lead_page_' . $item->ID
+		);
 
 		$actions = [
 			'edit' => sprintf(
@@ -180,6 +213,12 @@ class Dashboard_List_Table extends \WP_List_Table {
 				'<a href="%s">%s</a>',
 				esc_url( admin_url( 'edit.php?post_type=frs_lead_page&page=frs-lead-pages-submissions&lead_page_id=' . $item->ID ) ),
 				__( 'View Submissions', 'frs-lead-pages' )
+			),
+			'delete' => sprintf(
+				'<a href="%s" class="submitdelete" onclick="return confirm(\'%s\');">%s</a>',
+				esc_url( $delete_url ),
+				esc_js( __( 'Are you sure you want to delete this lead page?', 'frs-lead-pages' ) ),
+				__( 'Delete', 'frs-lead-pages' )
 			),
 		];
 

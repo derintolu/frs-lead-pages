@@ -135,9 +135,62 @@ function init() {
         Routes\Api::register_routes();
     });
 
+    // AJAX handler for deleting leads from frontend
+    add_action( 'wp_ajax_frs_delete_lead', __NAMESPACE__ . '\\ajax_delete_lead' );
+
     // Generate QR code on page publish (Open House only)
     add_action( 'save_post_frs_lead_page', __NAMESPACE__ . '\\maybe_generate_qr', 10, 2 );
 }
+
+/**
+ * AJAX handler to delete a lead
+ */
+function ajax_delete_lead() {
+    // Verify nonce
+    if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'frs_delete_lead' ) ) {
+        wp_send_json_error( 'Security check failed' );
+    }
+
+    // Check if user is logged in
+    if ( ! is_user_logged_in() ) {
+        wp_send_json_error( 'You must be logged in' );
+    }
+
+    $lead_id = isset( $_POST['lead_id'] ) ? sanitize_text_field( $_POST['lead_id'] ) : '';
+
+    if ( empty( $lead_id ) ) {
+        wp_send_json_error( 'Invalid lead ID' );
+    }
+
+    global $wpdb;
+
+    // Handle different lead sources (lrg_ prefix = wp_lead_submissions, ff_ prefix = FluentForms)
+    if ( strpos( $lead_id, 'lrg_' ) === 0 ) {
+        // Delete from wp_lead_submissions table
+        $real_id = absint( str_replace( 'lrg_', '', $lead_id ) );
+        $table = $wpdb->prefix . 'lead_submissions';
+        $deleted = $wpdb->delete( $table, [ 'id' => $real_id ], [ '%d' ] );
+    } elseif ( strpos( $lead_id, 'ff_' ) === 0 ) {
+        // Delete from FluentForms
+        $real_id = absint( str_replace( 'ff_', '', $lead_id ) );
+        if ( function_exists( 'wpFluent' ) ) {
+            wpFluent()->table( 'fluentform_submissions' )->where( 'id', $real_id )->delete();
+            wpFluent()->table( 'fluentform_entry_details' )->where( 'submission_id', $real_id )->delete();
+            $deleted = true;
+        } else {
+            $deleted = false;
+        }
+    } else {
+        wp_send_json_error( 'Unknown lead type' );
+    }
+
+    if ( $deleted ) {
+        wp_send_json_success( 'Lead deleted' );
+    } else {
+        wp_send_json_error( 'Failed to delete lead' );
+    }
+}
+
 add_action( 'plugins_loaded', __NAMESPACE__ . '\\init' );
 
 /**

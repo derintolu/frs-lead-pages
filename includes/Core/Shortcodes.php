@@ -752,6 +752,14 @@ class Shortcodes {
                 .frs-lead-status.contacted { background: #e0f2fe; color: #0369a1; }
                 .frs-lead-status.converted { background: #fef3c7; color: #92400e; }
 
+                /* Lead Actions */
+                .frs-lead-actions { display: flex; gap: 8px; }
+                .frs-action-btn { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: 1px solid #e5e7eb; border-radius: 6px; background: #fff; color: #6b7280; cursor: pointer; transition: all 0.15s; text-decoration: none; }
+                .frs-action-btn:hover { border-color: #d1d5db; background: #f9fafb; color: #374151; }
+                .frs-action-reply:hover { border-color: #0ea5e9; background: #f0f9ff; color: #0ea5e9; }
+                .frs-action-delete:hover { border-color: #ef4444; background: #fef2f2; color: #ef4444; }
+                .frs-action-btn svg { width: 16px; height: 16px; }
+
                 /* Empty State */
                 .frs-empty { text-align: center; padding: 60px 20px; background: #f9fafb; border-radius: 12px; }
                 .frs-empty-icon { width: 64px; height: 64px; margin: 0 auto 16px; background: #e5e7eb; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
@@ -902,11 +910,12 @@ class Shortcodes {
                                 <th>Property</th>
                                 <th>Date</th>
                                 <th>Status</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php foreach ( $leads as $lead ) : ?>
-                                <tr>
+                                <tr data-lead-id="<?php echo esc_attr( $lead['id'] ); ?>">
                                     <td><span class="frs-lead-name"><?php echo esc_html( $lead['first_name'] . ' ' . $lead['last_name'] ); ?></span></td>
                                     <td class="frs-lead-contact">
                                         <a href="mailto:<?php echo esc_attr( $lead['email'] ); ?>"><?php echo esc_html( $lead['email'] ); ?></a><br>
@@ -916,6 +925,14 @@ class Shortcodes {
                                     <td><?php echo esc_html( $lead['property'] ?: '—' ); ?></td>
                                     <td><?php echo esc_html( date_i18n( 'M j, Y', strtotime( $lead['created_at'] ) ) ); ?></td>
                                     <td><span class="frs-lead-status <?php echo esc_attr( $lead['status'] ); ?>"><?php echo esc_html( ucfirst( $lead['status'] ?: 'new' ) ); ?></span></td>
+                                    <td class="frs-lead-actions">
+                                        <a href="mailto:<?php echo esc_attr( $lead['email'] ); ?>?subject=<?php echo esc_attr( urlencode( 'Following up on your inquiry' ) ); ?>" class="frs-action-btn frs-action-reply" title="Reply">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                                        </a>
+                                        <button type="button" class="frs-action-btn frs-action-delete" data-lead-id="<?php echo esc_attr( $lead['id'] ); ?>" title="Delete">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                        </button>
+                                    </td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
@@ -1087,6 +1104,44 @@ class Shortcodes {
                     if (currentQR) {
                         currentQR.download({ name: 'qr-code', extension: 'png' });
                     }
+                });
+
+                // Delete lead
+                document.querySelectorAll('.frs-action-delete').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        if (!confirm('Are you sure you want to delete this lead?')) return;
+
+                        const leadId = this.dataset.leadId;
+                        const row = this.closest('tr');
+                        const originalHTML = this.innerHTML;
+
+                        // Show loading
+                        this.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" class="frs-spinner"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"><animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/></path></svg>';
+                        this.disabled = true;
+
+                        fetch('<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                            body: 'action=frs_delete_lead&lead_id=' + leadId + '&nonce=<?php echo wp_create_nonce( 'frs_delete_lead' ); ?>'
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                row.style.transition = 'opacity 0.3s';
+                                row.style.opacity = '0';
+                                setTimeout(() => row.remove(), 300);
+                            } else {
+                                alert(data.data || 'Failed to delete lead');
+                                this.innerHTML = originalHTML;
+                                this.disabled = false;
+                            }
+                        })
+                        .catch(() => {
+                            alert('Failed to delete lead');
+                            this.innerHTML = originalHTML;
+                            this.disabled = false;
+                        });
+                    });
                 });
             })();
             </script>

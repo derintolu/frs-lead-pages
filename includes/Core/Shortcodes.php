@@ -1391,28 +1391,14 @@ class Shortcodes {
             return [];
         }
 
-        // Get profile ID by user's email (email is the consistent identifier)
-        $profile_id = null;
-        $user = get_userdata( $user_id );
-        if ( $user && class_exists( '\FRSUsers\Models\Profile' ) ) {
-            $profile = \FRSUsers\Models\Profile::where( 'email', $user->user_email )->first();
-            if ( $profile ) {
-                $profile_id = $profile->id;
-            }
-        }
-
-        // If no profile found, return empty (user has no profile)
-        if ( ! $profile_id ) {
-            return [];
-        }
-
         // Query BOTH loan_officer_id AND agent_id - user could be either/both
+        // Leads table stores WordPress user IDs
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
         $results = $wpdb->get_results(
             $wpdb->prepare(
                 "SELECT * FROM {$table_name} WHERE loan_officer_id = %d OR agent_id = %d ORDER BY created_date DESC LIMIT 100",
-                $profile_id,
-                $profile_id
+                $user_id,
+                $user_id
             ),
             ARRAY_A
         );

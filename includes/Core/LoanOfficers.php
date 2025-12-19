@@ -116,23 +116,12 @@ class LoanOfficers {
         ] );
 
         return array_map( function( $user ) {
-            // Get NMLS - try user meta first, then profile post
-            $nmls = get_user_meta( $user->ID, 'nmls_id', true ) ?: get_user_meta( $user->ID, 'nmls', true );
-
-            // If no NMLS on user, check linked profile post
-            if ( empty( $nmls ) ) {
-                $profile_id = get_user_meta( $user->ID, 'profile', true );
-                if ( $profile_id ) {
-                    $nmls = get_post_meta( $profile_id, 'nmls', true ) ?: get_post_meta( $profile_id, 'nmls_number', true );
-                }
-            }
-
             return [
                 'id'        => $user->ID,
                 'name'      => $user->display_name,
                 'email'     => $user->user_email,
                 'phone'     => get_user_meta( $user->ID, 'phone', true ) ?: get_user_meta( $user->ID, 'billing_phone', true ),
-                'nmls'      => $nmls,
+                'nmls'      => \FRSLeadPages\frs_get_user_nmls( $user->ID ),
                 'title'     => get_user_meta( $user->ID, 'title', true ) ?: get_user_meta( $user->ID, 'job_title', true ) ?: 'Loan Officer',
                 'photo_url' => get_avatar_url( $user->ID, [ 'size' => 200 ] ),
                 'active'    => true,
@@ -196,22 +185,12 @@ class LoanOfficers {
             return null;
         }
 
-        // Get NMLS - try user meta first, then profile post
-        $nmls = get_user_meta( $id, 'nmls_id', true ) ?: get_user_meta( $id, 'nmls', true );
-
-        if ( empty( $nmls ) ) {
-            $profile_id = get_user_meta( $id, 'profile', true );
-            if ( $profile_id ) {
-                $nmls = get_post_meta( $profile_id, 'nmls', true ) ?: get_post_meta( $profile_id, 'nmls_number', true );
-            }
-        }
-
         return [
             'id'        => $user->ID,
             'name'      => $user->display_name,
             'email'     => $user->user_email,
             'phone'     => get_user_meta( $id, 'phone', true ) ?: get_user_meta( $id, 'billing_phone', true ),
-            'nmls'      => $nmls,
+            'nmls'      => \FRSLeadPages\frs_get_user_nmls( $id ),
             'title'     => get_user_meta( $id, 'title', true ) ?: get_user_meta( $id, 'job_title', true ) ?: 'Loan Officer',
             'photo_url' => get_avatar_url( $id, [ 'size' => 200 ] ),
             'active'    => true,

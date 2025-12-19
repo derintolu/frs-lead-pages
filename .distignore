@@ -1,10 +1,16 @@
+# Git
 /.git
 /.github
-/.vscode
+/.gitignore
+
+# Development
 /node_modules
 /src
+/.vscode
+/.cursor
+
+# Config files
 /.editorconfig
-/.gitignore
 /package.json
 /package-lock.json
 /composer.lock
@@ -13,7 +19,21 @@
 /tsconfig.node.json
 /tailwind.config.js
 /postcss.config.js
-*.md
-*.log
+
+# Build artifacts
 *.map
+/assets/dist/.vite
+
+# Documentation (except readme.txt)
+*.md
+!readme.txt
+
+# System files
 .DS_Store
+*.log
+Thumbs.db
+
+# Tests
+/tests
+/phpunit.xml
+/phpcs.xml

@@ -541,7 +541,7 @@ class PostTypes {
             'name'  => $user->display_name,
             'email' => $user->user_email,
             'phone' => get_user_meta( $lo_id, 'phone', true ) ?: get_user_meta( $lo_id, 'phone_number', true ),
-            'nmls'  => get_user_meta( $lo_id, 'nmls_id', true ) ?: get_user_meta( $lo_id, 'nmls', true ),
+            'nmls'  => \FRSLeadPages\frs_get_user_nmls( $lo_id ),
             'title' => get_user_meta( $lo_id, 'job_title', true ) ?: 'Loan Officer',
             'photo' => \FRSLeadPages\get_user_photo( $lo_id ),
         ];

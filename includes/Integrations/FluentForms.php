@@ -958,7 +958,7 @@ class FluentForms {
             'name'  => $user->display_name,
             'email' => $user->user_email,
             'phone' => get_user_meta( $lo_id, 'phone', true ) ?: get_user_meta( $lo_id, 'billing_phone', true ),
-            'nmls'  => get_user_meta( $lo_id, 'nmls_id', true ) ?: get_user_meta( $lo_id, 'nmls', true ),
+            'nmls'  => \FRSLeadPages\frs_get_user_nmls( $lo_id ),
             'photo' => get_avatar_url( $lo_id, [ 'size' => 200 ] ),
         ];
     }

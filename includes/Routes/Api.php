@@ -289,7 +289,7 @@ class Api {
             'id'    => $user->ID,
             'name'  => $user->display_name,
             'title' => get_user_meta( $user->ID, 'job_title', true ) ?: 'Loan Officer',
-            'nmls'  => get_user_meta( $user->ID, 'nmls_id', true ) ?: get_user_meta( $user->ID, 'nmls', true ),
+            'nmls'  => \FRSLeadPages\frs_get_user_nmls( $user->ID ),
             'phone' => get_user_meta( $user->ID, 'phone', true ) ?: get_user_meta( $user->ID, 'billing_phone', true ),
             'email' => $user->user_email,
             'photo' => get_avatar_url( $user->ID, [ 'size' => 200 ] ),

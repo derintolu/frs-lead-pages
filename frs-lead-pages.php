@@ -3,7 +3,7 @@
  * Plugin Name: FRS Lead Pages (Generation Station)
  * Plugin URI: https://21stcenturylending.com
  * Description: Lead generation landing page builder with multi-step wizard. Create Open House, Customer Spotlight, and Event pages with LO/Realtor co-branding.
- * Version: 1.2.0
+ * Version: 1.3.0
  * Author: 21st Century Lending
  * Author URI: https://21stcenturylending.com
  * Text Domain: frs-lead-pages
@@ -22,11 +22,52 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Plugin constants
-define( 'FRS_LEAD_PAGES_VERSION', '1.2.0' );
+define( 'FRS_LEAD_PAGES_VERSION', '1.3.0' );
 define( 'FRS_LEAD_PAGES_PLUGIN_FILE', __FILE__ );
 define( 'FRS_LEAD_PAGES_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'FRS_LEAD_PAGES_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'FRS_LEAD_PAGES_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
+
+/**
+ * Get user NMLS from the most accurate source
+ *
+ * Priority:
+ * 1. FRS Profiles table (frs-wp-users plugin)
+ * 2. Linked person post meta
+ * 3. User meta fallback
+ *
+ * @param int $user_id WordPress user ID.
+ * @return string NMLS number or empty string.
+ */
+function frs_get_user_nmls( int $user_id ): string {
+    if ( ! $user_id ) {
+        return '';
+    }
+
+    // 1. Check FRS Profiles table first (most accurate source)
+    if ( class_exists( 'FRSUsers\Models\Profile' ) ) {
+        $profile = \FRSUsers\Models\Profile::where( 'user_id', $user_id )->first();
+        if ( $profile ) {
+            $nmls = $profile->nmls ?: $profile->nmls_number;
+            if ( ! empty( $nmls ) ) {
+                return (string) $nmls;
+            }
+        }
+    }
+
+    // 2. Check linked person post meta
+    $profile_id = get_user_meta( $user_id, 'profile', true );
+    if ( $profile_id ) {
+        $nmls = get_post_meta( $profile_id, 'nmls', true ) ?: get_post_meta( $profile_id, 'nmls_number', true );
+        if ( ! empty( $nmls ) ) {
+            return (string) $nmls;
+        }
+    }
+
+    // 3. Fallback to user meta
+    $nmls = get_user_meta( $user_id, 'nmls_id', true ) ?: get_user_meta( $user_id, 'nmls', true );
+    return (string) $nmls;
+}
 
 // Autoloader
 spl_autoload_register( function ( $class ) {
@@ -303,7 +344,7 @@ function handle_vcard_download() {
         if ( $type === 'lo' ) {
             $contact['company'] = '21st Century Lending';
             $contact['title'] = $contact['title'] ?: 'Loan Officer';
-            $contact['nmls'] = get_user_meta( $user_id, 'nmls_id', true ) ?: get_user_meta( $user_id, 'nmls', true );
+            $contact['nmls'] = frs_get_user_nmls( (int) $user_id );
         } else {
             $contact['company'] = get_user_meta( $user_id, 'company', true ) ?: get_user_meta( $user_id, 'brokerage', true );
             $contact['title'] = $contact['title'] ?: 'Sales Associate';

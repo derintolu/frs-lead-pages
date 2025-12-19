@@ -554,7 +554,7 @@ class Wizard {
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
-                padding: 64px;
+                padding: clamp(2rem, 5vw, 4rem);
                 position: fixed;
                 left: 0;
                 top: 0;
@@ -593,13 +593,13 @@ class Wizard {
                 height: 100vh;
                 overflow-y: auto;
                 background: #fff;
-                padding: 48px 56px;
+                padding: 24px 32px;
                 box-sizing: border-box;
             }
             .oh-wizard__progress {
                 height: 3px;
                 background: #e5e7eb;
-                margin-bottom: 40px;
+                margin-bottom: 16px;
             }
             .oh-wizard__progress-bar {
                 height: 100%;
@@ -642,22 +642,22 @@ class Wizard {
                 padding-right: 8px;
             }
             .oh-step__header h2 {
-                font-size: 32px;
+                font-size: 22px;
                 font-weight: 700;
                 color: #0f172a;
-                margin: 0 0 8px;
+                margin: 0 0 4px;
             }
             .oh-step__header p {
-                font-size: 15px;
+                font-size: 13px;
                 color: #64748b;
-                margin: 0 0 32px;
+                margin: 0 0 16px;
             }
             .oh-label {
                 display: block !important;
-                font-size: 15px !important;
+                font-size: 13px !important;
                 font-weight: 600 !important;
                 color: #374151 !important;
-                margin-bottom: 12px !important;
+                margin-bottom: 6px !important;
             }
             #oh-wizard .oh-input,
             #oh-wizard input[type="text"],
@@ -666,11 +666,11 @@ class Wizard {
             #oh-wizard input[type="number"],
             #oh-wizard textarea {
                 width: 100%;
-                height: 60px;
-                padding: 0 20px;
-                font-size: 16px;
-                border: 2px solid #e5e7eb;
-                border-radius: 10px;
+                height: 40px;
+                padding: 0 12px;
+                font-size: 14px;
+                border: 1px solid #e5e7eb;
+                border-radius: 6px;
                 background-color: #fff;
                 box-sizing: border-box;
             }

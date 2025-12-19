@@ -317,7 +317,7 @@ class Assets {
             'id'    => $user->ID,
             'name'  => $user->display_name,
             'title' => get_user_meta( $user_id, 'job_title', true ) ?: 'Loan Officer',
-            'nmls'  => get_user_meta( $user_id, 'nmls_id', true ) ?: get_user_meta( $user_id, 'nmls', true ),
+            'nmls'  => \FRSLeadPages\frs_get_user_nmls( $user_id ),
             'phone' => get_user_meta( $user_id, 'phone', true ) ?: get_user_meta( $user_id, 'billing_phone', true ),
             'email' => $user->user_email,
             'photo' => get_avatar_url( $user_id, [ 'size' => 200 ] ),

@@ -99,6 +99,32 @@ if ( ! function_exists( 'frs_get_user_photo' ) ) {
     }
 }
 
+// Helper function to get user NMLS from multiple sources
+if ( ! function_exists( 'frs_get_user_nmls' ) ) {
+    function frs_get_user_nmls( $user_id ) {
+        if ( ! $user_id ) return '';
+
+        // 1. Check FRS Profiles table first (most accurate source)
+        if ( class_exists( 'FRSUsers\Models\Profile' ) ) {
+            $profile = \FRSUsers\Models\Profile::where( 'user_id', $user_id )->first();
+            if ( $profile ) {
+                $nmls = $profile->nmls ?: $profile->nmls_number;
+                if ( ! empty( $nmls ) ) return $nmls;
+            }
+        }
+
+        // 2. Check linked person post meta
+        $profile_id = get_user_meta( $user_id, 'profile', true );
+        if ( $profile_id ) {
+            $nmls = get_post_meta( $profile_id, 'nmls', true ) ?: get_post_meta( $profile_id, 'nmls_number', true );
+            if ( ! empty( $nmls ) ) return $nmls;
+        }
+
+        // 3. Fallback to user meta
+        return get_user_meta( $user_id, 'nmls_id', true ) ?: get_user_meta( $user_id, 'nmls', true );
+    }
+}
+
 // Get LO data
 $lo_data = [];
 if ( $lo_id ) {
@@ -111,7 +137,7 @@ if ( $lo_id ) {
             'last_name'  => $lo_user->last_name,
             'email'      => $lo_user->user_email,
             'phone'      => get_user_meta( $lo_id, 'phone', true ) ?: get_user_meta( $lo_id, 'phone_number', true ) ?: get_user_meta( $lo_id, 'mobile_phone', true ),
-            'nmls'       => get_user_meta( $lo_id, 'nmls_id', true ) ?: get_user_meta( $lo_id, 'nmls', true ),
+            'nmls'       => \FRSLeadPages\frs_get_user_nmls( $lo_id ),
             'title'      => get_user_meta( $lo_id, 'job_title', true ) ?: 'Loan Officer',
             'company'    => '21st Century Lending',
             'photo'      => frs_get_user_photo( $lo_id ),

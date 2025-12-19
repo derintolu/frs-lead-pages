@@ -1391,13 +1391,25 @@ class Shortcodes {
             return [];
         }
 
+        // Get profile ID for this user (leads table stores profile IDs, not user IDs)
+        $profile_id = null;
+        if ( class_exists( '\FRSUsers\Models\Profile' ) ) {
+            $profile = \FRSUsers\Models\Profile::where( 'user_id', $user_id )->first();
+            if ( $profile ) {
+                $profile_id = $profile->id;
+            }
+        }
+
+        // If no profile found, fall back to user_id (for backwards compatibility)
+        $query_id = $profile_id ?: $user_id;
+
         // Query BOTH loan_officer_id AND agent_id - user could be either/both
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
         $results = $wpdb->get_results(
             $wpdb->prepare(
                 "SELECT * FROM {$table_name} WHERE loan_officer_id = %d OR agent_id = %d ORDER BY created_date DESC LIMIT 100",
-                $user_id,
-                $user_id
+                $query_id,
+                $query_id
             ),
             ARRAY_A
         );

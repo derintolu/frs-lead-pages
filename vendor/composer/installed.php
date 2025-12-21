@@ -1,0 +1,41 @@
+<?php return array(
+    'root' => array(
+        'name' => 'frs/lead-pages',
+        'pretty_version' => 'dev-main',
+        'version' => 'dev-main',
+        'reference' => '1eaf1f8e124992e340d91b6775743e2dd35ba452',
+        'type' => 'library',
+        'install_path' => __DIR__ . '/../../',
+        'aliases' => array(),
+        'dev' => false,
+    ),
+    'versions' => array(
+        'automattic/jetpack-autoloader' => array(
+            'pretty_version' => 'v3.1.3',
+            'version' => '3.1.3.0',
+            'reference' => 'e7e49a4e2f16cb2dfd3e58c478499a60d7d51839',
+            'type' => 'composer-plugin',
+            'install_path' => __DIR__ . '/../automattic/jetpack-autoloader',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'frs/lead-pages' => array(
+            'pretty_version' => 'dev-main',
+            'version' => 'dev-main',
+            'reference' => '1eaf1f8e124992e340d91b6775743e2dd35ba452',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../../',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'prappo/wp-eloquent' => array(
+            'pretty_version' => 'v3.0.5',
+            'version' => '3.0.5.0',
+            'reference' => '394e285a573248b176f93dffd85f9d7256a2475b',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../prappo/wp-eloquent',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+    ),
+);

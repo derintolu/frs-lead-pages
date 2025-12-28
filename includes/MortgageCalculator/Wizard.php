@@ -11,6 +11,8 @@
 namespace FRSLeadPages\MortgageCalculator;
 
 use FRSLeadPages\Core\LoanOfficers;
+use FRSLeadPages\Core\Realtors;
+use FRSLeadPages\Core\UserMode;
 
 class Wizard {
 
@@ -121,17 +123,19 @@ class Wizard {
      * Render wizard content
      */
     private static function render_wizard_content( bool $is_modal = false ): string {
-        $user = wp_get_current_user();
-        $user_data = [
-            'id'      => $user->ID,
-            'name'    => $user->display_name,
-            'email'   => $user->user_email,
-            'phone'   => get_user_meta( $user->ID, 'phone', true ) ?: get_user_meta( $user->ID, 'billing_phone', true ),
-            'license' => get_user_meta( $user->ID, 'license_number', true ),
-            'photo'   => get_avatar_url( $user->ID, [ 'size' => 200 ] ),
-        ];
+        // Determine user mode (Loan Officer or Realtor)
+        $user_mode = UserMode::get_mode();
+        $is_loan_officer = UserMode::is_loan_officer();
+        $partner_config = UserMode::get_partner_step_config();
 
-        $loan_officers = LoanOfficers::get_loan_officers();
+        // Get current user data for pre-fill
+        $user = wp_get_current_user();
+        $user_data = UserMode::get_current_user_data();
+        $user_data['mode'] = $user_mode;
+        $user_data['photo'] = get_avatar_url( $user->ID, [ 'size' => 200 ] );
+
+        // Get partners based on user mode
+        $partners = $partner_config['partners'];
 
         ob_start();
         ?>
@@ -159,39 +163,60 @@ class Wizard {
                 </div>
 
                 <div class="mc-wizard__content">
-                <!-- Step 0: Choose Loan Officer -->
+                <!-- Step 0: Choose Partner (bi-directional) -->
                 <div class="mc-step" data-step="0">
                     <div class="mc-step__header">
-                        <h2>Partner Up</h2>
-                        <p>Select a loan officer to co-brand this calculator</p>
+                        <h2><?php echo esc_html( $partner_config['title'] ); ?></h2>
+                        <p><?php echo esc_html( $partner_config['subtitle'] ); ?></p>
                     </div>
                     <div class="mc-step__body">
-                        <label class="mc-label">Loan Officer</label>
-                        <div class="mc-dropdown" id="mc-loan-officer-dropdown">
-                            <input type="hidden" id="mc-loan-officer" name="loan_officer" value="">
+                        <label class="mc-label"><?php echo esc_html( $partner_config['label'] ); ?></label>
+                        <div class="mc-dropdown" id="mc-partner-dropdown" data-mode="<?php echo esc_attr( $user_mode ); ?>" data-required="<?php echo $partner_config['required'] ? 'true' : 'false'; ?>">
+                            <input type="hidden" id="mc-partner" name="partner" value="">
                             <button type="button" class="mc-dropdown__trigger">
-                                <span class="mc-dropdown__value">Select a loan officer...</span>
+                                <span class="mc-dropdown__value"><?php echo esc_html( $partner_config['placeholder'] ); ?></span>
                                 <svg class="mc-dropdown__arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
                             </button>
                             <div class="mc-dropdown__menu">
-                                <?php foreach ( $loan_officers as $lo ) : ?>
+                                <?php foreach ( $partners as $partner ) : ?>
+                                    <?php
+                                    $partner_id = $partner['user_id'] ?? $partner['id'];
+                                    $partner_name = $partner['name'];
+                                    $partner_photo = $partner['photo_url'] ?? '';
+                                    $partner_email = $partner['email'] ?? '';
+                                    $partner_phone = $partner['phone'] ?? '';
+                                    $partner_nmls = $partner['nmls'] ?? '';
+                                    $partner_license = $partner['license'] ?? '';
+                                    $partner_company = $partner['company'] ?? '';
+                                    ?>
                                     <div class="mc-dropdown__item"
-                                         data-value="<?php echo esc_attr( $lo['id'] ); ?>"
-                                         data-name="<?php echo esc_attr( $lo['name'] ); ?>"
-                                         data-nmls="<?php echo esc_attr( $lo['nmls'] ); ?>"
-                                         data-photo="<?php echo esc_attr( $lo['photo_url'] ); ?>"
-                                         data-email="<?php echo esc_attr( $lo['email'] ); ?>"
-                                         data-phone="<?php echo esc_attr( $lo['phone'] ); ?>">
-                                        <img src="<?php echo esc_url( $lo['photo_url'] ); ?>" alt="" class="mc-dropdown__photo">
+                                         data-value="<?php echo esc_attr( $partner_id ); ?>"
+                                         data-name="<?php echo esc_attr( $partner_name ); ?>"
+                                         data-nmls="<?php echo esc_attr( $partner_nmls ); ?>"
+                                         data-license="<?php echo esc_attr( $partner_license ); ?>"
+                                         data-company="<?php echo esc_attr( $partner_company ); ?>"
+                                         data-photo="<?php echo esc_attr( $partner_photo ); ?>"
+                                         data-email="<?php echo esc_attr( $partner_email ); ?>"
+                                         data-phone="<?php echo esc_attr( $partner_phone ); ?>">
+                                        <img src="<?php echo esc_url( $partner_photo ); ?>" alt="" class="mc-dropdown__photo">
                                         <div class="mc-dropdown__info">
-                                            <span class="mc-dropdown__name"><?php echo esc_html( $lo['name'] ); ?></span>
-                                            <span class="mc-dropdown__nmls">NMLS# <?php echo esc_html( $lo['nmls'] ); ?></span>
+                                            <span class="mc-dropdown__name"><?php echo esc_html( $partner_name ); ?></span>
+                                            <?php if ( $is_loan_officer && $partner_company ) : ?>
+                                                <span class="mc-dropdown__nmls"><?php echo esc_html( $partner_company ); ?></span>
+                                            <?php elseif ( $partner_nmls ) : ?>
+                                                <span class="mc-dropdown__nmls">NMLS# <?php echo esc_html( $partner_nmls ); ?></span>
+                                            <?php endif; ?>
                                         </div>
                                     </div>
                                 <?php endforeach; ?>
                             </div>
                         </div>
-                        <p class="mc-helper">Your loan officer's info and branding will appear on the calculator.</p>
+                        <p class="mc-helper"><?php echo esc_html( $partner_config['helper'] ); ?></p>
+                        <?php if ( $is_loan_officer && $partner_config['skip_text'] ) : ?>
+                            <button type="button" id="mc-skip-partner" class="mc-btn mc-btn--ghost" style="margin-top: 16px; width: 100%;">
+                                <?php echo esc_html( $partner_config['skip_text'] ); ?>
+                            </button>
+                        <?php endif; ?>
 
                         <div class="mc-color-section">
                             <label class="mc-label">Calculator Colors</label>
@@ -220,7 +245,7 @@ class Wizard {
                     </div>
                 </div>
 
-                <!-- Step 1: Your Branding -->
+                <!-- Step 1: Your Branding (bi-directional) -->
                 <div class="mc-step" data-step="1" style="display:none;">
                     <div class="mc-step__header">
                         <h2>Your Branding</h2>
@@ -233,25 +258,47 @@ class Wizard {
                             </div>
                             <div class="mc-branding-info">
                                 <p class="mc-branding-name" id="mc-preview-name"><?php echo esc_html( $user_data['name'] ); ?></p>
-                                <p class="mc-branding-detail" id="mc-preview-license"><?php echo esc_html( $user_data['license'] ); ?></p>
+                                <p class="mc-branding-detail" id="mc-preview-license"><?php echo esc_html( $is_loan_officer ? ( $user_data['nmls'] ?? '' ) : ( $user_data['license'] ?? '' ) ); ?></p>
                             </div>
                         </div>
-                        <div class="mc-field">
-                            <label class="mc-label">Display Name</label>
-                            <input type="text" id="mc-realtor-name" class="mc-input" value="<?php echo esc_attr( $user_data['name'] ); ?>">
-                        </div>
-                        <div class="mc-field">
-                            <label class="mc-label">License Number</label>
-                            <input type="text" id="mc-realtor-license" class="mc-input" value="<?php echo esc_attr( $user_data['license'] ); ?>">
-                        </div>
-                        <div class="mc-field">
-                            <label class="mc-label">Contact Phone</label>
-                            <input type="tel" id="mc-realtor-phone" class="mc-input" value="<?php echo esc_attr( $user_data['phone'] ); ?>">
-                        </div>
-                        <div class="mc-field">
-                            <label class="mc-label">Contact Email</label>
-                            <input type="email" id="mc-realtor-email" class="mc-input" value="<?php echo esc_attr( $user_data['email'] ); ?>">
-                        </div>
+
+                        <?php if ( $is_loan_officer ) : ?>
+                            <!-- LO Mode: Show LO fields -->
+                            <div class="mc-field">
+                                <label class="mc-label">Display Name</label>
+                                <input type="text" id="mc-lo-name" class="mc-input" value="<?php echo esc_attr( $user_data['name'] ); ?>">
+                            </div>
+                            <div class="mc-field">
+                                <label class="mc-label">NMLS #</label>
+                                <input type="text" id="mc-lo-nmls" class="mc-input" value="<?php echo esc_attr( $user_data['nmls'] ?? '' ); ?>">
+                            </div>
+                            <div class="mc-field">
+                                <label class="mc-label">Contact Phone</label>
+                                <input type="tel" id="mc-lo-phone" class="mc-input" value="<?php echo esc_attr( $user_data['phone'] ); ?>">
+                            </div>
+                            <div class="mc-field">
+                                <label class="mc-label">Contact Email</label>
+                                <input type="email" id="mc-lo-email" class="mc-input" value="<?php echo esc_attr( $user_data['email'] ); ?>">
+                            </div>
+                        <?php else : ?>
+                            <!-- Realtor Mode: Show Realtor fields -->
+                            <div class="mc-field">
+                                <label class="mc-label">Display Name</label>
+                                <input type="text" id="mc-realtor-name" class="mc-input" value="<?php echo esc_attr( $user_data['name'] ); ?>">
+                            </div>
+                            <div class="mc-field">
+                                <label class="mc-label">License Number</label>
+                                <input type="text" id="mc-realtor-license" class="mc-input" value="<?php echo esc_attr( $user_data['license'] ?? '' ); ?>">
+                            </div>
+                            <div class="mc-field">
+                                <label class="mc-label">Contact Phone</label>
+                                <input type="tel" id="mc-realtor-phone" class="mc-input" value="<?php echo esc_attr( $user_data['phone'] ); ?>">
+                            </div>
+                            <div class="mc-field">
+                                <label class="mc-label">Contact Email</label>
+                                <input type="email" id="mc-realtor-email" class="mc-input" value="<?php echo esc_attr( $user_data['email'] ); ?>">
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
 
@@ -1361,8 +1408,13 @@ class Wizard {
 
             let currentStep = 0;
             const totalSteps = 3;
-            let selectedLO = null;
+            let selectedPartner = null;
             let selectedOutputType = 'landing_page';
+
+            // Get user data and mode
+            const userData = JSON.parse(wizard.dataset.user || "{}");
+            const userMode = userData.mode || "realtor";
+            const isLoanOfficer = userMode === "loan_officer";
 
             // Open modal
             document.querySelectorAll('.<?php echo self::TRIGGER_CLASS; ?>').forEach(btn => {
@@ -1387,14 +1439,24 @@ class Wizard {
                 document.body.style.overflow = '';
             }
 
+            // Skip partner button (LO mode only)
+            const skipPartnerBtn = document.getElementById('mc-skip-partner');
+            if (skipPartnerBtn) {
+                skipPartnerBtn.addEventListener('click', () => {
+                    selectedPartner = null; // Clear partner
+                    goToStep(1);
+                });
+            }
+
             // Dropdown functionality
-            const dropdown = document.getElementById('mc-loan-officer-dropdown');
+            const dropdown = document.getElementById('mc-partner-dropdown');
             if (dropdown) {
                 const trigger = dropdown.querySelector('.mc-dropdown__trigger');
                 const menu = dropdown.querySelector('.mc-dropdown__menu');
                 const items = dropdown.querySelectorAll('.mc-dropdown__item');
-                const input = document.getElementById('mc-loan-officer');
+                const input = document.getElementById('mc-partner');
                 const valueDisplay = dropdown.querySelector('.mc-dropdown__value');
+                const isRequired = dropdown.dataset.required === 'true';
 
                 trigger.addEventListener('click', () => {
                     dropdown.classList.toggle('is-open');
@@ -1405,16 +1467,18 @@ class Wizard {
                         items.forEach(i => i.classList.remove('is-selected'));
                         item.classList.add('is-selected');
                         input.value = item.dataset.value;
-                        selectedLO = {
+                        selectedPartner = {
                             id: item.dataset.value,
                             name: item.dataset.name,
-                            nmls: item.dataset.nmls,
-                            photo: item.dataset.photo,
-                            email: item.dataset.email,
-                            phone: item.dataset.phone
+                            nmls: item.dataset.nmls || '',
+                            license: item.dataset.license || '',
+                            company: item.dataset.company || '',
+                            photo: item.dataset.photo || '',
+                            email: item.dataset.email || '',
+                            phone: item.dataset.phone || ''
                         };
                         valueDisplay.innerHTML = `
-                            <img src="${item.dataset.photo}" style="width:24px;height:24px;border-radius:50%;margin-right:8px;">
+                            <img src="${item.dataset.photo || ''}" style="width:24px;height:24px;border-radius:50%;margin-right:8px;">
                             ${item.dataset.name}
                         `;
                         dropdown.classList.remove('is-open');
@@ -1486,28 +1550,53 @@ class Wizard {
 
             // Generate embed code
             function generateEmbedCode() {
-                if (!selectedLO) return;
-
-                const userData = JSON.parse(wizard.dataset.user);
                 const siteUrl = '<?php echo esc_url( home_url() ); ?>';
                 const gradientStart = document.getElementById('mc-color-start').value;
                 const gradientEnd = document.getElementById('mc-color-end').value;
 
-                // Build embed code with LO data attributes and colors
-                const embedCode = `<!-- Mortgage Calculator Widget - Powered by 21st Century Lending -->
+                let embedCode;
+                if (isLoanOfficer) {
+                    // LO mode: Get LO data from current user, partner is optional realtor
+                    const loName = document.getElementById('mc-lo-name')?.value || userData.name;
+                    const loNmls = document.getElementById('mc-lo-nmls')?.value || userData.nmls || '';
+                    const loPhone = document.getElementById('mc-lo-phone')?.value || userData.phone;
+                    const loEmail = document.getElementById('mc-lo-email')?.value || userData.email;
+
+                    embedCode = `<!-- Mortgage Calculator Widget - Powered by 21st Century Lending -->
 <div id="frs-mortgage-calculator"
-     data-lo-id="${selectedLO.id}"
-     data-lo-name="${selectedLO.name}"
-     data-lo-nmls="${selectedLO.nmls}"
-     data-lo-photo="${selectedLO.photo}"
-     data-lo-email="${selectedLO.email}"
-     data-lo-phone="${selectedLO.phone}"
-     data-realtor-id="${userData.id}"
-     data-realtor-name="${document.getElementById('mc-realtor-name').value || userData.name}"
+     data-lo-id="${userData.id}"
+     data-lo-name="${loName}"
+     data-lo-nmls="${loNmls}"
+     data-lo-photo="${userData.photo || ''}"
+     data-lo-email="${loEmail}"
+     data-lo-phone="${loPhone}"
+     ${selectedPartner ? `data-realtor-id="${selectedPartner.id}"` : ''}
+     ${selectedPartner ? `data-realtor-name="${selectedPartner.name}"` : ''}
      data-gradient-start="${gradientStart}"
      data-gradient-end="${gradientEnd}">
 </div>
 <script src="${siteUrl}/wp-content/plugins/frs-lrg/assets/widget/dist/widget.js"><\/script>`;
+                } else {
+                    // Realtor mode: Partner is the LO
+                    if (!selectedPartner) return;
+
+                    const realtorName = document.getElementById('mc-realtor-name')?.value || userData.name;
+
+                    embedCode = `<!-- Mortgage Calculator Widget - Powered by 21st Century Lending -->
+<div id="frs-mortgage-calculator"
+     data-lo-id="${selectedPartner.id}"
+     data-lo-name="${selectedPartner.name}"
+     data-lo-nmls="${selectedPartner.nmls}"
+     data-lo-photo="${selectedPartner.photo}"
+     data-lo-email="${selectedPartner.email}"
+     data-lo-phone="${selectedPartner.phone}"
+     data-realtor-id="${userData.id}"
+     data-realtor-name="${realtorName}"
+     data-gradient-start="${gradientStart}"
+     data-gradient-end="${gradientEnd}">
+</div>
+<script src="${siteUrl}/wp-content/plugins/frs-lrg/assets/widget/dist/widget.js"><\/script>`;
+                }
 
                 const codeEl = document.getElementById('mc-embed-code');
                 if (codeEl) {
@@ -1555,12 +1644,14 @@ class Wizard {
                 createAnotherBtn.addEventListener('click', () => {
                     // Reset wizard state
                     currentStep = 0;
-                    selectedLO = null;
+                    selectedPartner = null;
                     selectedOutputType = 'landing_page';
 
                     // Reset form
-                    document.getElementById('mc-loan-officer').value = '';
-                    document.querySelector('.mc-dropdown__value').textContent = 'Select a loan officer...';
+                    const partnerInput = document.getElementById('mc-partner');
+                    if (partnerInput) partnerInput.value = '';
+                    const dropdownValue = document.querySelector('#mc-partner-dropdown .mc-dropdown__value');
+                    if (dropdownValue) dropdownValue.textContent = isLoanOfficer ? 'Select a realtor partner...' : 'Select a loan officer...';
                     document.querySelectorAll('.mc-dropdown__item').forEach(i => i.classList.remove('is-selected'));
                     document.querySelectorAll('input[name="mc-output-type"]').forEach(i => {
                         i.checked = i.value === 'landing_page';
@@ -1650,9 +1741,14 @@ class Wizard {
             }
 
             function validateStep() {
-                if (currentStep === 0 && !selectedLO) {
-                    alert('Please select a loan officer');
-                    return false;
+                if (currentStep === 0) {
+                    const partnerDropdown = document.getElementById('mc-partner-dropdown');
+                    const isRequired = partnerDropdown?.dataset.required === 'true';
+
+                    if (isRequired && !selectedPartner) {
+                        alert(isLoanOfficer ? 'Please select a realtor partner' : 'Please select a loan officer');
+                        return false;
+                    }
                 }
                 return true;
             }
@@ -1668,19 +1764,38 @@ class Wizard {
                 nextBtn.classList.add('is-loading');
                 nextBtn.disabled = true;
 
-                const userData = JSON.parse(wizard.dataset.user);
-
                 const data = {
                     action: 'frs_create_calculator',
                     nonce: '<?php echo wp_create_nonce( 'frs_lead_pages' ); ?>',
-                    loan_officer_id: selectedLO.id,
-                    realtor_name: document.getElementById('mc-realtor-name').value,
-                    realtor_license: document.getElementById('mc-realtor-license').value,
-                    realtor_phone: document.getElementById('mc-realtor-phone').value,
-                    realtor_email: document.getElementById('mc-realtor-email').value,
+                    user_mode: userMode,
                     gradient_start: document.getElementById('mc-color-start').value,
                     gradient_end: document.getElementById('mc-color-end').value
                 };
+
+                // Add data based on user mode
+                if (isLoanOfficer) {
+                    // LO mode: Current user is LO, optional realtor partner
+                    data.lo_name = document.getElementById('mc-lo-name')?.value || userData.name;
+                    data.lo_nmls = document.getElementById('mc-lo-nmls')?.value || '';
+                    data.lo_phone = document.getElementById('mc-lo-phone')?.value || '';
+                    data.lo_email = document.getElementById('mc-lo-email')?.value || '';
+
+                    if (selectedPartner) {
+                        data.partner_id = selectedPartner.id;
+                        data.partner_name = selectedPartner.name;
+                        data.partner_license = selectedPartner.license;
+                        data.partner_company = selectedPartner.company;
+                        data.partner_phone = selectedPartner.phone;
+                        data.partner_email = selectedPartner.email;
+                    }
+                } else {
+                    // Realtor mode: Partner is LO
+                    data.realtor_name = document.getElementById('mc-realtor-name')?.value || userData.name;
+                    data.realtor_license = document.getElementById('mc-realtor-license')?.value || '';
+                    data.realtor_phone = document.getElementById('mc-realtor-phone')?.value || '';
+                    data.realtor_email = document.getElementById('mc-realtor-email')?.value || '';
+                    data.loan_officer_id = selectedPartner?.id || '';
+                }
 
                 fetch('<?php echo admin_url( 'admin-ajax.php' ); ?>', {
                     method: 'POST',
@@ -1812,22 +1927,50 @@ class Wizard {
             wp_send_json_error( [ 'message' => $post_id->get_error_message() ] );
         }
 
-        // Save meta
+        // Save common meta
         update_post_meta( $post_id, '_frs_page_type', 'mortgage_calculator' );
         update_post_meta( $post_id, '_frs_calculator_type', $calculator_type );
         update_post_meta( $post_id, '_frs_headline', $headline );
         update_post_meta( $post_id, '_frs_subheadline', $subheadline );
         update_post_meta( $post_id, '_frs_value_props', $value_props );
         update_post_meta( $post_id, '_frs_hero_image', $hero_image );
-        update_post_meta( $post_id, '_frs_loan_officer_id', $loan_officer_id );
-        update_post_meta( $post_id, '_frs_realtor_id', $user->ID );
         update_post_meta( $post_id, '_frs_fields', $fields );
-        update_post_meta( $post_id, '_frs_realtor_name', sanitize_text_field( $_POST['realtor_name'] ?? '' ) );
-        update_post_meta( $post_id, '_frs_realtor_license', sanitize_text_field( $_POST['realtor_license'] ?? '' ) );
-        update_post_meta( $post_id, '_frs_realtor_phone', sanitize_text_field( $_POST['realtor_phone'] ?? '' ) );
-        update_post_meta( $post_id, '_frs_realtor_email', sanitize_email( $_POST['realtor_email'] ?? '' ) );
         update_post_meta( $post_id, '_frs_gradient_start', sanitize_hex_color( $_POST['gradient_start'] ?? '#2563eb' ) );
         update_post_meta( $post_id, '_frs_gradient_end', sanitize_hex_color( $_POST['gradient_end'] ?? '#2dd4da' ) );
+
+        // Save creator info and partner info based on user mode
+        $user_mode = sanitize_text_field( $_POST['user_mode'] ?? 'realtor' );
+        update_post_meta( $post_id, '_frs_creator_mode', $user_mode );
+
+        if ( $user_mode === 'loan_officer' ) {
+            // LO Mode: Current user is the LO, partner is optional Realtor
+            update_post_meta( $post_id, '_frs_loan_officer_id', $user->ID );
+            update_post_meta( $post_id, '_frs_lo_name', sanitize_text_field( $_POST['lo_name'] ?? '' ) );
+            update_post_meta( $post_id, '_frs_lo_phone', sanitize_text_field( $_POST['lo_phone'] ?? '' ) );
+            update_post_meta( $post_id, '_frs_lo_email', sanitize_email( $_POST['lo_email'] ?? '' ) );
+            update_post_meta( $post_id, '_frs_lo_nmls', sanitize_text_field( $_POST['lo_nmls'] ?? '' ) );
+
+            // Optional Realtor partner
+            $partner_id = absint( $_POST['partner_id'] ?? 0 );
+            if ( $partner_id ) {
+                update_post_meta( $post_id, '_frs_realtor_id', $partner_id );
+                update_post_meta( $post_id, '_frs_realtor_name', sanitize_text_field( $_POST['partner_name'] ?? '' ) );
+                update_post_meta( $post_id, '_frs_realtor_phone', sanitize_text_field( $_POST['partner_phone'] ?? '' ) );
+                update_post_meta( $post_id, '_frs_realtor_email', sanitize_email( $_POST['partner_email'] ?? '' ) );
+                update_post_meta( $post_id, '_frs_realtor_license', sanitize_text_field( $_POST['partner_license'] ?? '' ) );
+                update_post_meta( $post_id, '_frs_realtor_company', sanitize_text_field( $_POST['partner_company'] ?? '' ) );
+            }
+        } else {
+            // Realtor Mode: Current user is the Realtor, partner is required LO
+            update_post_meta( $post_id, '_frs_realtor_id', $user->ID );
+            update_post_meta( $post_id, '_frs_realtor_name', sanitize_text_field( $_POST['realtor_name'] ?? '' ) );
+            update_post_meta( $post_id, '_frs_realtor_phone', sanitize_text_field( $_POST['realtor_phone'] ?? '' ) );
+            update_post_meta( $post_id, '_frs_realtor_email', sanitize_email( $_POST['realtor_email'] ?? '' ) );
+            update_post_meta( $post_id, '_frs_realtor_license', sanitize_text_field( $_POST['realtor_license'] ?? '' ) );
+
+            // LO partner
+            update_post_meta( $post_id, '_frs_loan_officer_id', absint( $_POST['loan_officer_id'] ?? 0 ) );
+        }
 
         wp_send_json_success([
             'post_id' => $post_id,

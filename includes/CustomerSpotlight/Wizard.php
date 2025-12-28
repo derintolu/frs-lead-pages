@@ -378,7 +378,7 @@ Smooth closing process"></textarea>
                     </div>
                 </div>
 
-                <!-- Step 6: Branding -->
+                <!-- Step 6: Branding (bi-directional) -->
                 <div class="cs-step" data-step="6" style="display:none;">
                     <div class="cs-step__header">
                         <h2>Your Team Info</h2>
@@ -386,31 +386,61 @@ Smooth closing process"></textarea>
                     </div>
                     <div class="cs-step__body">
                         <p class="cs-section-label">Your Information</p>
-                        <div class="cs-row">
-                            <div class="cs-field cs-field--half">
-                                <label class="cs-label">Your Name</label>
-                                <input type="text" id="cs-realtor-name" class="cs-input" value="<?php echo esc_attr( $user_data['name'] ); ?>">
+                        <?php if ( $is_loan_officer ) : ?>
+                            <!-- LO Mode: Show LO fields -->
+                            <div class="cs-row">
+                                <div class="cs-field cs-field--half">
+                                    <label class="cs-label">Your Name</label>
+                                    <input type="text" id="cs-lo-name" class="cs-input" value="<?php echo esc_attr( $user_data['name'] ); ?>">
+                                </div>
+                                <div class="cs-field cs-field--half">
+                                    <label class="cs-label">NMLS #</label>
+                                    <input type="text" id="cs-lo-nmls" class="cs-input" value="<?php echo esc_attr( $user_data['nmls'] ?? '' ); ?>">
+                                </div>
                             </div>
-                            <div class="cs-field cs-field--half">
-                                <label class="cs-label">License #</label>
-                                <input type="text" id="cs-realtor-license" class="cs-input" value="<?php echo esc_attr( $user_data['license'] ); ?>">
+                            <div class="cs-row">
+                                <div class="cs-field cs-field--half">
+                                    <label class="cs-label">Phone</label>
+                                    <input type="tel" id="cs-lo-phone" class="cs-input" value="<?php echo esc_attr( $user_data['phone'] ); ?>">
+                                </div>
+                                <div class="cs-field cs-field--half">
+                                    <label class="cs-label">Email</label>
+                                    <input type="email" id="cs-lo-email" class="cs-input" value="<?php echo esc_attr( $user_data['email'] ); ?>">
+                                </div>
                             </div>
-                        </div>
-                        <div class="cs-row">
-                            <div class="cs-field cs-field--half">
-                                <label class="cs-label">Phone</label>
-                                <input type="tel" id="cs-realtor-phone" class="cs-input" value="<?php echo esc_attr( $user_data['phone'] ); ?>">
-                            </div>
-                            <div class="cs-field cs-field--half">
-                                <label class="cs-label">Email</label>
-                                <input type="email" id="cs-realtor-email" class="cs-input" value="<?php echo esc_attr( $user_data['email'] ); ?>">
-                            </div>
-                        </div>
 
-                        <p class="cs-section-label" style="margin-top:24px;">Loan Officer (from Step 1)</p>
-                        <div id="cs-lo-preview" class="cs-lo-preview">
-                            <!-- Populated by JS -->
-                        </div>
+                            <p class="cs-section-label" style="margin-top:24px;">Realtor Partner (from Step 1)</p>
+                            <div id="cs-partner-preview" class="cs-lo-preview">
+                                <p style="color:#94a3b8;font-size:14px;margin:0;" id="cs-no-partner-msg">No realtor partner selected (solo page)</p>
+                            </div>
+                        <?php else : ?>
+                            <!-- Realtor Mode: Show Realtor fields -->
+                            <div class="cs-row">
+                                <div class="cs-field cs-field--half">
+                                    <label class="cs-label">Your Name</label>
+                                    <input type="text" id="cs-realtor-name" class="cs-input" value="<?php echo esc_attr( $user_data['name'] ); ?>">
+                                </div>
+                                <div class="cs-field cs-field--half">
+                                    <label class="cs-label">License #</label>
+                                    <input type="text" id="cs-realtor-license" class="cs-input" value="<?php echo esc_attr( $user_data['license'] ?? '' ); ?>">
+                                </div>
+                            </div>
+                            <div class="cs-row">
+                                <div class="cs-field cs-field--half">
+                                    <label class="cs-label">Phone</label>
+                                    <input type="tel" id="cs-realtor-phone" class="cs-input" value="<?php echo esc_attr( $user_data['phone'] ); ?>">
+                                </div>
+                                <div class="cs-field cs-field--half">
+                                    <label class="cs-label">Email</label>
+                                    <input type="email" id="cs-realtor-email" class="cs-input" value="<?php echo esc_attr( $user_data['email'] ); ?>">
+                                </div>
+                            </div>
+
+                            <p class="cs-section-label" style="margin-top:24px;">Loan Officer (from Step 1)</p>
+                            <div id="cs-partner-preview" class="cs-lo-preview">
+                                <!-- Populated by JS -->
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
 
@@ -1125,8 +1155,13 @@ Smooth closing process"></textarea>
             const nextBtnTop = document.getElementById("cs-next-top");
 
             let currentStep = 0;
+            const userData = JSON.parse(wizard.dataset.user || "{}");
+            const userMode = userData.mode || "realtor";
+            const isLoanOfficer = userMode === "loan_officer";
+
             let data = {
-                loanOfficer: {},
+                userMode: userMode,
+                partner: {},
                 spotlightType: "",
                 customize: {},
                 questions: {},
@@ -1164,6 +1199,8 @@ Smooth closing process"></textarea>
 
                         if (item.dataset.name) hiddenInput.dataset.name = item.dataset.name;
                         if (item.dataset.nmls) hiddenInput.dataset.nmls = item.dataset.nmls;
+                        if (item.dataset.license) hiddenInput.dataset.license = item.dataset.license;
+                        if (item.dataset.company) hiddenInput.dataset.company = item.dataset.company;
                         if (item.dataset.photo) hiddenInput.dataset.photo = item.dataset.photo;
                         if (item.dataset.email) hiddenInput.dataset.email = item.dataset.email;
                         if (item.dataset.phone) hiddenInput.dataset.phone = item.dataset.phone;
@@ -1174,6 +1211,16 @@ Smooth closing process"></textarea>
             document.addEventListener("click", () => {
                 document.querySelectorAll(".cs-dropdown.open").forEach(d => d.classList.remove("open"));
             });
+
+            // Skip partner button (LO mode only)
+            const skipPartnerBtn = document.getElementById("cs-skip-partner");
+            if (skipPartnerBtn) {
+                skipPartnerBtn.addEventListener("click", () => {
+                    data.partner = {}; // Clear partner
+                    currentStep++;
+                    showStep(currentStep);
+                });
+            }
 
             // Update headline options when spotlight type changes
             wizard.querySelectorAll("input[name=\"cs-spotlight-type\"]").forEach(radio => {
@@ -1244,25 +1291,35 @@ Smooth closing process"></textarea>
                 if (backBtnTop) backBtnTop.style.display = step > 0 ? "inline-flex" : "none";
                 if (nextBtnTop) nextBtnTop.style.display = step < 7 ? "inline-flex" : "none";
 
-                if (step === 6) updateLoPreview();
+                if (step === 6) updatePartnerPreview();
                 if (step === 7) updateSummary();
             }
 
             function validateStep(step) {
                 if (step === 0) {
-                    const lo = document.getElementById("cs-loan-officer");
-                    if (!lo.value) {
-                        alert("Please select a loan officer");
+                    const partner = document.getElementById("cs-partner");
+                    const dropdown = document.getElementById("cs-partner-dropdown");
+                    const isRequired = dropdown?.dataset.required === "true";
+
+                    if (isRequired && !partner.value) {
+                        alert(isLoanOfficer ? "Please select a realtor partner" : "Please select a loan officer");
                         return false;
                     }
-                    data.loanOfficer = {
-                        id: lo.value,
-                        name: lo.dataset.name,
-                        nmls: lo.dataset.nmls,
-                        photo: lo.dataset.photo,
-                        email: lo.dataset.email,
-                        phone: lo.dataset.phone
-                    };
+
+                    if (partner.value) {
+                        data.partner = {
+                            id: partner.value,
+                            name: partner.dataset.name || "",
+                            nmls: partner.dataset.nmls || "",
+                            license: partner.dataset.license || "",
+                            company: partner.dataset.company || "",
+                            photo: partner.dataset.photo || "",
+                            email: partner.dataset.email || "",
+                            phone: partner.dataset.phone || ""
+                        };
+                    } else {
+                        data.partner = {};
+                    }
                 }
                 if (step === 1) {
                     const typeRadio = wizard.querySelector("input[name=\"cs-spotlight-type\"]:checked");
@@ -1304,31 +1361,54 @@ Smooth closing process"></textarea>
                     };
                 }
                 if (step === 5) {
-                    data.branding = {
-                        realtorName: document.getElementById("cs-realtor-name").value,
-                        realtorLicense: document.getElementById("cs-realtor-license").value,
-                        realtorPhone: document.getElementById("cs-realtor-phone").value,
-                        realtorEmail: document.getElementById("cs-realtor-email").value
-                    };
+                    // Collect branding based on user mode
+                    if (isLoanOfficer) {
+                        data.branding = {
+                            loName: document.getElementById("cs-lo-name")?.value || "",
+                            loNmls: document.getElementById("cs-lo-nmls")?.value || "",
+                            loPhone: document.getElementById("cs-lo-phone")?.value || "",
+                            loEmail: document.getElementById("cs-lo-email")?.value || ""
+                        };
+                    } else {
+                        data.branding = {
+                            realtorName: document.getElementById("cs-realtor-name")?.value || "",
+                            realtorLicense: document.getElementById("cs-realtor-license")?.value || "",
+                            realtorPhone: document.getElementById("cs-realtor-phone")?.value || "",
+                            realtorEmail: document.getElementById("cs-realtor-email")?.value || ""
+                        };
+                    }
                 }
                 return true;
             }
 
-            function updateLoPreview() {
-                const preview = document.getElementById("cs-lo-preview");
-                if (data.loanOfficer.name) {
+            function updatePartnerPreview() {
+                const preview = document.getElementById("cs-partner-preview");
+                const noPartnerMsg = document.getElementById("cs-no-partner-msg");
+
+                if (data.partner && data.partner.name) {
+                    // Show partner info
+                    const subtitle = isLoanOfficer
+                        ? (data.partner.company || data.partner.license ? `License# ${data.partner.license}` : "")
+                        : (data.partner.nmls ? `NMLS# ${data.partner.nmls}` : "");
+
                     preview.innerHTML = `
-                        <img src="${data.loanOfficer.photo || ""}" alt="">
+                        <img src="${data.partner.photo || ""}" alt="">
                         <div class="cs-lo-preview__info">
-                            <h4>${data.loanOfficer.name}</h4>
-                            <p>NMLS# ${data.loanOfficer.nmls}</p>
+                            <h4>${data.partner.name}</h4>
+                            <p>${subtitle}</p>
                         </div>
                     `;
+                } else if (noPartnerMsg) {
+                    // Show no partner message (LO mode only)
+                    preview.innerHTML = `<p style="color:#94a3b8;font-size:14px;margin:0;">No ${isLoanOfficer ? "realtor partner" : "loan officer"} selected (solo page)</p>`;
                 }
             }
 
             function updateSummary() {
                 const summary = document.getElementById("cs-summary");
+                const partnerLabel = isLoanOfficer ? "Realtor Partner" : "Loan Officer";
+                const partnerName = data.partner?.name || "None (solo page)";
+
                 summary.innerHTML = `
                     <div class="cs-summary__row">
                         <span class="cs-summary__label">Spotlight Type</span>
@@ -1339,8 +1419,8 @@ Smooth closing process"></textarea>
                         <span class="cs-summary__value">${data.customize.headline}</span>
                     </div>
                     <div class="cs-summary__row">
-                        <span class="cs-summary__label">Loan Officer</span>
-                        <span class="cs-summary__value">${data.loanOfficer.name}</span>
+                        <span class="cs-summary__label">${partnerLabel}</span>
+                        <span class="cs-summary__value">${partnerName}</span>
                     </div>
                 `;
             }
@@ -1469,21 +1549,51 @@ Smooth closing process"></textarea>
             wp_send_json_error( $page_id->get_error_message() );
         }
 
-        // Save meta
+        // Save common meta
         update_post_meta( $page_id, '_frs_page_type', 'customer_spotlight' );
         update_post_meta( $page_id, '_frs_spotlight_type', $data['spotlightType'] );
         update_post_meta( $page_id, '_frs_headline', $data['customize']['headline'] ?? '' );
         update_post_meta( $page_id, '_frs_subheadline', $data['customize']['subheadline'] ?? '' );
         update_post_meta( $page_id, '_frs_value_props', $data['customize']['valueProps'] ?? '' );
         update_post_meta( $page_id, '_frs_hero_image_url', $data['heroImage'] ?? '' );
-        update_post_meta( $page_id, '_frs_loan_officer_id', $data['loanOfficer']['id'] ?? '' );
-        update_post_meta( $page_id, '_frs_realtor_id', get_current_user_id() );
-        update_post_meta( $page_id, '_frs_realtor_name', $data['branding']['realtorName'] ?? '' );
-        update_post_meta( $page_id, '_frs_realtor_phone', $data['branding']['realtorPhone'] ?? '' );
-        update_post_meta( $page_id, '_frs_realtor_email', $data['branding']['realtorEmail'] ?? '' );
-        update_post_meta( $page_id, '_frs_realtor_license', $data['branding']['realtorLicense'] ?? '' );
         update_post_meta( $page_id, '_frs_enabled_questions', $data['questions'] ?? [] );
         update_post_meta( $page_id, '_frs_page_views', 0 );
+
+        // Save creator info and partner info based on user mode
+        $user_mode = $data['userMode'] ?? 'realtor';
+        update_post_meta( $page_id, '_frs_creator_mode', $user_mode );
+
+        if ( $user_mode === 'loan_officer' ) {
+            // LO Mode: Current user is the LO, partner is optional Realtor
+            update_post_meta( $page_id, '_frs_loan_officer_id', get_current_user_id() );
+            update_post_meta( $page_id, '_frs_lo_name', $data['branding']['loName'] ?? '' );
+            update_post_meta( $page_id, '_frs_lo_phone', $data['branding']['loPhone'] ?? '' );
+            update_post_meta( $page_id, '_frs_lo_email', $data['branding']['loEmail'] ?? '' );
+            update_post_meta( $page_id, '_frs_lo_nmls', $data['branding']['loNmls'] ?? '' );
+
+            // Optional Realtor partner
+            if ( ! empty( $data['partner']['id'] ) ) {
+                update_post_meta( $page_id, '_frs_realtor_id', $data['partner']['id'] );
+                update_post_meta( $page_id, '_frs_realtor_name', $data['partner']['name'] ?? '' );
+                update_post_meta( $page_id, '_frs_realtor_phone', $data['partner']['phone'] ?? '' );
+                update_post_meta( $page_id, '_frs_realtor_email', $data['partner']['email'] ?? '' );
+                update_post_meta( $page_id, '_frs_realtor_license', $data['partner']['license'] ?? '' );
+                update_post_meta( $page_id, '_frs_realtor_company', $data['partner']['company'] ?? '' );
+            }
+        } else {
+            // Realtor Mode: Current user is the Realtor, partner is required LO
+            update_post_meta( $page_id, '_frs_realtor_id', get_current_user_id() );
+            update_post_meta( $page_id, '_frs_realtor_name', $data['branding']['realtorName'] ?? '' );
+            update_post_meta( $page_id, '_frs_realtor_phone', $data['branding']['realtorPhone'] ?? '' );
+            update_post_meta( $page_id, '_frs_realtor_email', $data['branding']['realtorEmail'] ?? '' );
+            update_post_meta( $page_id, '_frs_realtor_license', $data['branding']['realtorLicense'] ?? '' );
+
+            // LO partner (required for realtor mode)
+            $lo_id = $data['partner']['id'] ?? '';
+            if ( ! empty( $lo_id ) ) {
+                update_post_meta( $page_id, '_frs_loan_officer_id', $lo_id );
+            }
+        }
 
         wp_send_json_success([
             'id'  => $page_id,

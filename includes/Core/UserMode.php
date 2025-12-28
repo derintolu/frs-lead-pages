@@ -149,6 +149,9 @@ class UserMode {
     /**
      * Get wizard step 0 config based on user mode
      *
+     * For Realtors: Uses PartnerPortal to get available LOs and preferred selection
+     * For LOs: Returns all Realtors (optional selection)
+     *
      * @return array Configuration for the partner selection step
      */
     public static function get_partner_step_config(): array {
@@ -156,28 +159,51 @@ class UserMode {
 
         if ( $mode === self::MODE_LOAN_OFFICER ) {
             return [
-                'title'       => 'Add a Realtor Partner',
-                'subtitle'    => 'Optionally co-brand this page with a realtor',
-                'label'       => 'Realtor Partner',
-                'placeholder' => 'Select a realtor (optional)...',
-                'helper'      => 'Leave empty to create a page for yourself, or select a realtor to co-brand.',
-                'required'    => false,
-                'partners'    => Realtors::get_realtors(),
-                'skip_text'   => 'Skip - Create for myself only',
+                'title'         => 'Add a Realtor Partner',
+                'subtitle'      => 'Optionally co-brand this page with a realtor',
+                'label'         => 'Realtor Partner',
+                'placeholder'   => 'Select a realtor (optional)...',
+                'helper'        => 'Leave empty to create a page for yourself, or select a realtor to co-brand.',
+                'required'      => false,
+                'partners'      => Realtors::get_realtors(),
+                'skip_text'     => 'Skip - Create for myself only',
+                'preferred_id'  => 0,
+                'show_remember' => false,
+                'auto_selected' => false,
             ];
         }
 
-        // Default: Realtor mode
-        return [
-            'title'       => 'Partner Up',
-            'subtitle'    => 'Select a loan officer to co-brand this page',
-            'label'       => 'Loan Officer',
-            'placeholder' => 'Select a loan officer...',
-            'helper'      => 'Your loan officer\'s info and branding will appear on the page.',
-            'required'    => true,
-            'partners'    => LoanOfficers::get_loan_officers(),
-            'skip_text'   => null,
+        // Realtor mode: Use PartnerPortal for available LOs and preferences
+        $available_los = PartnerPortal::get_available_loan_officers();
+        $preferred_lo = PartnerPortal::get_preferred_loan_officer();
+
+        $config = [
+            'title'         => 'Partner Up',
+            'subtitle'      => 'Select a loan officer to co-brand this page',
+            'label'         => 'Loan Officer',
+            'placeholder'   => 'Select a loan officer...',
+            'helper'        => 'Your loan officer\'s info and branding will appear on the page.',
+            'required'      => true,
+            'partners'      => $available_los,
+            'skip_text'     => null,
+            'preferred_id'  => $preferred_lo,
+            'show_remember' => true, // Show "Remember my choice" checkbox
+            'auto_selected' => false,
         ];
+
+        // If only one LO available, auto-select them
+        if ( count( $available_los ) === 1 ) {
+            $config['preferred_id'] = (int) $available_los[0]['id'];
+            $config['auto_selected'] = true;
+            $config['helper'] = 'This loan officer will be featured on your page.';
+        }
+
+        // If preferred LO is set, update helper text
+        if ( $preferred_lo > 0 && ! $config['auto_selected'] ) {
+            $config['helper'] = 'Your preferred loan officer is pre-selected. You can change this anytime.';
+        }
+
+        return $config;
     }
 
     /**

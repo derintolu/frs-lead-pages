@@ -117,6 +117,9 @@ function init() {
     // Initialize integrations
     Integrations\FluentForms::init();
 
+    // Initialize Partner Portal (multisite support)
+    Core\PartnerPortal::init();
+
     // Initialize wizards
     OpenHouse\Wizard::init();
     CustomerSpotlight\Wizard::init();

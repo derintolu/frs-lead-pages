@@ -13,7 +13,6 @@ namespace FRSLeadPages\ApplyNow;
 use FRSLeadPages\Core\LoanOfficers;
 use FRSLeadPages\Core\Realtors;
 use FRSLeadPages\Core\UserMode;
-use FRSLeadPages\Integrations\FluentForms;
 
 class Wizard {
 
@@ -139,7 +138,7 @@ class Wizard {
         $partners = $partner_config['partners'];
 
         // Get available forms
-        $forms = FluentForms::get_forms();
+        $forms = self::get_fluent_forms();
 
         // Get Fluent Booking calendars for current user
         $calendars = self::get_user_calendars();
@@ -491,6 +490,31 @@ class Wizard {
         }
 
         return $calendars;
+    }
+
+    /**
+     * Get available Fluent Forms
+     */
+    private static function get_fluent_forms(): array {
+        $forms = [];
+
+        if ( ! defined( 'FLUENTFORM_VERSION' ) || ! class_exists( '\FluentForm\App\Models\Form' ) ) {
+            return $forms;
+        }
+
+        $all_forms = \FluentForm\App\Models\Form::select( ['id', 'title'] )
+            ->where( 'status', 'published' )
+            ->orderBy( 'title', 'asc' )
+            ->get();
+
+        foreach ( $all_forms as $form ) {
+            $forms[] = [
+                'id'    => $form->id,
+                'title' => $form->title,
+            ];
+        }
+
+        return $forms;
     }
 
     /**

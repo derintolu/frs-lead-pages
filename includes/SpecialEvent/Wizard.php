@@ -169,75 +169,121 @@ class Wizard {
                 </div>
 
                 <div class="se-wizard__content">
-                <!-- Step 0: Choose Partner (bi-directional) -->
+                <!-- Step 0: Page Type Selection -->
                 <div class="se-step" data-step="0">
                     <div class="se-step__header">
-                        <h2><?php echo esc_html( $partner_config['title'] ); ?></h2>
-                        <p><?php echo esc_html( $partner_config['subtitle'] ); ?></p>
+                        <h2><?php echo $is_loan_officer ? 'What type of page?' : esc_html( $partner_config['title'] ); ?></h2>
+                        <p><?php echo $is_loan_officer ? 'Choose how you want to brand this page' : esc_html( $partner_config['subtitle'] ); ?></p>
                     </div>
                     <div class="se-step__body">
-                        <label class="se-label"><?php echo esc_html( $partner_config['label'] ); ?></label>
-                        <div class="se-dropdown" id="se-partner-dropdown"
-                             data-mode="<?php echo esc_attr( $user_mode ); ?>"
-                             data-required="<?php echo $partner_config['required'] ? 'true' : 'false'; ?>"
-                             data-preferred="<?php echo esc_attr( $partner_config['preferred_id'] ?? 0 ); ?>"
-                             data-auto-selected="<?php echo ( $partner_config['auto_selected'] ?? false ) ? 'true' : 'false'; ?>">
+                        <?php if ( $is_loan_officer ) : ?>
+                            <input type="hidden" id="se-page-type" name="page_type" value="">
                             <input type="hidden" id="se-partner" name="partner" value="">
-                            <button type="button" class="se-dropdown__trigger">
-                                <span class="se-dropdown__value"><?php echo esc_html( $partner_config['placeholder'] ); ?></span>
-                                <svg class="se-dropdown__arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
-                            </button>
-                            <div class="se-dropdown__menu">
-                                <?php foreach ( $partners as $partner ) : ?>
-                                    <?php
-                                    $partner_id = $partner['user_id'] ?? $partner['id'];
-                                    $partner_name = $partner['name'];
-                                    $partner_photo = $partner['photo_url'] ?? '';
-                                    $partner_email = $partner['email'] ?? '';
-                                    $partner_phone = $partner['phone'] ?? '';
-                                    $partner_nmls = $partner['nmls'] ?? '';
-                                    $partner_license = $partner['license'] ?? '';
-                                    $partner_company = $partner['company'] ?? '';
-                                    $is_preferred = ( (int) $partner_id === (int) ( $partner_config['preferred_id'] ?? 0 ) );
-                                    ?>
-                                    <div class="se-dropdown__item<?php echo $is_preferred ? ' se-dropdown__item--preferred' : ''; ?>"
-                                         data-value="<?php echo esc_attr( $partner_id ); ?>"
-                                         data-name="<?php echo esc_attr( $partner_name ); ?>"
-                                         data-nmls="<?php echo esc_attr( $partner_nmls ); ?>"
-                                         data-license="<?php echo esc_attr( $partner_license ); ?>"
-                                         data-company="<?php echo esc_attr( $partner_company ); ?>"
-                                         data-photo="<?php echo esc_attr( $partner_photo ); ?>"
-                                         data-email="<?php echo esc_attr( $partner_email ); ?>"
-                                         data-phone="<?php echo esc_attr( $partner_phone ); ?>">
-                                        <img src="<?php echo esc_url( $partner_photo ); ?>" alt="" class="se-dropdown__photo">
-                                        <div class="se-dropdown__info">
-                                            <span class="se-dropdown__name"><?php echo esc_html( $partner_name ); ?></span>
-                                            <?php if ( $is_loan_officer && $partner_company ) : ?>
-                                                <span class="se-dropdown__nmls"><?php echo esc_html( $partner_company ); ?></span>
-                                            <?php elseif ( $partner_nmls ) : ?>
-                                                <span class="se-dropdown__nmls">NMLS# <?php echo esc_html( $partner_nmls ); ?></span>
+
+                            <div class="se-page-type-cards">
+                                <div class="se-page-type-card" data-type="solo">
+                                    <div class="se-page-type-card__icon">
+                                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                            <circle cx="12" cy="8" r="4"/>
+                                            <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
+                                        </svg>
+                                    </div>
+                                    <h3>Solo Page</h3>
+                                    <p>Just your branding</p>
+                                </div>
+                                <div class="se-page-type-card" data-type="cobranded">
+                                    <div class="se-page-type-card__icon">
+                                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                            <circle cx="9" cy="8" r="3.5"/>
+                                            <circle cx="15" cy="8" r="3.5"/>
+                                            <path d="M3 21v-2a4 4 0 0 1 4-4h2"/>
+                                            <path d="M15 15h2a4 4 0 0 1 4 4v2"/>
+                                        </svg>
+                                    </div>
+                                    <h3>Co-branded</h3>
+                                    <p>With a partner</p>
+                                </div>
+                            </div>
+
+                            <div id="se-partner-selection" class="se-partner-selection" style="display: none;">
+                                <label class="se-label" style="margin-top: 24px;">Select Partner</label>
+                                <div class="se-dropdown" id="se-partner-dropdown" data-mode="<?php echo esc_attr( $user_mode ); ?>" data-required="false">
+                                    <button type="button" class="se-dropdown__trigger">
+                                        <span class="se-dropdown__value">Choose a partner...</span>
+                                        <svg class="se-dropdown__arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                                    </button>
+                                    <div class="se-dropdown__menu">
+                                        <?php foreach ( $partners as $partner ) : ?>
+                                            <?php
+                                            $partner_id = $partner['user_id'] ?? $partner['id'];
+                                            $partner_name = $partner['name'];
+                                            $partner_photo = $partner['photo_url'] ?? '';
+                                            $partner_license = $partner['license'] ?? '';
+                                            $partner_company = $partner['company'] ?? '';
+                                            ?>
+                                            <div class="se-dropdown__item"
+                                                 data-value="<?php echo esc_attr( $partner_id ); ?>"
+                                                 data-name="<?php echo esc_attr( $partner_name ); ?>"
+                                                 data-license="<?php echo esc_attr( $partner_license ); ?>"
+                                                 data-company="<?php echo esc_attr( $partner_company ); ?>"
+                                                 data-photo="<?php echo esc_attr( $partner_photo ); ?>">
+                                                <img src="<?php echo esc_url( $partner_photo ); ?>" alt="" class="se-dropdown__photo">
+                                                <div class="se-dropdown__info">
+                                                    <span class="se-dropdown__name"><?php echo esc_html( $partner_name ); ?></span>
+                                                    <?php if ( $partner_company ) : ?>
+                                                        <span class="se-dropdown__nmls"><?php echo esc_html( $partner_company ); ?></span>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                </div>
+                                <p class="se-helper">Select a real estate partner for co-branding</p>
+                            </div>
+                        <?php else : ?>
+                            <label class="se-label"><?php echo esc_html( $partner_config['label'] ); ?></label>
+                            <div class="se-dropdown" id="se-partner-dropdown" data-mode="<?php echo esc_attr( $user_mode ); ?>" data-required="true" data-preferred="<?php echo esc_attr( $partner_config['preferred_id'] ?? 0 ); ?>">
+                                <input type="hidden" id="se-partner" name="partner" value="">
+                                <button type="button" class="se-dropdown__trigger">
+                                    <span class="se-dropdown__value"><?php echo esc_html( $partner_config['placeholder'] ); ?></span>
+                                    <svg class="se-dropdown__arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                                </button>
+                                <div class="se-dropdown__menu">
+                                    <?php foreach ( $partners as $partner ) : ?>
+                                        <?php
+                                        $partner_id = $partner['user_id'] ?? $partner['id'];
+                                        $partner_name = $partner['name'];
+                                        $partner_photo = $partner['photo_url'] ?? '';
+                                        $partner_nmls = $partner['nmls'] ?? '';
+                                        $is_preferred = ( (int) $partner_id === (int) ( $partner_config['preferred_id'] ?? 0 ) );
+                                        ?>
+                                        <div class="se-dropdown__item<?php echo $is_preferred ? ' se-dropdown__item--preferred' : ''; ?>"
+                                             data-value="<?php echo esc_attr( $partner_id ); ?>"
+                                             data-name="<?php echo esc_attr( $partner_name ); ?>"
+                                             data-nmls="<?php echo esc_attr( $partner_nmls ); ?>"
+                                             data-photo="<?php echo esc_attr( $partner_photo ); ?>">
+                                            <img src="<?php echo esc_url( $partner_photo ); ?>" alt="" class="se-dropdown__photo">
+                                            <div class="se-dropdown__info">
+                                                <span class="se-dropdown__name"><?php echo esc_html( $partner_name ); ?></span>
+                                                <?php if ( $partner_nmls ) : ?>
+                                                    <span class="se-dropdown__nmls">NMLS# <?php echo esc_html( $partner_nmls ); ?></span>
+                                                <?php endif; ?>
+                                            </div>
+                                            <?php if ( $is_preferred ) : ?>
+                                                <span class="se-dropdown__preferred-badge">★ Preferred</span>
                                             <?php endif; ?>
                                         </div>
-                                        <?php if ( $is_preferred ) : ?>
-                                            <span class="se-dropdown__preferred-badge">★ Preferred</span>
-                                        <?php endif; ?>
-                                    </div>
-                                <?php endforeach; ?>
+                                    <?php endforeach; ?>
+                                </div>
                             </div>
-                        </div>
-                        <p class="se-helper"><?php echo esc_html( $partner_config['helper'] ); ?></p>
+                            <p class="se-helper"><?php echo esc_html( $partner_config['helper'] ); ?></p>
 
-                        <?php if ( ! $is_loan_officer && ( $partner_config['show_remember'] ?? false ) ) : ?>
-                            <label class="se-checkbox" style="margin-top: 12px;">
-                                <input type="checkbox" id="se-remember-partner" name="remember_partner" value="1">
-                                <span class="se-checkbox__label">Remember my choice for next time</span>
-                            </label>
-                        <?php endif; ?>
-
-                        <?php if ( $is_loan_officer && $partner_config['skip_text'] ) : ?>
-                            <button type="button" id="se-skip-partner" class="se-btn se-btn--ghost" style="margin-top: 16px; width: 100%;">
-                                <?php echo esc_html( $partner_config['skip_text'] ); ?>
-                            </button>
+                            <?php if ( $partner_config['show_remember'] ?? false ) : ?>
+                                <label class="se-checkbox" style="margin-top: 12px;">
+                                    <input type="checkbox" id="se-remember-partner" name="remember_partner" value="1">
+                                    <span class="se-checkbox__label">Remember my choice for next time</span>
+                                </label>
+                            <?php endif; ?>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -594,6 +640,20 @@ class Wizard {
             .se-success p { font-size: 16px; color: #64748b; margin: 0 0 28px; }
             .se-success__actions { display: flex; gap: 12px; justify-content: center; margin-bottom: 24px; }
             .se-link { font-size: 14px; color: #64748b; text-decoration: none; }
+
+            /* Page Type Cards (LO mode) */
+            .se-page-type-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 8px; }
+            .se-page-type-card { border: 2px solid #e2e8f0; border-radius: 12px; padding: 24px 16px; text-align: center; cursor: pointer; transition: all 0.2s ease; background: #fff; }
+            .se-page-type-card:hover { border-color: #fbbf24; background: #fffbeb; }
+            .se-page-type-card.selected { border-color: #f59e0b; background: #fef3c7; box-shadow: 0 0 0 4px rgba(245,158,11,0.15); }
+            .se-page-type-card__icon { width: 64px; height: 64px; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; background: #fef3c7; border-radius: 50%; }
+            .se-page-type-card__icon svg { stroke: #d97706; }
+            .se-page-type-card.selected .se-page-type-card__icon { background: #f59e0b; }
+            .se-page-type-card.selected .se-page-type-card__icon svg { stroke: #fff; }
+            .se-page-type-card h3 { font-size: 16px; font-weight: 600; color: #1e293b; margin: 0 0 4px; }
+            .se-page-type-card p { font-size: 13px; color: #64748b; margin: 0; }
+            .se-partner-selection { margin-top: 16px; }
+
             @media (max-width: 1024px) {
                 .se-wizard { flex-direction: column; height: auto; min-height: 100vh; }
                 .se-wizard__hero { width: 100%; padding: 48px 32px; }
@@ -685,6 +745,40 @@ class Wizard {
             const isLoanOfficer = userMode === "loan_officer";
 
             let data = { userMode: userMode, partner: {}, eventType: "", eventDetails: {}, customize: {}, questions: {}, branding: {} };
+
+            // Page type card selection (LO mode)
+            const pageTypeCards = wizard.querySelectorAll(".se-page-type-card");
+            const pageTypeInput = document.getElementById("se-page-type");
+            const partnerSelection = document.getElementById("se-partner-selection");
+            const partnerInput = document.getElementById("se-partner");
+
+            if (pageTypeCards.length > 0 && isLoanOfficer) {
+                pageTypeCards.forEach(card => {
+                    card.addEventListener("click", () => {
+                        // Deselect all cards
+                        pageTypeCards.forEach(c => c.classList.remove("selected"));
+                        // Select clicked card
+                        card.classList.add("selected");
+                        const pageType = card.dataset.type;
+                        if (pageTypeInput) pageTypeInput.value = pageType;
+
+                        // Show/hide partner selection
+                        if (partnerSelection) {
+                            if (pageType === "cobranded") {
+                                partnerSelection.style.display = "block";
+                            } else {
+                                partnerSelection.style.display = "none";
+                                // Clear partner selection for solo pages
+                                if (partnerInput) partnerInput.value = "";
+                                data.partner = {};
+                                const dropdownValue = wizard.querySelector("#se-partner-dropdown .se-dropdown__value");
+                                if (dropdownValue) dropdownValue.textContent = "Choose a partner...";
+                                wizard.querySelectorAll("#se-partner-dropdown .se-dropdown__item").forEach(i => i.classList.remove("selected"));
+                            }
+                        }
+                    });
+                });
+            }
 
             // Skip partner button (LO mode only)
             const skipPartnerBtn = document.getElementById("se-skip-partner");
@@ -812,47 +906,75 @@ class Wizard {
 
             function validateStep(step) {
                 if (step === 0) {
-                    const partner = document.getElementById("se-partner");
-                    const dropdown = document.getElementById("se-partner-dropdown");
-                    const isRequired = dropdown?.dataset.required === "true";
+                    if (isLoanOfficer) {
+                        // LO Mode: Check page type is selected
+                        const pageType = document.getElementById("se-page-type")?.value;
+                        if (!pageType) {
+                            alert("Please select Solo Page or Co-branded");
+                            return false;
+                        }
 
-                    if (isRequired && !partner.value) {
-                        alert(isLoanOfficer ? "Please select a realtor partner" : "Please select a loan officer");
-                        return false;
-                    }
-
-                    if (partner.value) {
-                        data.partner = {
-                            id: partner.value,
-                            name: partner.dataset.name || "",
-                            nmls: partner.dataset.nmls || "",
-                            license: partner.dataset.license || "",
-                            company: partner.dataset.company || "",
-                            photo: partner.dataset.photo || "",
-                            email: partner.dataset.email || "",
-                            phone: partner.dataset.phone || ""
-                        };
-
-                        // Save preference if "Remember my choice" is checked
-                        const rememberCheckbox = document.getElementById("se-remember-partner");
-                        if (rememberCheckbox && rememberCheckbox.checked) {
-                            fetch(ajaxurl, {
-                                method: "POST",
-                                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                                body: new URLSearchParams({
-                                    action: "frs_set_preferred_lo",
-                                    nonce: "' . wp_create_nonce( 'frs_lead_pages' ) . '",
-                                    lo_id: partner.value,
-                                    remember: "true"
-                                })
-                            }).then(r => r.json()).then(res => {
-                                console.log("SE Wizard: Saved preferred LO:", res);
-                            }).catch(err => {
-                                console.error("SE Wizard: Failed to save preference:", err);
-                            });
+                        // If co-branded, require partner selection
+                        if (pageType === "cobranded") {
+                            const partner = document.getElementById("se-partner");
+                            if (!partner?.value) {
+                                alert("Please select a partner for co-branding");
+                                return false;
+                            }
+                            data.partner = {
+                                id: partner.value,
+                                name: partner.dataset.name || "",
+                                license: partner.dataset.license || "",
+                                company: partner.dataset.company || "",
+                                photo: partner.dataset.photo || "",
+                                email: partner.dataset.email || "",
+                                phone: partner.dataset.phone || ""
+                            };
+                        } else {
+                            data.partner = {};
                         }
                     } else {
-                        data.partner = {};
+                        // Partner Mode: Require LO selection
+                        const partner = document.getElementById("se-partner");
+                        const dropdown = document.getElementById("se-partner-dropdown");
+                        const isRequired = dropdown?.dataset.required === "true";
+
+                        if (isRequired && !partner.value) {
+                            alert("Please select a loan officer");
+                            return false;
+                        }
+
+                        if (partner.value) {
+                            data.partner = {
+                                id: partner.value,
+                                name: partner.dataset.name || "",
+                                nmls: partner.dataset.nmls || "",
+                                photo: partner.dataset.photo || "",
+                                email: partner.dataset.email || "",
+                                phone: partner.dataset.phone || ""
+                            };
+
+                            // Save preference if "Remember my choice" is checked
+                            const rememberCheckbox = document.getElementById("se-remember-partner");
+                            if (rememberCheckbox && rememberCheckbox.checked) {
+                                fetch(ajaxurl, {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                                    body: new URLSearchParams({
+                                        action: "frs_set_preferred_lo",
+                                        nonce: "' . wp_create_nonce( 'frs_lead_pages' ) . '",
+                                        lo_id: partner.value,
+                                        remember: "true"
+                                    })
+                                }).then(r => r.json()).then(res => {
+                                    console.log("SE Wizard: Saved preferred LO:", res);
+                                }).catch(err => {
+                                    console.error("SE Wizard: Failed to save preference:", err);
+                                });
+                            }
+                        } else {
+                            data.partner = {};
+                        }
                     }
                 }
                 if (step === 1) {

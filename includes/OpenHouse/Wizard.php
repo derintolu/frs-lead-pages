@@ -210,77 +210,139 @@ class Wizard {
                 </div>
 
                 <div class="oh-wizard__content">
-                <!-- Step 0: Choose Partner (bi-directional: LOs select Realtors, Realtors select LOs) -->
+                <!-- Step 0: Page Type Selection -->
                 <div class="oh-step" data-step="0">
                     <div class="oh-step__header">
-                        <h2><?php echo esc_html( $partner_config['title'] ); ?></h2>
-                        <p><?php echo esc_html( $partner_config['subtitle'] ); ?></p>
+                        <h2><?php echo $is_loan_officer ? 'What type of page?' : esc_html( $partner_config['title'] ); ?></h2>
+                        <p><?php echo $is_loan_officer ? 'Choose how you want to brand this page' : esc_html( $partner_config['subtitle'] ); ?></p>
                     </div>
                     <div class="oh-step__body">
-                        <label class="oh-label"><?php echo esc_html( $partner_config['label'] ); ?></label>
-                        <div class="oh-dropdown" id="oh-partner-dropdown"
-                             data-mode="<?php echo esc_attr( $user_mode ); ?>"
-                             data-required="<?php echo $partner_config['required'] ? 'true' : 'false'; ?>"
-                             data-preferred="<?php echo esc_attr( $partner_config['preferred_id'] ?? 0 ); ?>"
-                             data-auto-selected="<?php echo ( $partner_config['auto_selected'] ?? false ) ? 'true' : 'false'; ?>">
+                        <?php if ( $is_loan_officer ) : ?>
+                            <!-- LO Mode: Choose Solo or Co-branded -->
+                            <input type="hidden" id="oh-page-type" name="page_type" value="">
                             <input type="hidden" id="oh-partner" name="partner" value="">
-                            <button type="button" class="oh-dropdown__trigger">
-                                <span class="oh-dropdown__value"><?php echo esc_html( $partner_config['placeholder'] ); ?></span>
-                                <svg class="oh-dropdown__arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
-                            </button>
-                            <div class="oh-dropdown__menu">
-                                <?php foreach ( $partners as $partner ) : ?>
-                                    <?php
-                                    // Build data attributes based on partner type
-                                    $partner_id = $partner['user_id'] ?? $partner['id'];
-                                    $partner_name = $partner['name'];
-                                    $partner_photo = $partner['photo_url'] ?? '';
-                                    $partner_email = $partner['email'] ?? '';
-                                    $partner_phone = $partner['phone'] ?? '';
-                                    // LO-specific: nmls, Realtor-specific: license, company
-                                    $partner_nmls = $partner['nmls'] ?? '';
-                                    $partner_license = $partner['license'] ?? '';
-                                    $partner_company = $partner['company'] ?? '';
-                                    $is_preferred = ( (int) $partner_id === (int) ( $partner_config['preferred_id'] ?? 0 ) );
-                                    ?>
-                                    <div class="oh-dropdown__item<?php echo $is_preferred ? ' oh-dropdown__item--preferred' : ''; ?>"
-                                         data-value="<?php echo esc_attr( $partner_id ); ?>"
-                                         data-name="<?php echo esc_attr( $partner_name ); ?>"
-                                         data-nmls="<?php echo esc_attr( $partner_nmls ); ?>"
-                                         data-license="<?php echo esc_attr( $partner_license ); ?>"
-                                         data-company="<?php echo esc_attr( $partner_company ); ?>"
-                                         data-photo="<?php echo esc_attr( $partner_photo ); ?>"
-                                         data-email="<?php echo esc_attr( $partner_email ); ?>"
-                                         data-phone="<?php echo esc_attr( $partner_phone ); ?>">
-                                        <img src="<?php echo esc_url( $partner_photo ); ?>" alt="" class="oh-dropdown__photo">
-                                        <div class="oh-dropdown__info">
-                                            <span class="oh-dropdown__name"><?php echo esc_html( $partner_name ); ?></span>
-                                            <?php if ( $is_loan_officer && $partner_company ) : ?>
-                                                <span class="oh-dropdown__nmls"><?php echo esc_html( $partner_company ); ?></span>
-                                            <?php elseif ( $partner_nmls ) : ?>
-                                                <span class="oh-dropdown__nmls">NMLS# <?php echo esc_html( $partner_nmls ); ?></span>
+
+                            <div class="oh-page-type-cards">
+                                <div class="oh-page-type-card" data-type="solo">
+                                    <div class="oh-page-type-card__icon">
+                                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                            <circle cx="12" cy="8" r="4"/>
+                                            <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
+                                        </svg>
+                                    </div>
+                                    <h3>Solo Page</h3>
+                                    <p>Just your branding</p>
+                                </div>
+                                <div class="oh-page-type-card" data-type="cobranded">
+                                    <div class="oh-page-type-card__icon">
+                                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                            <circle cx="9" cy="8" r="3.5"/>
+                                            <circle cx="15" cy="8" r="3.5"/>
+                                            <path d="M3 21v-2a4 4 0 0 1 4-4h2"/>
+                                            <path d="M15 15h2a4 4 0 0 1 4 4v2"/>
+                                        </svg>
+                                    </div>
+                                    <h3>Co-branded</h3>
+                                    <p>With a partner</p>
+                                </div>
+                            </div>
+
+                            <!-- Partner selection (shown when co-branded is selected) -->
+                            <div id="oh-partner-selection" class="oh-partner-selection" style="display: none;">
+                                <label class="oh-label" style="margin-top: 24px;">Select Partner</label>
+                                <div class="oh-dropdown" id="oh-partner-dropdown"
+                                     data-mode="<?php echo esc_attr( $user_mode ); ?>"
+                                     data-required="false"
+                                     data-preferred="<?php echo esc_attr( $partner_config['preferred_id'] ?? 0 ); ?>">
+                                    <button type="button" class="oh-dropdown__trigger">
+                                        <span class="oh-dropdown__value">Choose a partner...</span>
+                                        <svg class="oh-dropdown__arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                                    </button>
+                                    <div class="oh-dropdown__menu">
+                                        <?php foreach ( $partners as $partner ) : ?>
+                                            <?php
+                                            $partner_id = $partner['user_id'] ?? $partner['id'];
+                                            $partner_name = $partner['name'];
+                                            $partner_photo = $partner['photo_url'] ?? '';
+                                            $partner_email = $partner['email'] ?? '';
+                                            $partner_phone = $partner['phone'] ?? '';
+                                            $partner_license = $partner['license'] ?? '';
+                                            $partner_company = $partner['company'] ?? '';
+                                            ?>
+                                            <div class="oh-dropdown__item"
+                                                 data-value="<?php echo esc_attr( $partner_id ); ?>"
+                                                 data-name="<?php echo esc_attr( $partner_name ); ?>"
+                                                 data-license="<?php echo esc_attr( $partner_license ); ?>"
+                                                 data-company="<?php echo esc_attr( $partner_company ); ?>"
+                                                 data-photo="<?php echo esc_attr( $partner_photo ); ?>"
+                                                 data-email="<?php echo esc_attr( $partner_email ); ?>"
+                                                 data-phone="<?php echo esc_attr( $partner_phone ); ?>">
+                                                <img src="<?php echo esc_url( $partner_photo ); ?>" alt="" class="oh-dropdown__photo">
+                                                <div class="oh-dropdown__info">
+                                                    <span class="oh-dropdown__name"><?php echo esc_html( $partner_name ); ?></span>
+                                                    <?php if ( $partner_company ) : ?>
+                                                        <span class="oh-dropdown__nmls"><?php echo esc_html( $partner_company ); ?></span>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                </div>
+                                <p class="oh-helper">Select a real estate partner for co-branding</p>
+                            </div>
+                        <?php else : ?>
+                            <!-- Partner Mode: Select LO (required) -->
+                            <label class="oh-label"><?php echo esc_html( $partner_config['label'] ); ?></label>
+                            <div class="oh-dropdown" id="oh-partner-dropdown"
+                                 data-mode="<?php echo esc_attr( $user_mode ); ?>"
+                                 data-required="true"
+                                 data-preferred="<?php echo esc_attr( $partner_config['preferred_id'] ?? 0 ); ?>"
+                                 data-auto-selected="<?php echo ( $partner_config['auto_selected'] ?? false ) ? 'true' : 'false'; ?>">
+                                <input type="hidden" id="oh-partner" name="partner" value="">
+                                <button type="button" class="oh-dropdown__trigger">
+                                    <span class="oh-dropdown__value"><?php echo esc_html( $partner_config['placeholder'] ); ?></span>
+                                    <svg class="oh-dropdown__arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                                </button>
+                                <div class="oh-dropdown__menu">
+                                    <?php foreach ( $partners as $partner ) : ?>
+                                        <?php
+                                        $partner_id = $partner['user_id'] ?? $partner['id'];
+                                        $partner_name = $partner['name'];
+                                        $partner_photo = $partner['photo_url'] ?? '';
+                                        $partner_email = $partner['email'] ?? '';
+                                        $partner_phone = $partner['phone'] ?? '';
+                                        $partner_nmls = $partner['nmls'] ?? '';
+                                        $is_preferred = ( (int) $partner_id === (int) ( $partner_config['preferred_id'] ?? 0 ) );
+                                        ?>
+                                        <div class="oh-dropdown__item<?php echo $is_preferred ? ' oh-dropdown__item--preferred' : ''; ?>"
+                                             data-value="<?php echo esc_attr( $partner_id ); ?>"
+                                             data-name="<?php echo esc_attr( $partner_name ); ?>"
+                                             data-nmls="<?php echo esc_attr( $partner_nmls ); ?>"
+                                             data-photo="<?php echo esc_attr( $partner_photo ); ?>"
+                                             data-email="<?php echo esc_attr( $partner_email ); ?>"
+                                             data-phone="<?php echo esc_attr( $partner_phone ); ?>">
+                                            <img src="<?php echo esc_url( $partner_photo ); ?>" alt="" class="oh-dropdown__photo">
+                                            <div class="oh-dropdown__info">
+                                                <span class="oh-dropdown__name"><?php echo esc_html( $partner_name ); ?></span>
+                                                <?php if ( $partner_nmls ) : ?>
+                                                    <span class="oh-dropdown__nmls">NMLS# <?php echo esc_html( $partner_nmls ); ?></span>
+                                                <?php endif; ?>
+                                            </div>
+                                            <?php if ( $is_preferred ) : ?>
+                                                <span class="oh-dropdown__preferred-badge">★ Preferred</span>
                                             <?php endif; ?>
                                         </div>
-                                        <?php if ( $is_preferred ) : ?>
-                                            <span class="oh-dropdown__preferred-badge">★ Preferred</span>
-                                        <?php endif; ?>
-                                    </div>
-                                <?php endforeach; ?>
+                                    <?php endforeach; ?>
+                                </div>
                             </div>
-                        </div>
-                        <p class="oh-helper"><?php echo esc_html( $partner_config['helper'] ); ?></p>
+                            <p class="oh-helper"><?php echo esc_html( $partner_config['helper'] ); ?></p>
 
-                        <?php if ( ! $is_loan_officer && ( $partner_config['show_remember'] ?? false ) ) : ?>
-                            <label class="oh-checkbox" style="margin-top: 12px;">
-                                <input type="checkbox" id="oh-remember-partner" name="remember_partner" value="1">
-                                <span class="oh-checkbox__label">Remember my choice for next time</span>
-                            </label>
-                        <?php endif; ?>
-
-                        <?php if ( $is_loan_officer && $partner_config['skip_text'] ) : ?>
-                            <button type="button" id="oh-skip-partner" class="oh-btn oh-btn--ghost" style="margin-top: 16px; width: 100%;">
-                                <?php echo esc_html( $partner_config['skip_text'] ); ?>
-                            </button>
+                            <?php if ( $partner_config['show_remember'] ?? false ) : ?>
+                                <label class="oh-checkbox" style="margin-top: 12px;">
+                                    <input type="checkbox" id="oh-remember-partner" name="remember_partner" value="1">
+                                    <span class="oh-checkbox__label">Remember my choice for next time</span>
+                                </label>
+                            <?php endif; ?>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -851,6 +913,57 @@ class Wizard {
                 padding: 2px 8px;
                 border-radius: 10px;
             }
+            /* Page Type Cards (Step 0 for LOs) */
+            .oh-page-type-cards {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 16px;
+                margin-bottom: 8px;
+            }
+            .oh-page-type-card {
+                border: 2px solid #e2e8f0;
+                border-radius: 12px;
+                padding: 24px 16px;
+                text-align: center;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                background: #fff;
+            }
+            .oh-page-type-card:hover {
+                border-color: #0ea5e9;
+                background: #f0f9ff;
+            }
+            .oh-page-type-card.selected {
+                border-color: #0ea5e9;
+                background: #f0f9ff;
+                box-shadow: 0 0 0 4px rgba(14,165,233,0.15);
+            }
+            .oh-page-type-card__icon {
+                margin-bottom: 12px;
+                color: #64748b;
+            }
+            .oh-page-type-card.selected .oh-page-type-card__icon {
+                color: #0ea5e9;
+            }
+            .oh-page-type-card h3 {
+                font-size: 16px;
+                font-weight: 600;
+                color: #1e293b;
+                margin: 0 0 4px 0;
+            }
+            .oh-page-type-card p {
+                font-size: 13px;
+                color: #64748b;
+                margin: 0;
+            }
+            .oh-partner-selection {
+                animation: fadeIn 0.3s ease;
+            }
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(-10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+
             .oh-checkbox {
                 display: flex;
                 align-items: center;
@@ -1323,6 +1436,42 @@ class Wizard {
                 document.querySelectorAll(".oh-dropdown.open").forEach(d => d.classList.remove("open"));
             });
 
+            // Page type card selection (LO mode only)
+            const pageTypeCards = document.querySelectorAll(".oh-page-type-card");
+            const pageTypeInput = document.getElementById("oh-page-type");
+            const partnerSelection = document.getElementById("oh-partner-selection");
+
+            if (pageTypeCards.length > 0) {
+                pageTypeCards.forEach(card => {
+                    card.addEventListener("click", () => {
+                        // Remove selection from all cards
+                        pageTypeCards.forEach(c => c.classList.remove("selected"));
+                        // Select this card
+                        card.classList.add("selected");
+                        // Update hidden input
+                        const pageType = card.dataset.type;
+                        if (pageTypeInput) pageTypeInput.value = pageType;
+
+                        // Show/hide partner selection based on type
+                        if (partnerSelection) {
+                            if (pageType === "cobranded") {
+                                partnerSelection.style.display = "block";
+                            } else {
+                                partnerSelection.style.display = "none";
+                                // Clear partner selection if switching to solo
+                                const partnerInput = document.getElementById("oh-partner");
+                                if (partnerInput) {
+                                    partnerInput.value = "";
+                                    partnerInput.dataset.name = "";
+                                }
+                            }
+                        }
+
+                        console.log("OH Wizard: Page type selected:", pageType);
+                    });
+                });
+            }
+
             // Auto-select preferred partner if set
             const partnerDropdown = document.getElementById("oh-partner-dropdown");
             if (partnerDropdown) {
@@ -1381,34 +1530,60 @@ class Wizard {
             function validateStep(step) {
                 console.log("OH Wizard: Validating step:", step, "userMode:", userMode);
                 if (step === 0) {
-                    const partnerDropdown = document.getElementById("oh-partner-dropdown");
-                    const partner = document.getElementById("oh-partner");
-                    const isRequired = partnerDropdown?.dataset.required === "true";
+                    if (isLoanOfficer) {
+                        // LO Mode: Check page type selection
+                        const pageType = document.getElementById("oh-page-type")?.value;
 
-                    console.log("OH Wizard: Partner value:", partner?.value, "required:", isRequired);
+                        if (!pageType) {
+                            alert("Please select a page type (Solo or Co-branded)");
+                            return false;
+                        }
 
-                    if (isRequired && (!partner || !partner.value)) {
-                        alert(isLoanOfficer ? "Please select a realtor partner" : "Please select a loan officer");
-                        return false;
-                    }
+                        data.pageType = pageType;
 
-                    // Store partner data
-                    if (partner && partner.value) {
+                        // If co-branded, check partner selection
+                        if (pageType === "cobranded") {
+                            const partner = document.getElementById("oh-partner");
+                            if (!partner || !partner.value) {
+                                alert("Please select a partner for your co-branded page");
+                                return false;
+                            }
+
+                            data.partner = {
+                                id: partner.value,
+                                name: partner.dataset.name || "",
+                                license: partner.dataset.license || "",
+                                company: partner.dataset.company || "",
+                                photo: partner.dataset.photo || "",
+                                email: partner.dataset.email || "",
+                                phone: partner.dataset.phone || ""
+                            };
+                        } else {
+                            // Solo page - no partner
+                            data.partner = {};
+                        }
+
+                        console.log("OH Wizard: LO mode - pageType:", pageType, "partner:", data.partner);
+                    } else {
+                        // Partner Mode: LO selection required
+                        const partner = document.getElementById("oh-partner");
+
+                        if (!partner || !partner.value) {
+                            alert("Please select a loan officer");
+                            return false;
+                        }
+
                         data.partner = {
                             id: partner.value,
                             name: partner.dataset.name || "",
                             nmls: partner.dataset.nmls || "",
-                            license: partner.dataset.license || "",
-                            company: partner.dataset.company || "",
                             photo: partner.dataset.photo || "",
                             email: partner.dataset.email || "",
                             phone: partner.dataset.phone || ""
                         };
 
-                        // For backwards compatibility with existing flow
-                        if (!isLoanOfficer) {
-                            data.loanOfficer = data.partner;
-                        }
+                        // For backwards compatibility
+                        data.loanOfficer = data.partner;
 
                         // Save preference if "Remember my choice" is checked
                         const rememberCheckbox = document.getElementById("oh-remember-partner");
@@ -1428,11 +1603,9 @@ class Wizard {
                                 console.error("OH Wizard: Failed to save preference:", err);
                             });
                         }
-                    } else {
-                        data.partner = {};
-                    }
 
-                    console.log("OH Wizard: Partner data saved:", data.partner);
+                        console.log("OH Wizard: Partner mode - LO selected:", data.partner);
+                    }
                 }
                 if (step === 2) {
                     const addr = document.getElementById("oh-address").value;
@@ -1606,17 +1779,6 @@ class Wizard {
             }
 
             console.log("OH Wizard: Navigation handlers attached");
-
-            // Skip partner button (for LO mode)
-            const skipPartnerBtn = document.getElementById("oh-skip-partner");
-            if (skipPartnerBtn) {
-                skipPartnerBtn.addEventListener("click", function() {
-                    console.log("OH Wizard: Skipping partner selection");
-                    data.partner = {};
-                    currentStep++;
-                    showStep(currentStep);
-                });
-            }
 
             // Tab switching
             const tabs = wizard.querySelectorAll(".oh-tab");

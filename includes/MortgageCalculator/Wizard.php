@@ -163,78 +163,124 @@ class Wizard {
                 </div>
 
                 <div class="mc-wizard__content">
-                <!-- Step 0: Choose Partner (bi-directional) -->
+                <!-- Step 0: Page Type Selection -->
                 <div class="mc-step" data-step="0">
                     <div class="mc-step__header">
-                        <h2><?php echo esc_html( $partner_config['title'] ); ?></h2>
-                        <p><?php echo esc_html( $partner_config['subtitle'] ); ?></p>
+                        <h2><?php echo $is_loan_officer ? 'What type of page?' : esc_html( $partner_config['title'] ); ?></h2>
+                        <p><?php echo $is_loan_officer ? 'Choose how you want to brand this page' : esc_html( $partner_config['subtitle'] ); ?></p>
                     </div>
                     <div class="mc-step__body">
-                        <label class="mc-label"><?php echo esc_html( $partner_config['label'] ); ?></label>
-                        <div class="mc-dropdown" id="mc-partner-dropdown"
-                             data-mode="<?php echo esc_attr( $user_mode ); ?>"
-                             data-required="<?php echo $partner_config['required'] ? 'true' : 'false'; ?>"
-                             data-preferred="<?php echo esc_attr( $partner_config['preferred_id'] ?? 0 ); ?>"
-                             data-auto-selected="<?php echo ( $partner_config['auto_selected'] ?? false ) ? 'true' : 'false'; ?>">
+                        <?php if ( $is_loan_officer ) : ?>
+                            <input type="hidden" id="mc-page-type" name="page_type" value="">
                             <input type="hidden" id="mc-partner" name="partner" value="">
-                            <button type="button" class="mc-dropdown__trigger">
-                                <span class="mc-dropdown__value"><?php echo esc_html( $partner_config['placeholder'] ); ?></span>
-                                <svg class="mc-dropdown__arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
-                            </button>
-                            <div class="mc-dropdown__menu">
-                                <?php foreach ( $partners as $partner ) : ?>
-                                    <?php
-                                    $partner_id = $partner['user_id'] ?? $partner['id'];
-                                    $partner_name = $partner['name'];
-                                    $partner_photo = $partner['photo_url'] ?? '';
-                                    $partner_email = $partner['email'] ?? '';
-                                    $partner_phone = $partner['phone'] ?? '';
-                                    $partner_nmls = $partner['nmls'] ?? '';
-                                    $partner_license = $partner['license'] ?? '';
-                                    $partner_company = $partner['company'] ?? '';
-                                    $is_preferred = ( (int) $partner_id === (int) ( $partner_config['preferred_id'] ?? 0 ) );
-                                    ?>
-                                    <div class="mc-dropdown__item<?php echo $is_preferred ? ' mc-dropdown__item--preferred' : ''; ?>"
-                                         data-value="<?php echo esc_attr( $partner_id ); ?>"
-                                         data-name="<?php echo esc_attr( $partner_name ); ?>"
-                                         data-nmls="<?php echo esc_attr( $partner_nmls ); ?>"
-                                         data-license="<?php echo esc_attr( $partner_license ); ?>"
-                                         data-company="<?php echo esc_attr( $partner_company ); ?>"
-                                         data-photo="<?php echo esc_attr( $partner_photo ); ?>"
-                                         data-email="<?php echo esc_attr( $partner_email ); ?>"
-                                         data-phone="<?php echo esc_attr( $partner_phone ); ?>">
-                                        <img src="<?php echo esc_url( $partner_photo ); ?>" alt="" class="mc-dropdown__photo">
-                                        <div class="mc-dropdown__info">
-                                            <span class="mc-dropdown__name"><?php echo esc_html( $partner_name ); ?></span>
-                                            <?php if ( $is_loan_officer && $partner_company ) : ?>
-                                                <span class="mc-dropdown__nmls"><?php echo esc_html( $partner_company ); ?></span>
-                                            <?php elseif ( $partner_nmls ) : ?>
-                                                <span class="mc-dropdown__nmls">NMLS# <?php echo esc_html( $partner_nmls ); ?></span>
+
+                            <div class="mc-page-type-cards">
+                                <div class="mc-page-type-card" data-type="solo">
+                                    <div class="mc-page-type-card__icon">
+                                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                            <circle cx="12" cy="8" r="4"/>
+                                            <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
+                                        </svg>
+                                    </div>
+                                    <h3>Solo Page</h3>
+                                    <p>Just your branding</p>
+                                </div>
+                                <div class="mc-page-type-card" data-type="cobranded">
+                                    <div class="mc-page-type-card__icon">
+                                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                            <circle cx="9" cy="8" r="3.5"/>
+                                            <circle cx="15" cy="8" r="3.5"/>
+                                            <path d="M3 21v-2a4 4 0 0 1 4-4h2"/>
+                                            <path d="M15 15h2a4 4 0 0 1 4 4v2"/>
+                                        </svg>
+                                    </div>
+                                    <h3>Co-branded</h3>
+                                    <p>With a partner</p>
+                                </div>
+                            </div>
+
+                            <div id="mc-partner-selection" class="mc-partner-selection" style="display: none;">
+                                <label class="mc-label" style="margin-top: 24px;">Select Partner</label>
+                                <div class="mc-dropdown" id="mc-partner-dropdown" data-mode="<?php echo esc_attr( $user_mode ); ?>" data-required="false">
+                                    <button type="button" class="mc-dropdown__trigger">
+                                        <span class="mc-dropdown__value">Choose a partner...</span>
+                                        <svg class="mc-dropdown__arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                                    </button>
+                                    <div class="mc-dropdown__menu">
+                                        <?php foreach ( $partners as $partner ) : ?>
+                                            <?php
+                                            $partner_id = $partner['user_id'] ?? $partner['id'];
+                                            $partner_name = $partner['name'];
+                                            $partner_photo = $partner['photo_url'] ?? '';
+                                            $partner_license = $partner['license'] ?? '';
+                                            $partner_company = $partner['company'] ?? '';
+                                            ?>
+                                            <div class="mc-dropdown__item"
+                                                 data-value="<?php echo esc_attr( $partner_id ); ?>"
+                                                 data-name="<?php echo esc_attr( $partner_name ); ?>"
+                                                 data-license="<?php echo esc_attr( $partner_license ); ?>"
+                                                 data-company="<?php echo esc_attr( $partner_company ); ?>"
+                                                 data-photo="<?php echo esc_attr( $partner_photo ); ?>">
+                                                <img src="<?php echo esc_url( $partner_photo ); ?>" alt="" class="mc-dropdown__photo">
+                                                <div class="mc-dropdown__info">
+                                                    <span class="mc-dropdown__name"><?php echo esc_html( $partner_name ); ?></span>
+                                                    <?php if ( $partner_company ) : ?>
+                                                        <span class="mc-dropdown__nmls"><?php echo esc_html( $partner_company ); ?></span>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                </div>
+                                <p class="mc-helper">Select a real estate partner for co-branding</p>
+                            </div>
+                        <?php else : ?>
+                            <label class="mc-label"><?php echo esc_html( $partner_config['label'] ); ?></label>
+                            <div class="mc-dropdown" id="mc-partner-dropdown" data-mode="<?php echo esc_attr( $user_mode ); ?>" data-required="true" data-preferred="<?php echo esc_attr( $partner_config['preferred_id'] ?? 0 ); ?>">
+                                <input type="hidden" id="mc-partner" name="partner" value="">
+                                <button type="button" class="mc-dropdown__trigger">
+                                    <span class="mc-dropdown__value"><?php echo esc_html( $partner_config['placeholder'] ); ?></span>
+                                    <svg class="mc-dropdown__arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                                </button>
+                                <div class="mc-dropdown__menu">
+                                    <?php foreach ( $partners as $partner ) : ?>
+                                        <?php
+                                        $partner_id = $partner['user_id'] ?? $partner['id'];
+                                        $partner_name = $partner['name'];
+                                        $partner_photo = $partner['photo_url'] ?? '';
+                                        $partner_nmls = $partner['nmls'] ?? '';
+                                        $is_preferred = ( (int) $partner_id === (int) ( $partner_config['preferred_id'] ?? 0 ) );
+                                        ?>
+                                        <div class="mc-dropdown__item<?php echo $is_preferred ? ' mc-dropdown__item--preferred' : ''; ?>"
+                                             data-value="<?php echo esc_attr( $partner_id ); ?>"
+                                             data-name="<?php echo esc_attr( $partner_name ); ?>"
+                                             data-nmls="<?php echo esc_attr( $partner_nmls ); ?>"
+                                             data-photo="<?php echo esc_attr( $partner_photo ); ?>">
+                                            <img src="<?php echo esc_url( $partner_photo ); ?>" alt="" class="mc-dropdown__photo">
+                                            <div class="mc-dropdown__info">
+                                                <span class="mc-dropdown__name"><?php echo esc_html( $partner_name ); ?></span>
+                                                <?php if ( $partner_nmls ) : ?>
+                                                    <span class="mc-dropdown__nmls">NMLS# <?php echo esc_html( $partner_nmls ); ?></span>
+                                                <?php endif; ?>
+                                            </div>
+                                            <?php if ( $is_preferred ) : ?>
+                                                <span class="mc-dropdown__preferred-badge">★ Preferred</span>
                                             <?php endif; ?>
                                         </div>
-                                        <?php if ( $is_preferred ) : ?>
-                                            <span class="mc-dropdown__preferred-badge">★ Preferred</span>
-                                        <?php endif; ?>
-                                    </div>
-                                <?php endforeach; ?>
+                                    <?php endforeach; ?>
+                                </div>
                             </div>
-                        </div>
-                        <p class="mc-helper"><?php echo esc_html( $partner_config['helper'] ); ?></p>
+                            <p class="mc-helper"><?php echo esc_html( $partner_config['helper'] ); ?></p>
 
-                        <?php if ( ! $is_loan_officer && ( $partner_config['show_remember'] ?? false ) ) : ?>
-                            <label class="mc-checkbox" style="margin-top: 12px;">
-                                <input type="checkbox" id="mc-remember-partner" name="remember_partner" value="1">
-                                <span class="mc-checkbox__label">Remember my choice for next time</span>
-                            </label>
+                            <?php if ( $partner_config['show_remember'] ?? false ) : ?>
+                                <label class="mc-checkbox" style="margin-top: 12px;">
+                                    <input type="checkbox" id="mc-remember-partner" name="remember_partner" value="1">
+                                    <span class="mc-checkbox__label">Remember my choice for next time</span>
+                                </label>
+                            <?php endif; ?>
                         <?php endif; ?>
 
-                        <?php if ( $is_loan_officer && $partner_config['skip_text'] ) : ?>
-                            <button type="button" id="mc-skip-partner" class="mc-btn mc-btn--ghost" style="margin-top: 16px; width: 100%;">
-                                <?php echo esc_html( $partner_config['skip_text'] ); ?>
-                            </button>
-                        <?php endif; ?>
-
-                        <div class="mc-color-section">
+                        <div class="mc-color-section" style="margin-top: 24px;">
                             <label class="mc-label">Calculator Colors</label>
                             <p class="mc-helper" style="margin-bottom: 16px;">Choose the gradient colors for your calculator branding</p>
                             <div class="mc-color-pickers">
@@ -1406,6 +1452,19 @@ class Wizard {
             white-space: nowrap;
         }
 
+        /* Page Type Cards (LO mode) */
+        .mc-page-type-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 8px; }
+        .mc-page-type-card { border: 2px solid #e2e8f0; border-radius: 12px; padding: 24px 16px; text-align: center; cursor: pointer; transition: all 0.2s ease; background: #fff; }
+        .mc-page-type-card:hover { border-color: var(--mc-primary-light); background: var(--mc-primary-bg); }
+        .mc-page-type-card.selected { border-color: var(--mc-primary); background: var(--mc-primary-bg); box-shadow: 0 0 0 4px rgba(37,99,235,0.15); }
+        .mc-page-type-card__icon { width: 64px; height: 64px; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; background: var(--mc-primary-bg); border-radius: 50%; }
+        .mc-page-type-card__icon svg { stroke: var(--mc-primary); }
+        .mc-page-type-card.selected .mc-page-type-card__icon { background: var(--mc-primary); }
+        .mc-page-type-card.selected .mc-page-type-card__icon svg { stroke: #fff; }
+        .mc-page-type-card h3 { font-size: 16px; font-weight: 600; color: var(--mc-text); margin: 0 0 4px; }
+        .mc-page-type-card p { font-size: 13px; color: var(--mc-text-light); margin: 0; }
+        .mc-partner-selection { margin-top: 16px; }
+
         /* Responsive */
         @media (max-width: 1024px) {
             .mc-wizard {
@@ -1463,6 +1522,40 @@ class Wizard {
             const userData = JSON.parse(wizard.dataset.user || "{}");
             const userMode = userData.mode || "realtor";
             const isLoanOfficer = userMode === "loan_officer";
+
+            // Page type card selection (LO mode)
+            const pageTypeCards = wizard.querySelectorAll('.mc-page-type-card');
+            const pageTypeInput = document.getElementById('mc-page-type');
+            const partnerSelectionDiv = document.getElementById('mc-partner-selection');
+            const partnerInput = document.getElementById('mc-partner');
+
+            if (pageTypeCards.length > 0 && isLoanOfficer) {
+                pageTypeCards.forEach(card => {
+                    card.addEventListener('click', () => {
+                        // Deselect all cards
+                        pageTypeCards.forEach(c => c.classList.remove('selected'));
+                        // Select clicked card
+                        card.classList.add('selected');
+                        const pageType = card.dataset.type;
+                        if (pageTypeInput) pageTypeInput.value = pageType;
+
+                        // Show/hide partner selection
+                        if (partnerSelectionDiv) {
+                            if (pageType === 'cobranded') {
+                                partnerSelectionDiv.style.display = 'block';
+                            } else {
+                                partnerSelectionDiv.style.display = 'none';
+                                // Clear partner selection for solo pages
+                                if (partnerInput) partnerInput.value = '';
+                                selectedPartner = null;
+                                const dropdownValue = wizard.querySelector('#mc-partner-dropdown .mc-dropdown__value');
+                                if (dropdownValue) dropdownValue.textContent = 'Choose a partner...';
+                                wizard.querySelectorAll('#mc-partner-dropdown .mc-dropdown__item').forEach(i => i.classList.remove('is-selected'));
+                            }
+                        }
+                    });
+                });
+            }
 
             // Open modal
             document.querySelectorAll('.<?php echo self::TRIGGER_CLASS; ?>').forEach(btn => {
@@ -1800,32 +1893,48 @@ class Wizard {
 
             function validateStep() {
                 if (currentStep === 0) {
-                    const partnerDropdown = document.getElementById('mc-partner-dropdown');
-                    const isRequired = partnerDropdown?.dataset.required === 'true';
+                    if (isLoanOfficer) {
+                        // LO Mode: Check page type is selected
+                        const pageType = document.getElementById('mc-page-type')?.value;
+                        if (!pageType) {
+                            alert('Please select Solo Page or Co-branded');
+                            return false;
+                        }
 
-                    if (isRequired && !selectedPartner) {
-                        alert(isLoanOfficer ? 'Please select a realtor partner' : 'Please select a loan officer');
-                        return false;
-                    }
+                        // If co-branded, require partner selection
+                        if (pageType === 'cobranded' && !selectedPartner) {
+                            alert('Please select a partner for co-branding');
+                            return false;
+                        }
+                    } else {
+                        // Partner Mode: Require LO selection
+                        const partnerDropdown = document.getElementById('mc-partner-dropdown');
+                        const isRequired = partnerDropdown?.dataset.required === 'true';
 
-                    // Save preference if "Remember my choice" is checked
-                    if (selectedPartner) {
-                        const rememberCheckbox = document.getElementById('mc-remember-partner');
-                        if (rememberCheckbox && rememberCheckbox.checked) {
-                            fetch(ajaxurl, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                                body: new URLSearchParams({
-                                    action: 'frs_set_preferred_lo',
-                                    nonce: '<?php echo wp_create_nonce( 'frs_lead_pages' ); ?>',
-                                    lo_id: selectedPartner.id,
-                                    remember: 'true'
-                                })
-                            }).then(r => r.json()).then(res => {
-                                console.log('MC Wizard: Saved preferred LO:', res);
-                            }).catch(err => {
-                                console.error('MC Wizard: Failed to save preference:', err);
-                            });
+                        if (isRequired && !selectedPartner) {
+                            alert('Please select a loan officer');
+                            return false;
+                        }
+
+                        // Save preference if "Remember my choice" is checked
+                        if (selectedPartner) {
+                            const rememberCheckbox = document.getElementById('mc-remember-partner');
+                            if (rememberCheckbox && rememberCheckbox.checked) {
+                                fetch(ajaxurl, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                                    body: new URLSearchParams({
+                                        action: 'frs_set_preferred_lo',
+                                        nonce: '<?php echo wp_create_nonce( 'frs_lead_pages' ); ?>',
+                                        lo_id: selectedPartner.id,
+                                        remember: 'true'
+                                    })
+                                }).then(r => r.json()).then(res => {
+                                    console.log('MC Wizard: Saved preferred LO:', res);
+                                }).catch(err => {
+                                    console.error('MC Wizard: Failed to save preference:', err);
+                                });
+                            }
                         }
                     }
                 }

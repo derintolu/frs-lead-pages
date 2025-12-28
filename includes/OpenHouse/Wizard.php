@@ -14,6 +14,8 @@ use FRSLeadPages\Integrations\Firecrawl;
 use FRSLeadPages\Integrations\FluentForms;
 use FRSLeadPages\Integrations\InstantImages;
 use FRSLeadPages\Core\LoanOfficers;
+use FRSLeadPages\Core\Realtors;
+use FRSLeadPages\Core\UserMode;
 
 class Wizard {
 
@@ -168,19 +170,19 @@ class Wizard {
      * Render wizard content
      */
     private static function render_wizard_content( bool $is_modal = false ): string {
+        // Determine user mode (Loan Officer or Realtor)
+        $user_mode = UserMode::get_mode();
+        $is_loan_officer = UserMode::is_loan_officer();
+        $partner_config = UserMode::get_partner_step_config();
+
         // Get current user data for pre-fill
         $user = wp_get_current_user();
-        $user_data = [
-            'id'      => $user->ID,
-            'name'    => $user->display_name,
-            'email'   => $user->user_email,
-            'phone'   => get_user_meta( $user->ID, 'phone', true ) ?: get_user_meta( $user->ID, 'billing_phone', true ),
-            'license' => get_user_meta( $user->ID, 'license_number', true ),
-            'photo'   => get_avatar_url( $user->ID, [ 'size' => 200 ] ),
-        ];
+        $user_data = UserMode::get_current_user_data();
+        $user_data['mode'] = $user_mode;
 
-        // Get loan officers for dropdown
-        $loan_officers = LoanOfficers::get_loan_officers();
+        // Get partners based on user mode
+        // LOs select Realtors, Realtors select LOs
+        $partners = $partner_config['partners'];
 
         ob_start();
         ?>
@@ -208,39 +210,62 @@ class Wizard {
                 </div>
 
                 <div class="oh-wizard__content">
-                <!-- Step 0: Choose Loan Officer -->
+                <!-- Step 0: Choose Partner (bi-directional: LOs select Realtors, Realtors select LOs) -->
                 <div class="oh-step" data-step="0">
                     <div class="oh-step__header">
-                        <h2>Partner Up</h2>
-                        <p>Select a loan officer to co-brand this page</p>
+                        <h2><?php echo esc_html( $partner_config['title'] ); ?></h2>
+                        <p><?php echo esc_html( $partner_config['subtitle'] ); ?></p>
                     </div>
                     <div class="oh-step__body">
-                        <label class="oh-label">Loan Officer</label>
-                        <div class="oh-dropdown" id="oh-loan-officer-dropdown">
-                            <input type="hidden" id="oh-loan-officer" name="loan_officer" value="">
+                        <label class="oh-label"><?php echo esc_html( $partner_config['label'] ); ?></label>
+                        <div class="oh-dropdown" id="oh-partner-dropdown" data-mode="<?php echo esc_attr( $user_mode ); ?>" data-required="<?php echo $partner_config['required'] ? 'true' : 'false'; ?>">
+                            <input type="hidden" id="oh-partner" name="partner" value="">
                             <button type="button" class="oh-dropdown__trigger">
-                                <span class="oh-dropdown__value">Select a loan officer...</span>
+                                <span class="oh-dropdown__value"><?php echo esc_html( $partner_config['placeholder'] ); ?></span>
                                 <svg class="oh-dropdown__arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
                             </button>
                             <div class="oh-dropdown__menu">
-                                <?php foreach ( $loan_officers as $lo ) : ?>
+                                <?php foreach ( $partners as $partner ) : ?>
+                                    <?php
+                                    // Build data attributes based on partner type
+                                    $partner_id = $partner['user_id'] ?? $partner['id'];
+                                    $partner_name = $partner['name'];
+                                    $partner_photo = $partner['photo_url'] ?? '';
+                                    $partner_email = $partner['email'] ?? '';
+                                    $partner_phone = $partner['phone'] ?? '';
+                                    // LO-specific: nmls, Realtor-specific: license, company
+                                    $partner_nmls = $partner['nmls'] ?? '';
+                                    $partner_license = $partner['license'] ?? '';
+                                    $partner_company = $partner['company'] ?? '';
+                                    ?>
                                     <div class="oh-dropdown__item"
-                                         data-value="<?php echo esc_attr( $lo['id'] ); ?>"
-                                         data-name="<?php echo esc_attr( $lo['name'] ); ?>"
-                                         data-nmls="<?php echo esc_attr( $lo['nmls'] ); ?>"
-                                         data-photo="<?php echo esc_attr( $lo['photo_url'] ); ?>"
-                                         data-email="<?php echo esc_attr( $lo['email'] ); ?>"
-                                         data-phone="<?php echo esc_attr( $lo['phone'] ); ?>">
-                                        <img src="<?php echo esc_url( $lo['photo_url'] ); ?>" alt="" class="oh-dropdown__photo">
+                                         data-value="<?php echo esc_attr( $partner_id ); ?>"
+                                         data-name="<?php echo esc_attr( $partner_name ); ?>"
+                                         data-nmls="<?php echo esc_attr( $partner_nmls ); ?>"
+                                         data-license="<?php echo esc_attr( $partner_license ); ?>"
+                                         data-company="<?php echo esc_attr( $partner_company ); ?>"
+                                         data-photo="<?php echo esc_attr( $partner_photo ); ?>"
+                                         data-email="<?php echo esc_attr( $partner_email ); ?>"
+                                         data-phone="<?php echo esc_attr( $partner_phone ); ?>">
+                                        <img src="<?php echo esc_url( $partner_photo ); ?>" alt="" class="oh-dropdown__photo">
                                         <div class="oh-dropdown__info">
-                                            <span class="oh-dropdown__name"><?php echo esc_html( $lo['name'] ); ?></span>
-                                            <span class="oh-dropdown__nmls">NMLS# <?php echo esc_html( $lo['nmls'] ); ?></span>
+                                            <span class="oh-dropdown__name"><?php echo esc_html( $partner_name ); ?></span>
+                                            <?php if ( $is_loan_officer && $partner_company ) : ?>
+                                                <span class="oh-dropdown__nmls"><?php echo esc_html( $partner_company ); ?></span>
+                                            <?php elseif ( $partner_nmls ) : ?>
+                                                <span class="oh-dropdown__nmls">NMLS# <?php echo esc_html( $partner_nmls ); ?></span>
+                                            <?php endif; ?>
                                         </div>
                                     </div>
                                 <?php endforeach; ?>
                             </div>
                         </div>
-                        <p class="oh-helper">Your loan officer's info and branding will appear on the page.</p>
+                        <p class="oh-helper"><?php echo esc_html( $partner_config['helper'] ); ?></p>
+                        <?php if ( $is_loan_officer && $partner_config['skip_text'] ) : ?>
+                            <button type="button" id="oh-skip-partner" class="oh-btn oh-btn--ghost" style="margin-top: 16px; width: 100%;">
+                                <?php echo esc_html( $partner_config['skip_text'] ); ?>
+                            </button>
+                        <?php endif; ?>
                     </div>
                 </div>
 
@@ -448,7 +473,7 @@ class Wizard {
                     </div>
                 </div>
 
-                <!-- Step 7: Branding -->
+                <!-- Step 7: Branding (bi-directional) -->
                 <div class="oh-step" data-step="7" style="display:none;">
                     <div class="oh-step__header">
                         <h2>Your Team Info</h2>
@@ -456,31 +481,61 @@ class Wizard {
                     </div>
                     <div class="oh-step__body">
                         <p class="oh-section-label">Your Information</p>
-                        <div class="oh-row">
-                            <div class="oh-field oh-field--half">
-                                <label class="oh-label">Your Name</label>
-                                <input type="text" id="oh-realtor-name" class="oh-input" value="<?php echo esc_attr( $user_data['name'] ); ?>">
+                        <?php if ( $is_loan_officer ) : ?>
+                            <!-- LO Mode: Show LO fields -->
+                            <div class="oh-row">
+                                <div class="oh-field oh-field--half">
+                                    <label class="oh-label">Your Name</label>
+                                    <input type="text" id="oh-lo-name" class="oh-input" value="<?php echo esc_attr( $user_data['name'] ); ?>">
+                                </div>
+                                <div class="oh-field oh-field--half">
+                                    <label class="oh-label">NMLS #</label>
+                                    <input type="text" id="oh-lo-nmls" class="oh-input" value="<?php echo esc_attr( $user_data['nmls'] ?? '' ); ?>">
+                                </div>
                             </div>
-                            <div class="oh-field oh-field--half">
-                                <label class="oh-label">License #</label>
-                                <input type="text" id="oh-realtor-license" class="oh-input" value="<?php echo esc_attr( $user_data['license'] ); ?>">
+                            <div class="oh-row">
+                                <div class="oh-field oh-field--half">
+                                    <label class="oh-label">Phone</label>
+                                    <input type="tel" id="oh-lo-phone" class="oh-input" value="<?php echo esc_attr( $user_data['phone'] ); ?>">
+                                </div>
+                                <div class="oh-field oh-field--half">
+                                    <label class="oh-label">Email</label>
+                                    <input type="email" id="oh-lo-email" class="oh-input" value="<?php echo esc_attr( $user_data['email'] ); ?>">
+                                </div>
                             </div>
-                        </div>
-                        <div class="oh-row">
-                            <div class="oh-field oh-field--half">
-                                <label class="oh-label">Phone</label>
-                                <input type="tel" id="oh-realtor-phone" class="oh-input" value="<?php echo esc_attr( $user_data['phone'] ); ?>">
-                            </div>
-                            <div class="oh-field oh-field--half">
-                                <label class="oh-label">Email</label>
-                                <input type="email" id="oh-realtor-email" class="oh-input" value="<?php echo esc_attr( $user_data['email'] ); ?>">
-                            </div>
-                        </div>
 
-                        <p class="oh-section-label" style="margin-top:24px;">Loan Officer (from Step 1)</p>
-                        <div id="oh-lo-preview" class="oh-lo-preview">
-                            <!-- Populated by JS -->
-                        </div>
+                            <p class="oh-section-label" style="margin-top:24px;">Realtor Partner (from Step 1)</p>
+                            <div id="oh-partner-preview" class="oh-lo-preview">
+                                <p style="color:#94a3b8;font-size:14px;margin:0;" id="oh-no-partner-msg">No realtor partner selected (solo page)</p>
+                            </div>
+                        <?php else : ?>
+                            <!-- Realtor Mode: Show Realtor fields -->
+                            <div class="oh-row">
+                                <div class="oh-field oh-field--half">
+                                    <label class="oh-label">Your Name</label>
+                                    <input type="text" id="oh-realtor-name" class="oh-input" value="<?php echo esc_attr( $user_data['name'] ); ?>">
+                                </div>
+                                <div class="oh-field oh-field--half">
+                                    <label class="oh-label">License #</label>
+                                    <input type="text" id="oh-realtor-license" class="oh-input" value="<?php echo esc_attr( $user_data['license'] ?? '' ); ?>">
+                                </div>
+                            </div>
+                            <div class="oh-row">
+                                <div class="oh-field oh-field--half">
+                                    <label class="oh-label">Phone</label>
+                                    <input type="tel" id="oh-realtor-phone" class="oh-input" value="<?php echo esc_attr( $user_data['phone'] ); ?>">
+                                </div>
+                                <div class="oh-field oh-field--half">
+                                    <label class="oh-label">Email</label>
+                                    <input type="email" id="oh-realtor-email" class="oh-input" value="<?php echo esc_attr( $user_data['email'] ); ?>">
+                                </div>
+                            </div>
+
+                            <p class="oh-section-label" style="margin-top:24px;">Loan Officer (from Step 1)</p>
+                            <div id="oh-partner-preview" class="oh-lo-preview">
+                                <!-- Populated by JS -->
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
 
@@ -1149,8 +1204,15 @@ class Wizard {
             }
 
             let currentStep = 0;
+            // Get user mode from wizard data attribute
+            const userData = JSON.parse(wizard.dataset.user || "{}");
+            const userMode = userData.mode || "realtor";
+            const isLoanOfficer = userMode === "loan_officer";
+
             let data = {
-                loanOfficer: {},
+                userMode: userMode,
+                partner: {}, // Selected partner (LO selects Realtor, Realtor selects LO)
+                loanOfficer: {}, // For backwards compatibility
                 property: {},
                 images: [],
                 customize: {},
@@ -1196,9 +1258,11 @@ class Wizard {
                         valueDisplay.textContent = nameEl ? nameEl.textContent : (optionEl ? optionEl.textContent : item.dataset.value);
                         dropdown.classList.remove("open");
 
-                        // Store data attributes (for loan officer dropdown)
+                        // Store all data attributes for partner selection
                         if (item.dataset.name) hiddenInput.dataset.name = item.dataset.name;
                         if (item.dataset.nmls) hiddenInput.dataset.nmls = item.dataset.nmls;
+                        if (item.dataset.license) hiddenInput.dataset.license = item.dataset.license;
+                        if (item.dataset.company) hiddenInput.dataset.company = item.dataset.company;
                         if (item.dataset.photo) hiddenInput.dataset.photo = item.dataset.photo;
                         if (item.dataset.email) hiddenInput.dataset.email = item.dataset.email;
                         if (item.dataset.phone) hiddenInput.dataset.phone = item.dataset.phone;
@@ -1253,23 +1317,41 @@ class Wizard {
             }
 
             function validateStep(step) {
-                console.log("OH Wizard: Validating step:", step);
+                console.log("OH Wizard: Validating step:", step, "userMode:", userMode);
                 if (step === 0) {
-                    const lo = document.getElementById("oh-loan-officer");
-                    console.log("OH Wizard: LO value:", lo ? lo.value : "element not found");
-                    if (!lo || !lo.value) {
-                        alert("Please select a loan officer");
+                    const partnerDropdown = document.getElementById("oh-partner-dropdown");
+                    const partner = document.getElementById("oh-partner");
+                    const isRequired = partnerDropdown?.dataset.required === "true";
+
+                    console.log("OH Wizard: Partner value:", partner?.value, "required:", isRequired);
+
+                    if (isRequired && (!partner || !partner.value)) {
+                        alert(isLoanOfficer ? "Please select a realtor partner" : "Please select a loan officer");
                         return false;
                     }
-                    data.loanOfficer = {
-                        id: lo.value,
-                        name: lo.dataset.name,
-                        nmls: lo.dataset.nmls,
-                        photo: lo.dataset.photo,
-                        email: lo.dataset.email,
-                        phone: lo.dataset.phone
-                    };
-                    console.log("OH Wizard: LO data saved:", data.loanOfficer);
+
+                    // Store partner data
+                    if (partner && partner.value) {
+                        data.partner = {
+                            id: partner.value,
+                            name: partner.dataset.name || "",
+                            nmls: partner.dataset.nmls || "",
+                            license: partner.dataset.license || "",
+                            company: partner.dataset.company || "",
+                            photo: partner.dataset.photo || "",
+                            email: partner.dataset.email || "",
+                            phone: partner.dataset.phone || ""
+                        };
+
+                        // For backwards compatibility with existing flow
+                        if (!isLoanOfficer) {
+                            data.loanOfficer = data.partner;
+                        }
+                    } else {
+                        data.partner = {};
+                    }
+
+                    console.log("OH Wizard: Partner data saved:", data.partner);
                 }
                 if (step === 2) {
                     const addr = document.getElementById("oh-address").value;
@@ -1316,31 +1398,81 @@ class Wizard {
                     };
                 }
                 if (step === 6) {
-                    data.branding = {
-                        realtorName: document.getElementById("oh-realtor-name").value,
-                        realtorLicense: document.getElementById("oh-realtor-license").value,
-                        realtorPhone: document.getElementById("oh-realtor-phone").value,
-                        realtorEmail: document.getElementById("oh-realtor-email").value
-                    };
+                    if (isLoanOfficer) {
+                        // LO mode: capture LO info
+                        data.branding = {
+                            loName: document.getElementById("oh-lo-name")?.value || "",
+                            loNmls: document.getElementById("oh-lo-nmls")?.value || "",
+                            loPhone: document.getElementById("oh-lo-phone")?.value || "",
+                            loEmail: document.getElementById("oh-lo-email")?.value || ""
+                        };
+                    } else {
+                        // Realtor mode: capture realtor info
+                        data.branding = {
+                            realtorName: document.getElementById("oh-realtor-name")?.value || "",
+                            realtorLicense: document.getElementById("oh-realtor-license")?.value || "",
+                            realtorPhone: document.getElementById("oh-realtor-phone")?.value || "",
+                            realtorEmail: document.getElementById("oh-realtor-email")?.value || ""
+                        };
+                    }
+                    console.log("OH Wizard: Branding data:", data.branding);
                 }
                 return true;
             }
 
             function updateLoPreview() {
-                const preview = document.getElementById("oh-lo-preview");
-                if (data.loanOfficer.name) {
-                    preview.innerHTML = `
-                        <img src="${data.loanOfficer.photo || ""}" alt="">
-                        <div class="oh-lo-preview__info">
-                            <h4>${data.loanOfficer.name}</h4>
-                            <p>NMLS# ${data.loanOfficer.nmls}</p>
-                        </div>
-                    `;
+                const preview = document.getElementById("oh-partner-preview");
+                const noPartnerMsg = document.getElementById("oh-no-partner-msg");
+
+                if (data.partner && data.partner.name) {
+                    // Has a partner selected
+                    if (isLoanOfficer) {
+                        // LO mode - showing realtor partner
+                        preview.innerHTML = `
+                            <img src="${data.partner.photo || ""}" alt="">
+                            <div class="oh-lo-preview__info">
+                                <h4>${data.partner.name}</h4>
+                                <p>${data.partner.company || "Sales Associate"}</p>
+                            </div>
+                        `;
+                    } else {
+                        // Realtor mode - showing LO partner
+                        preview.innerHTML = `
+                            <img src="${data.partner.photo || ""}" alt="">
+                            <div class="oh-lo-preview__info">
+                                <h4>${data.partner.name}</h4>
+                                <p>NMLS# ${data.partner.nmls || ""}</p>
+                            </div>
+                        `;
+                    }
+                    if (noPartnerMsg) noPartnerMsg.style.display = "none";
+                } else if (noPartnerMsg) {
+                    // No partner - show solo message (only for LO mode)
+                    noPartnerMsg.style.display = "block";
                 }
             }
 
             function updateSummary() {
                 const summary = document.getElementById("oh-summary");
+
+                let partnerRow = "";
+                if (data.partner && data.partner.name) {
+                    const partnerLabel = isLoanOfficer ? "Realtor Partner" : "Loan Officer";
+                    partnerRow = `
+                        <div class="oh-summary__row">
+                            <span class="oh-summary__label">${partnerLabel}</span>
+                            <span class="oh-summary__value">${data.partner.name}</span>
+                        </div>
+                    `;
+                } else if (isLoanOfficer) {
+                    partnerRow = `
+                        <div class="oh-summary__row">
+                            <span class="oh-summary__label">Realtor Partner</span>
+                            <span class="oh-summary__value">None (solo page)</span>
+                        </div>
+                    `;
+                }
+
                 summary.innerHTML = `
                     <div class="oh-summary__row">
                         <span class="oh-summary__label">Property</span>
@@ -1350,10 +1482,7 @@ class Wizard {
                         <span class="oh-summary__label">Price</span>
                         <span class="oh-summary__value">${data.property.price || "Not set"}</span>
                     </div>
-                    <div class="oh-summary__row">
-                        <span class="oh-summary__label">Loan Officer</span>
-                        <span class="oh-summary__value">${data.loanOfficer.name}</span>
-                    </div>
+                    ${partnerRow}
                     <div class="oh-summary__row">
                         <span class="oh-summary__label">Headline</span>
                         <span class="oh-summary__value">${data.customize.headline}</span>
@@ -1396,6 +1525,17 @@ class Wizard {
             }
 
             console.log("OH Wizard: Navigation handlers attached");
+
+            // Skip partner button (for LO mode)
+            const skipPartnerBtn = document.getElementById("oh-skip-partner");
+            if (skipPartnerBtn) {
+                skipPartnerBtn.addEventListener("click", function() {
+                    console.log("OH Wizard: Skipping partner selection");
+                    data.partner = {};
+                    currentStep++;
+                    showStep(currentStep);
+                });
+            }
 
             // Tab switching
             const tabs = wizard.querySelectorAll(".oh-tab");
@@ -1616,14 +1756,44 @@ class Wizard {
         update_post_meta( $page_id, '_frs_headline', $data['customize']['headline'] ?? 'Welcome!' );
         update_post_meta( $page_id, '_frs_subheadline', $data['customize']['subheadline'] ?? '' );
         update_post_meta( $page_id, '_frs_button_text', $data['customize']['buttonText'] ?? 'Sign In' );
-        update_post_meta( $page_id, '_frs_loan_officer_id', $data['loanOfficer']['id'] ?? '' );
-        update_post_meta( $page_id, '_frs_realtor_id', get_current_user_id() );
-        update_post_meta( $page_id, '_frs_realtor_name', $data['branding']['realtorName'] ?? '' );
-        update_post_meta( $page_id, '_frs_realtor_phone', $data['branding']['realtorPhone'] ?? '' );
-        update_post_meta( $page_id, '_frs_realtor_email', $data['branding']['realtorEmail'] ?? '' );
-        update_post_meta( $page_id, '_frs_realtor_license', $data['branding']['realtorLicense'] ?? '' );
         update_post_meta( $page_id, '_frs_enabled_questions', $data['questions'] ?? [] );
         update_post_meta( $page_id, '_frs_page_views', 0 );
+
+        // Save creator info and partner info based on user mode
+        $user_mode = $data['userMode'] ?? 'realtor';
+        update_post_meta( $page_id, '_frs_creator_mode', $user_mode );
+
+        if ( $user_mode === 'loan_officer' ) {
+            // LO Mode: Current user is the LO, partner is optional Realtor
+            update_post_meta( $page_id, '_frs_loan_officer_id', get_current_user_id() );
+            update_post_meta( $page_id, '_frs_lo_name', $data['branding']['loName'] ?? '' );
+            update_post_meta( $page_id, '_frs_lo_phone', $data['branding']['loPhone'] ?? '' );
+            update_post_meta( $page_id, '_frs_lo_email', $data['branding']['loEmail'] ?? '' );
+            update_post_meta( $page_id, '_frs_lo_nmls', $data['branding']['loNmls'] ?? '' );
+
+            // Optional Realtor partner
+            if ( ! empty( $data['partner']['id'] ) ) {
+                update_post_meta( $page_id, '_frs_realtor_id', $data['partner']['id'] );
+                update_post_meta( $page_id, '_frs_realtor_name', $data['partner']['name'] ?? '' );
+                update_post_meta( $page_id, '_frs_realtor_phone', $data['partner']['phone'] ?? '' );
+                update_post_meta( $page_id, '_frs_realtor_email', $data['partner']['email'] ?? '' );
+                update_post_meta( $page_id, '_frs_realtor_license', $data['partner']['license'] ?? '' );
+                update_post_meta( $page_id, '_frs_realtor_company', $data['partner']['company'] ?? '' );
+            }
+        } else {
+            // Realtor Mode: Current user is the Realtor, partner is required LO
+            update_post_meta( $page_id, '_frs_realtor_id', get_current_user_id() );
+            update_post_meta( $page_id, '_frs_realtor_name', $data['branding']['realtorName'] ?? '' );
+            update_post_meta( $page_id, '_frs_realtor_phone', $data['branding']['realtorPhone'] ?? '' );
+            update_post_meta( $page_id, '_frs_realtor_email', $data['branding']['realtorEmail'] ?? '' );
+            update_post_meta( $page_id, '_frs_realtor_license', $data['branding']['realtorLicense'] ?? '' );
+
+            // LO partner (required for realtor mode, but might use legacy data structure)
+            $lo_id = $data['partner']['id'] ?? $data['loanOfficer']['id'] ?? '';
+            if ( ! empty( $lo_id ) ) {
+                update_post_meta( $page_id, '_frs_loan_officer_id', $lo_id );
+            }
+        }
 
         // Generate QR code
         $qr_url = '';

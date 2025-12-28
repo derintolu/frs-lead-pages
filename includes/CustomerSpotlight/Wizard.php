@@ -11,6 +11,8 @@
 namespace FRSLeadPages\CustomerSpotlight;
 
 use FRSLeadPages\Core\LoanOfficers;
+use FRSLeadPages\Core\Realtors;
+use FRSLeadPages\Core\UserMode;
 use FRSLeadPages\Integrations\InstantImages;
 
 class Wizard {
@@ -122,17 +124,18 @@ class Wizard {
      * Render wizard content
      */
     private static function render_wizard_content( bool $is_modal = false ): string {
-        $user = wp_get_current_user();
-        $user_data = [
-            'id'      => $user->ID,
-            'name'    => $user->display_name,
-            'email'   => $user->user_email,
-            'phone'   => get_user_meta( $user->ID, 'phone', true ) ?: get_user_meta( $user->ID, 'billing_phone', true ),
-            'license' => get_user_meta( $user->ID, 'license_number', true ),
-            'photo'   => get_avatar_url( $user->ID, [ 'size' => 200 ] ),
-        ];
+        // Determine user mode (Loan Officer or Realtor)
+        $user_mode = UserMode::get_mode();
+        $is_loan_officer = UserMode::is_loan_officer();
+        $partner_config = UserMode::get_partner_step_config();
 
-        $loan_officers = LoanOfficers::get_loan_officers();
+        // Get current user data for pre-fill
+        $user = wp_get_current_user();
+        $user_data = UserMode::get_current_user_data();
+        $user_data['mode'] = $user_mode;
+
+        // Get partners based on user mode
+        $partners = $partner_config['partners'];
 
         $spotlight_types = [
             'first_time_buyer' => [
@@ -193,39 +196,60 @@ class Wizard {
                 </div>
 
                 <div class="cs-wizard__content">
-                <!-- Step 0: Choose Loan Officer -->
+                <!-- Step 0: Choose Partner (bi-directional) -->
                 <div class="cs-step" data-step="0">
                     <div class="cs-step__header">
-                        <h2>Partner Up</h2>
-                        <p>Select a loan officer to co-brand this page</p>
+                        <h2><?php echo esc_html( $partner_config['title'] ); ?></h2>
+                        <p><?php echo esc_html( $partner_config['subtitle'] ); ?></p>
                     </div>
                     <div class="cs-step__body">
-                        <label class="cs-label">Loan Officer</label>
-                        <div class="cs-dropdown" id="cs-loan-officer-dropdown">
-                            <input type="hidden" id="cs-loan-officer" name="loan_officer" value="">
+                        <label class="cs-label"><?php echo esc_html( $partner_config['label'] ); ?></label>
+                        <div class="cs-dropdown" id="cs-partner-dropdown" data-mode="<?php echo esc_attr( $user_mode ); ?>" data-required="<?php echo $partner_config['required'] ? 'true' : 'false'; ?>">
+                            <input type="hidden" id="cs-partner" name="partner" value="">
                             <button type="button" class="cs-dropdown__trigger">
-                                <span class="cs-dropdown__value">Select a loan officer...</span>
+                                <span class="cs-dropdown__value"><?php echo esc_html( $partner_config['placeholder'] ); ?></span>
                                 <svg class="cs-dropdown__arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
                             </button>
                             <div class="cs-dropdown__menu">
-                                <?php foreach ( $loan_officers as $lo ) : ?>
+                                <?php foreach ( $partners as $partner ) : ?>
+                                    <?php
+                                    $partner_id = $partner['user_id'] ?? $partner['id'];
+                                    $partner_name = $partner['name'];
+                                    $partner_photo = $partner['photo_url'] ?? '';
+                                    $partner_email = $partner['email'] ?? '';
+                                    $partner_phone = $partner['phone'] ?? '';
+                                    $partner_nmls = $partner['nmls'] ?? '';
+                                    $partner_license = $partner['license'] ?? '';
+                                    $partner_company = $partner['company'] ?? '';
+                                    ?>
                                     <div class="cs-dropdown__item"
-                                         data-value="<?php echo esc_attr( $lo['id'] ); ?>"
-                                         data-name="<?php echo esc_attr( $lo['name'] ); ?>"
-                                         data-nmls="<?php echo esc_attr( $lo['nmls'] ); ?>"
-                                         data-photo="<?php echo esc_attr( $lo['photo_url'] ); ?>"
-                                         data-email="<?php echo esc_attr( $lo['email'] ); ?>"
-                                         data-phone="<?php echo esc_attr( $lo['phone'] ); ?>">
-                                        <img src="<?php echo esc_url( $lo['photo_url'] ); ?>" alt="" class="cs-dropdown__photo">
+                                         data-value="<?php echo esc_attr( $partner_id ); ?>"
+                                         data-name="<?php echo esc_attr( $partner_name ); ?>"
+                                         data-nmls="<?php echo esc_attr( $partner_nmls ); ?>"
+                                         data-license="<?php echo esc_attr( $partner_license ); ?>"
+                                         data-company="<?php echo esc_attr( $partner_company ); ?>"
+                                         data-photo="<?php echo esc_attr( $partner_photo ); ?>"
+                                         data-email="<?php echo esc_attr( $partner_email ); ?>"
+                                         data-phone="<?php echo esc_attr( $partner_phone ); ?>">
+                                        <img src="<?php echo esc_url( $partner_photo ); ?>" alt="" class="cs-dropdown__photo">
                                         <div class="cs-dropdown__info">
-                                            <span class="cs-dropdown__name"><?php echo esc_html( $lo['name'] ); ?></span>
-                                            <span class="cs-dropdown__nmls">NMLS# <?php echo esc_html( $lo['nmls'] ); ?></span>
+                                            <span class="cs-dropdown__name"><?php echo esc_html( $partner_name ); ?></span>
+                                            <?php if ( $is_loan_officer && $partner_company ) : ?>
+                                                <span class="cs-dropdown__nmls"><?php echo esc_html( $partner_company ); ?></span>
+                                            <?php elseif ( $partner_nmls ) : ?>
+                                                <span class="cs-dropdown__nmls">NMLS# <?php echo esc_html( $partner_nmls ); ?></span>
+                                            <?php endif; ?>
                                         </div>
                                     </div>
                                 <?php endforeach; ?>
                             </div>
                         </div>
-                        <p class="cs-helper">Your loan officer's info and branding will appear on the page.</p>
+                        <p class="cs-helper"><?php echo esc_html( $partner_config['helper'] ); ?></p>
+                        <?php if ( $is_loan_officer && $partner_config['skip_text'] ) : ?>
+                            <button type="button" id="cs-skip-partner" class="cs-btn cs-btn--ghost" style="margin-top: 16px; width: 100%;">
+                                <?php echo esc_html( $partner_config['skip_text'] ); ?>
+                            </button>
+                        <?php endif; ?>
                     </div>
                 </div>
 

@@ -120,6 +120,14 @@ function init() {
     // Initialize Partner Portal (multisite support)
     Core\PartnerPortal::init();
 
+    // Initialize Sync Service (cross-site sync)
+    Core\SyncService::init();
+
+    // Register cron hook for async sync
+    add_action( 'frs_sync_page_to_lender', function( $page_id ) {
+        Core\SyncService::push_to_lender( $page_id );
+    } );
+
     // Initialize wizards
     OpenHouse\Wizard::init();
     CustomerSpotlight\Wizard::init();
@@ -131,6 +139,7 @@ function init() {
         Admin\Settings::init();
         Admin\Dashboard::init();
         Admin\Submissions::init();
+        Admin\PortalSettings::init();
     }
 
     // Load REST API routes

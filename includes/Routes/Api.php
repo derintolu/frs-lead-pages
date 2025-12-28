@@ -126,6 +126,45 @@ class Api {
             'callback'            => [ __CLASS__, 'regenerate_qr_code' ],
             'permission_callback' => [ __CLASS__, 'can_edit_page' ],
         ]);
+
+        // ========================================
+        // Cross-Site Sync Endpoints (Multisite)
+        // ========================================
+
+        // Ping - Test connection from partner portal to lender portal
+        register_rest_route( self::NAMESPACE, '/sync/ping', [
+            'methods'             => 'GET',
+            'callback'            => [ __CLASS__, 'sync_ping' ],
+            'permission_callback' => [ __CLASS__, 'validate_sync_api_key' ],
+        ]);
+
+        // Push - Partner portal pushes page to lender portal
+        register_rest_route( self::NAMESPACE, '/sync/push', [
+            'methods'             => 'POST',
+            'callback'            => [ __CLASS__, 'sync_push' ],
+            'permission_callback' => [ __CLASS__, 'validate_sync_api_key' ],
+        ]);
+
+        // Register - Partner portal registers with lender portal
+        register_rest_route( self::NAMESPACE, '/sync/register', [
+            'methods'             => 'POST',
+            'callback'            => [ __CLASS__, 'sync_register' ],
+            'permission_callback' => [ __CLASS__, 'validate_sync_api_key' ],
+        ]);
+
+        // Status - Get sync status for a page
+        register_rest_route( self::NAMESPACE, '/sync/status/(?P<id>\d+)', [
+            'methods'             => 'GET',
+            'callback'            => [ __CLASS__, 'sync_status' ],
+            'permission_callback' => [ __CLASS__, 'can_edit_page' ],
+        ]);
+
+        // Loan Officers - Partner portal fetches available LOs from lender portal
+        register_rest_route( self::NAMESPACE, '/sync/loan-officers', [
+            'methods'             => 'GET',
+            'callback'            => [ __CLASS__, 'sync_get_loan_officers' ],
+            'permission_callback' => [ __CLASS__, 'validate_sync_api_key' ],
+        ]);
     }
 
     /**
@@ -925,6 +964,181 @@ class Api {
                 'conversion_rate'   => $conversion_rate,
                 'pages_by_type'     => $pages_by_type,
             ],
+        ], 200 );
+    }
+
+    // ========================================
+    // Cross-Site Sync Methods
+    // ========================================
+
+    /**
+     * Permission: Validate sync API key from request header
+     */
+    public static function validate_sync_api_key( WP_REST_Request $request ): bool {
+        $api_key = $request->get_header( 'X-FRS-API-Key' );
+
+        if ( empty( $api_key ) ) {
+            return false;
+        }
+
+        $stored_key = get_option( 'frs_sync_api_key', '' );
+
+        return ! empty( $stored_key ) && hash_equals( $stored_key, $api_key );
+    }
+
+    /**
+     * GET /sync/ping - Test connection
+     */
+    public static function sync_ping( WP_REST_Request $request ): WP_REST_Response {
+        $portal_type = get_option( 'frs_portal_type', '' );
+
+        return new WP_REST_Response([
+            'success'     => true,
+            'message'     => 'Connection successful',
+            'portal_type' => $portal_type,
+            'site_name'   => get_bloginfo( 'name' ),
+            'site_url'    => home_url(),
+            'version'     => FRS_LEAD_PAGES_VERSION,
+        ], 200 );
+    }
+
+    /**
+     * POST /sync/register - Register partner portal with lender portal
+     */
+    public static function sync_register( WP_REST_Request $request ): WP_REST_Response {
+        $portal_type = get_option( 'frs_portal_type', '' );
+
+        // Only lender portals can accept registrations
+        if ( $portal_type !== 'lender' ) {
+            return new WP_REST_Response([
+                'success' => false,
+                'message' => 'This site is not configured as a lender portal',
+            ], 400 );
+        }
+
+        $data = $request->get_json_params();
+        $partner_url = esc_url_raw( $data['site_url'] ?? '' );
+        $partner_name = sanitize_text_field( $data['site_name'] ?? '' );
+
+        if ( empty( $partner_url ) ) {
+            return new WP_REST_Response([
+                'success' => false,
+                'message' => 'Partner site URL is required',
+            ], 400 );
+        }
+
+        // Get existing partner sites
+        $partner_sites = get_option( 'frs_registered_partner_sites', [] );
+
+        // Update or add partner
+        $found = false;
+        foreach ( $partner_sites as &$site ) {
+            if ( $site['url'] === $partner_url ) {
+                $site['name'] = $partner_name;
+                $site['last_sync'] = current_time( 'mysql' );
+                $site['status'] = 'active';
+                $found = true;
+                break;
+            }
+        }
+
+        if ( ! $found ) {
+            $partner_sites[] = [
+                'url'        => $partner_url,
+                'name'       => $partner_name,
+                'registered' => current_time( 'mysql' ),
+                'last_sync'  => current_time( 'mysql' ),
+                'status'     => 'active',
+            ];
+        }
+
+        update_option( 'frs_registered_partner_sites', $partner_sites );
+
+        // Log the registration
+        \FRSLeadPages\Core\SyncService::log( 'register', null, 'success', "Partner registered: {$partner_name}" );
+
+        return new WP_REST_Response([
+            'success' => true,
+            'message' => 'Partner portal registered successfully',
+        ], 200 );
+    }
+
+    /**
+     * POST /sync/push - Receive page data from partner portal
+     */
+    public static function sync_push( WP_REST_Request $request ): WP_REST_Response {
+        $portal_type = get_option( 'frs_portal_type', '' );
+
+        // Only lender portals can receive pushes
+        if ( $portal_type !== 'lender' ) {
+            return new WP_REST_Response([
+                'success' => false,
+                'message' => 'This site is not configured as a lender portal',
+            ], 400 );
+        }
+
+        $data = $request->get_json_params();
+
+        // Validate required fields
+        if ( empty( $data['source_id'] ) || empty( $data['source_url'] ) ) {
+            return new WP_REST_Response([
+                'success' => false,
+                'message' => 'Source ID and URL are required',
+            ], 400 );
+        }
+
+        // Create or update the synced page
+        $result = \FRSLeadPages\Core\SyncService::receive_page( $data );
+
+        if ( ! $result['success'] ) {
+            return new WP_REST_Response( $result, 500 );
+        }
+
+        return new WP_REST_Response( $result, 200 );
+    }
+
+    /**
+     * GET /sync/status/{id} - Get sync status for a page
+     */
+    public static function sync_status( WP_REST_Request $request ): WP_REST_Response {
+        $page_id = (int) $request->get_param( 'id' );
+        $post = get_post( $page_id );
+
+        if ( ! $post || $post->post_type !== 'frs_lead_page' ) {
+            return new WP_REST_Response( [ 'error' => 'Page not found' ], 404 );
+        }
+
+        $sync_status = get_post_meta( $page_id, '_frs_sync_status', true ) ?: 'not_synced';
+        $synced_to = get_post_meta( $page_id, '_frs_synced_to_url', true );
+        $synced_id = get_post_meta( $page_id, '_frs_synced_to_id', true );
+        $last_sync = get_post_meta( $page_id, '_frs_last_sync', true );
+        $sync_error = get_post_meta( $page_id, '_frs_sync_error', true );
+
+        return new WP_REST_Response([
+            'success'     => true,
+            'status'      => $sync_status,
+            'synced_to'   => $synced_to,
+            'synced_id'   => $synced_id,
+            'last_sync'   => $last_sync,
+            'sync_error'  => $sync_error,
+        ], 200 );
+    }
+
+    /**
+     * GET /sync/loan-officers - Get available loan officers for partner portal
+     */
+    public static function sync_get_loan_officers( WP_REST_Request $request ): WP_REST_Response {
+        $partner_url = $request->get_header( 'X-FRS-Partner-URL' );
+
+        // Get all loan officers
+        $loan_officers = \FRSLeadPages\Core\LoanOfficers::get_loan_officers();
+
+        // If partner URL provided, could filter by assigned LOs (future enhancement)
+        // For now, return all LOs from lender portal
+
+        return new WP_REST_Response([
+            'success' => true,
+            'data'    => $loan_officers,
         ], 200 );
     }
 }

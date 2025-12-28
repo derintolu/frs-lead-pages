@@ -133,6 +133,8 @@ function init() {
     CustomerSpotlight\Wizard::init();
     SpecialEvent\Wizard::init();
     MortgageCalculator\Wizard::init();
+    RateQuote\Wizard::init();
+    ApplyNow\Wizard::init();
 
     // Initialize admin
     if ( is_admin() ) {

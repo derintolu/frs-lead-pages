@@ -5,10 +5,6 @@
  * Determines whether the current user is a Loan Officer or Realtor
  * and provides the appropriate partner selection options.
  *
- * Supports WordPress Multisite:
- * - 1 Lender Portal (main site) → LO mode
- * - Many Partner Portals (subsites) → Realtor mode
- *
  * @package FRSLeadPages
  */
 
@@ -24,24 +20,7 @@ class UserMode {
     const MODE_ADMIN = 'admin';
 
     /**
-     * Site type constants for multisite
-     */
-    const SITE_TYPE_LENDER = 'lender';
-    const SITE_TYPE_PARTNER = 'partner';
-
-    /**
-     * Cache for current site type
-     */
-    private static ?string $cached_site_type = null;
-
-    /**
      * Get the current user's mode
-     *
-     * In multisite: Mode is determined by which portal the user is on.
-     * - Lender Portal → LO mode
-     * - Partner Portal → Realtor mode
-     *
-     * In single site: Mode is determined by user role.
      *
      * @return string One of the MODE_* constants
      */
@@ -52,48 +31,13 @@ class UserMode {
 
         $user = wp_get_current_user();
 
-        // In multisite, the SITE determines the mode (not the user role)
-        if ( is_multisite() ) {
-            $site_type = self::get_current_site_type();
-
-            // Admin override via URL parameter (for testing)
-            if ( in_array( 'administrator', $user->roles, true ) ) {
-                $mode = sanitize_text_field( $_GET['mode'] ?? '' );
-                if ( $mode === 'lo' || $mode === 'loan_officer' ) {
-                    return self::MODE_LOAN_OFFICER;
-                } elseif ( $mode === 'realtor' || $mode === 'partner' ) {
-                    return self::MODE_REALTOR;
-                }
-            }
-
-            // Site type determines mode
-            if ( $site_type === self::SITE_TYPE_LENDER ) {
-                return self::MODE_LOAN_OFFICER;
-            } elseif ( $site_type === self::SITE_TYPE_PARTNER ) {
-                return self::MODE_REALTOR;
-            }
-
-            // Fallback to role-based detection if site type not configured
-        }
-
-        // Single site or fallback: Use role-based detection
-        return self::get_mode_from_role( $user );
-    }
-
-    /**
-     * Get mode based on user role (single site behavior)
-     *
-     * @param \WP_User $user The user object
-     * @return string Mode constant
-     */
-    private static function get_mode_from_role( \WP_User $user ): string {
         // Check for admin first (they can act as either)
         if ( in_array( 'administrator', $user->roles, true ) ) {
             // Check URL parameter to determine which mode admin wants
             $mode = sanitize_text_field( $_GET['mode'] ?? '' );
             if ( $mode === 'lo' || $mode === 'loan_officer' ) {
                 return self::MODE_LOAN_OFFICER;
-            } elseif ( $mode === 'realtor' || $mode === 'partner' ) {
+            } elseif ( $mode === 'realtor' ) {
                 return self::MODE_REALTOR;
             }
             // Default admin to LO mode
@@ -111,88 +55,6 @@ class UserMode {
         }
 
         return '';
-    }
-
-    /**
-     * Get the current site type in multisite
-     *
-     * Determines if current site is the Lender Portal or a Partner Portal.
-     *
-     * Detection priority:
-     * 1. Site option 'frs_portal_type' (explicitly set per site)
-     * 2. Main site (blog_id 1) = Lender, subsites = Partner
-     * 3. URL pattern matching (configurable)
-     *
-     * @return string SITE_TYPE_LENDER or SITE_TYPE_PARTNER
-     */
-    public static function get_current_site_type(): string {
-        if ( ! is_multisite() ) {
-            return '';
-        }
-
-        // Return cached value if available
-        if ( self::$cached_site_type !== null ) {
-            return self::$cached_site_type;
-        }
-
-        $blog_id = get_current_blog_id();
-
-        // 1. Check explicit site option
-        $portal_type = get_option( 'frs_portal_type', '' );
-        if ( $portal_type === 'lender' ) {
-            self::$cached_site_type = self::SITE_TYPE_LENDER;
-            return self::$cached_site_type;
-        } elseif ( $portal_type === 'partner' ) {
-            self::$cached_site_type = self::SITE_TYPE_PARTNER;
-            return self::$cached_site_type;
-        }
-
-        // 2. Check network option for lender site ID
-        $lender_site_id = get_site_option( 'frs_lender_portal_site_id', 1 );
-        if ( $blog_id == $lender_site_id ) {
-            self::$cached_site_type = self::SITE_TYPE_LENDER;
-            return self::$cached_site_type;
-        }
-
-        // 3. Check URL pattern (configurable)
-        $site_url = get_site_url();
-        $lender_patterns = get_site_option( 'frs_lender_url_patterns', [ 'lending', 'lender', 'lo-portal' ] );
-
-        foreach ( $lender_patterns as $pattern ) {
-            if ( stripos( $site_url, $pattern ) !== false ) {
-                self::$cached_site_type = self::SITE_TYPE_LENDER;
-                return self::$cached_site_type;
-            }
-        }
-
-        // Default: All other sites are Partner Portals
-        self::$cached_site_type = self::SITE_TYPE_PARTNER;
-        return self::$cached_site_type;
-    }
-
-    /**
-     * Check if current site is the Lender Portal
-     *
-     * @return bool
-     */
-    public static function is_lender_portal(): bool {
-        return self::get_current_site_type() === self::SITE_TYPE_LENDER;
-    }
-
-    /**
-     * Check if current site is a Partner Portal
-     *
-     * @return bool
-     */
-    public static function is_partner_portal(): bool {
-        return self::get_current_site_type() === self::SITE_TYPE_PARTNER;
-    }
-
-    /**
-     * Clear cached site type (useful for testing)
-     */
-    public static function clear_cache(): void {
-        self::$cached_site_type = null;
     }
 
     /**

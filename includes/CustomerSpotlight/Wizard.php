@@ -204,7 +204,11 @@ class Wizard {
                     </div>
                     <div class="cs-step__body">
                         <label class="cs-label"><?php echo esc_html( $partner_config['label'] ); ?></label>
-                        <div class="cs-dropdown" id="cs-partner-dropdown" data-mode="<?php echo esc_attr( $user_mode ); ?>" data-required="<?php echo $partner_config['required'] ? 'true' : 'false'; ?>">
+                        <div class="cs-dropdown" id="cs-partner-dropdown"
+                             data-mode="<?php echo esc_attr( $user_mode ); ?>"
+                             data-required="<?php echo $partner_config['required'] ? 'true' : 'false'; ?>"
+                             data-preferred="<?php echo esc_attr( $partner_config['preferred_id'] ?? 0 ); ?>"
+                             data-auto-selected="<?php echo ( $partner_config['auto_selected'] ?? false ) ? 'true' : 'false'; ?>">
                             <input type="hidden" id="cs-partner" name="partner" value="">
                             <button type="button" class="cs-dropdown__trigger">
                                 <span class="cs-dropdown__value"><?php echo esc_html( $partner_config['placeholder'] ); ?></span>
@@ -221,8 +225,9 @@ class Wizard {
                                     $partner_nmls = $partner['nmls'] ?? '';
                                     $partner_license = $partner['license'] ?? '';
                                     $partner_company = $partner['company'] ?? '';
+                                    $is_preferred = ( (int) $partner_id === (int) ( $partner_config['preferred_id'] ?? 0 ) );
                                     ?>
-                                    <div class="cs-dropdown__item"
+                                    <div class="cs-dropdown__item<?php echo $is_preferred ? ' cs-dropdown__item--preferred' : ''; ?>"
                                          data-value="<?php echo esc_attr( $partner_id ); ?>"
                                          data-name="<?php echo esc_attr( $partner_name ); ?>"
                                          data-nmls="<?php echo esc_attr( $partner_nmls ); ?>"
@@ -240,11 +245,22 @@ class Wizard {
                                                 <span class="cs-dropdown__nmls">NMLS# <?php echo esc_html( $partner_nmls ); ?></span>
                                             <?php endif; ?>
                                         </div>
+                                        <?php if ( $is_preferred ) : ?>
+                                            <span class="cs-dropdown__preferred-badge">★ Preferred</span>
+                                        <?php endif; ?>
                                     </div>
                                 <?php endforeach; ?>
                             </div>
                         </div>
                         <p class="cs-helper"><?php echo esc_html( $partner_config['helper'] ); ?></p>
+
+                        <?php if ( ! $is_loan_officer && ( $partner_config['show_remember'] ?? false ) ) : ?>
+                            <label class="cs-checkbox" style="margin-top: 12px;">
+                                <input type="checkbox" id="cs-remember-partner" name="remember_partner" value="1">
+                                <span class="cs-checkbox__label">Remember my choice for next time</span>
+                            </label>
+                        <?php endif; ?>
+
                         <?php if ( $is_loan_officer && $partner_config['skip_text'] ) : ?>
                             <button type="button" id="cs-skip-partner" class="cs-btn cs-btn--ghost" style="margin-top: 16px; width: 100%;">
                                 <?php echo esc_html( $partner_config['skip_text'] ); ?>
@@ -708,6 +724,38 @@ Smooth closing process"></textarea>
             }
             .cs-dropdown__nmls {
                 font-size: 13px;
+                color: #6b7280;
+            }
+            .cs-dropdown__item--preferred {
+                background: #fef3c7;
+                border-left: 3px solid #f59e0b;
+            }
+            .cs-dropdown__item--preferred:hover {
+                background: #fde68a;
+            }
+            .cs-dropdown__preferred-badge {
+                margin-left: auto;
+                font-size: 11px;
+                font-weight: 600;
+                color: #b45309;
+                background: #fef3c7;
+                padding: 2px 8px;
+                border-radius: 10px;
+            }
+            .cs-checkbox {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                cursor: pointer;
+            }
+            .cs-checkbox input[type="checkbox"] {
+                width: 18px;
+                height: 18px;
+                accent-color: #10b981;
+                cursor: pointer;
+            }
+            .cs-checkbox__label {
+                font-size: 14px;
                 color: #6b7280;
             }
             .cs-type-grid {
@@ -1212,6 +1260,19 @@ Smooth closing process"></textarea>
                 document.querySelectorAll(".cs-dropdown.open").forEach(d => d.classList.remove("open"));
             });
 
+            // Auto-select preferred partner if set
+            const partnerDropdown = document.getElementById("cs-partner-dropdown");
+            if (partnerDropdown) {
+                const preferredId = partnerDropdown.dataset.preferred;
+                if (preferredId && preferredId !== "0") {
+                    const preferredItem = partnerDropdown.querySelector(`.cs-dropdown__item[data-value="${preferredId}"]`);
+                    if (preferredItem) {
+                        preferredItem.click();
+                        console.log("CS Wizard: Auto-selected preferred partner ID:", preferredId);
+                    }
+                }
+            }
+
             // Skip partner button (LO mode only)
             const skipPartnerBtn = document.getElementById("cs-skip-partner");
             if (skipPartnerBtn) {
@@ -1317,6 +1378,25 @@ Smooth closing process"></textarea>
                             email: partner.dataset.email || "",
                             phone: partner.dataset.phone || ""
                         };
+
+                        // Save preference if "Remember my choice" is checked
+                        const rememberCheckbox = document.getElementById("cs-remember-partner");
+                        if (rememberCheckbox && rememberCheckbox.checked) {
+                            fetch(ajaxurl, {
+                                method: "POST",
+                                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                                body: new URLSearchParams({
+                                    action: "frs_set_preferred_lo",
+                                    nonce: "' . wp_create_nonce( 'frs_lead_pages' ) . '",
+                                    lo_id: partner.value,
+                                    remember: "true"
+                                })
+                            }).then(r => r.json()).then(res => {
+                                console.log("CS Wizard: Saved preferred LO:", res);
+                            }).catch(err => {
+                                console.error("CS Wizard: Failed to save preference:", err);
+                            });
+                        }
                     } else {
                         data.partner = {};
                     }

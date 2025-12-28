@@ -171,7 +171,11 @@ class Wizard {
                     </div>
                     <div class="mc-step__body">
                         <label class="mc-label"><?php echo esc_html( $partner_config['label'] ); ?></label>
-                        <div class="mc-dropdown" id="mc-partner-dropdown" data-mode="<?php echo esc_attr( $user_mode ); ?>" data-required="<?php echo $partner_config['required'] ? 'true' : 'false'; ?>">
+                        <div class="mc-dropdown" id="mc-partner-dropdown"
+                             data-mode="<?php echo esc_attr( $user_mode ); ?>"
+                             data-required="<?php echo $partner_config['required'] ? 'true' : 'false'; ?>"
+                             data-preferred="<?php echo esc_attr( $partner_config['preferred_id'] ?? 0 ); ?>"
+                             data-auto-selected="<?php echo ( $partner_config['auto_selected'] ?? false ) ? 'true' : 'false'; ?>">
                             <input type="hidden" id="mc-partner" name="partner" value="">
                             <button type="button" class="mc-dropdown__trigger">
                                 <span class="mc-dropdown__value"><?php echo esc_html( $partner_config['placeholder'] ); ?></span>
@@ -188,8 +192,9 @@ class Wizard {
                                     $partner_nmls = $partner['nmls'] ?? '';
                                     $partner_license = $partner['license'] ?? '';
                                     $partner_company = $partner['company'] ?? '';
+                                    $is_preferred = ( (int) $partner_id === (int) ( $partner_config['preferred_id'] ?? 0 ) );
                                     ?>
-                                    <div class="mc-dropdown__item"
+                                    <div class="mc-dropdown__item<?php echo $is_preferred ? ' mc-dropdown__item--preferred' : ''; ?>"
                                          data-value="<?php echo esc_attr( $partner_id ); ?>"
                                          data-name="<?php echo esc_attr( $partner_name ); ?>"
                                          data-nmls="<?php echo esc_attr( $partner_nmls ); ?>"
@@ -207,11 +212,22 @@ class Wizard {
                                                 <span class="mc-dropdown__nmls">NMLS# <?php echo esc_html( $partner_nmls ); ?></span>
                                             <?php endif; ?>
                                         </div>
+                                        <?php if ( $is_preferred ) : ?>
+                                            <span class="mc-dropdown__preferred-badge">★ Preferred</span>
+                                        <?php endif; ?>
                                     </div>
                                 <?php endforeach; ?>
                             </div>
                         </div>
                         <p class="mc-helper"><?php echo esc_html( $partner_config['helper'] ); ?></p>
+
+                        <?php if ( ! $is_loan_officer && ( $partner_config['show_remember'] ?? false ) ) : ?>
+                            <label class="mc-checkbox" style="margin-top: 12px;">
+                                <input type="checkbox" id="mc-remember-partner" name="remember_partner" value="1">
+                                <span class="mc-checkbox__label">Remember my choice for next time</span>
+                            </label>
+                        <?php endif; ?>
+
                         <?php if ( $is_loan_officer && $partner_config['skip_text'] ) : ?>
                             <button type="button" id="mc-skip-partner" class="mc-btn mc-btn--ghost" style="margin-top: 16px; width: 100%;">
                                 <?php echo esc_html( $partner_config['skip_text'] ); ?>
@@ -737,6 +753,38 @@ class Wizard {
         }
         .mc-dropdown__nmls {
             font-size: 13px;
+            color: var(--mc-text-light);
+        }
+        .mc-dropdown__item--preferred {
+            background: #fef3c7;
+            border-left: 3px solid #f59e0b;
+        }
+        .mc-dropdown__item--preferred:hover {
+            background: #fde68a;
+        }
+        .mc-dropdown__preferred-badge {
+            margin-left: auto;
+            font-size: 11px;
+            font-weight: 600;
+            color: #b45309;
+            background: #fef3c7;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+        .mc-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+        .mc-checkbox input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #8b5cf6;
+            cursor: pointer;
+        }
+        .mc-checkbox__label {
+            font-size: 14px;
             color: var(--mc-text-light);
         }
 
@@ -1490,6 +1538,16 @@ class Wizard {
                         dropdown.classList.remove('is-open');
                     }
                 });
+
+                // Auto-select preferred partner if set
+                const preferredId = dropdown.dataset.preferred;
+                if (preferredId && preferredId !== '0') {
+                    const preferredItem = dropdown.querySelector(`.mc-dropdown__item[data-value="${preferredId}"]`);
+                    if (preferredItem) {
+                        preferredItem.click();
+                        console.log('MC Wizard: Auto-selected preferred partner ID:', preferredId);
+                    }
+                }
             }
 
             // Color picker functionality
@@ -1748,6 +1806,27 @@ class Wizard {
                     if (isRequired && !selectedPartner) {
                         alert(isLoanOfficer ? 'Please select a realtor partner' : 'Please select a loan officer');
                         return false;
+                    }
+
+                    // Save preference if "Remember my choice" is checked
+                    if (selectedPartner) {
+                        const rememberCheckbox = document.getElementById('mc-remember-partner');
+                        if (rememberCheckbox && rememberCheckbox.checked) {
+                            fetch(ajaxurl, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                                body: new URLSearchParams({
+                                    action: 'frs_set_preferred_lo',
+                                    nonce: '<?php echo wp_create_nonce( 'frs_lead_pages' ); ?>',
+                                    lo_id: selectedPartner.id,
+                                    remember: 'true'
+                                })
+                            }).then(r => r.json()).then(res => {
+                                console.log('MC Wizard: Saved preferred LO:', res);
+                            }).catch(err => {
+                                console.error('MC Wizard: Failed to save preference:', err);
+                            });
+                        }
                     }
                 }
                 return true;

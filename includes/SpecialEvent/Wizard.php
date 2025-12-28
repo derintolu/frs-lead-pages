@@ -177,7 +177,11 @@ class Wizard {
                     </div>
                     <div class="se-step__body">
                         <label class="se-label"><?php echo esc_html( $partner_config['label'] ); ?></label>
-                        <div class="se-dropdown" id="se-partner-dropdown" data-mode="<?php echo esc_attr( $user_mode ); ?>" data-required="<?php echo $partner_config['required'] ? 'true' : 'false'; ?>">
+                        <div class="se-dropdown" id="se-partner-dropdown"
+                             data-mode="<?php echo esc_attr( $user_mode ); ?>"
+                             data-required="<?php echo $partner_config['required'] ? 'true' : 'false'; ?>"
+                             data-preferred="<?php echo esc_attr( $partner_config['preferred_id'] ?? 0 ); ?>"
+                             data-auto-selected="<?php echo ( $partner_config['auto_selected'] ?? false ) ? 'true' : 'false'; ?>">
                             <input type="hidden" id="se-partner" name="partner" value="">
                             <button type="button" class="se-dropdown__trigger">
                                 <span class="se-dropdown__value"><?php echo esc_html( $partner_config['placeholder'] ); ?></span>
@@ -194,8 +198,9 @@ class Wizard {
                                     $partner_nmls = $partner['nmls'] ?? '';
                                     $partner_license = $partner['license'] ?? '';
                                     $partner_company = $partner['company'] ?? '';
+                                    $is_preferred = ( (int) $partner_id === (int) ( $partner_config['preferred_id'] ?? 0 ) );
                                     ?>
-                                    <div class="se-dropdown__item"
+                                    <div class="se-dropdown__item<?php echo $is_preferred ? ' se-dropdown__item--preferred' : ''; ?>"
                                          data-value="<?php echo esc_attr( $partner_id ); ?>"
                                          data-name="<?php echo esc_attr( $partner_name ); ?>"
                                          data-nmls="<?php echo esc_attr( $partner_nmls ); ?>"
@@ -213,11 +218,22 @@ class Wizard {
                                                 <span class="se-dropdown__nmls">NMLS# <?php echo esc_html( $partner_nmls ); ?></span>
                                             <?php endif; ?>
                                         </div>
+                                        <?php if ( $is_preferred ) : ?>
+                                            <span class="se-dropdown__preferred-badge">★ Preferred</span>
+                                        <?php endif; ?>
                                     </div>
                                 <?php endforeach; ?>
                             </div>
                         </div>
                         <p class="se-helper"><?php echo esc_html( $partner_config['helper'] ); ?></p>
+
+                        <?php if ( ! $is_loan_officer && ( $partner_config['show_remember'] ?? false ) ) : ?>
+                            <label class="se-checkbox" style="margin-top: 12px;">
+                                <input type="checkbox" id="se-remember-partner" name="remember_partner" value="1">
+                                <span class="se-checkbox__label">Remember my choice for next time</span>
+                            </label>
+                        <?php endif; ?>
+
                         <?php if ( $is_loan_officer && $partner_config['skip_text'] ) : ?>
                             <button type="button" id="se-skip-partner" class="se-btn se-btn--ghost" style="margin-top: 16px; width: 100%;">
                                 <?php echo esc_html( $partner_config['skip_text'] ); ?>
@@ -518,6 +534,12 @@ class Wizard {
             .se-dropdown__photo { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
             .se-dropdown__name { font-size: 15px; font-weight: 600; color: #1f2937; display: block; }
             .se-dropdown__nmls { font-size: 13px; color: #6b7280; }
+            .se-dropdown__item--preferred { background: #fef3c7; border-left: 3px solid #f59e0b; }
+            .se-dropdown__item--preferred:hover { background: #fde68a; }
+            .se-dropdown__preferred-badge { margin-left: auto; font-size: 11px; font-weight: 600; color: #b45309; background: #fef3c7; padding: 2px 8px; border-radius: 10px; }
+            .se-checkbox { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+            .se-checkbox input[type="checkbox"] { width: 18px; height: 18px; accent-color: #f59e0b; cursor: pointer; }
+            .se-checkbox__label { font-size: 14px; color: #6b7280; }
             .se-type-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
             .se-type-card { cursor: pointer; }
             .se-type-card input { position: absolute; opacity: 0; }
@@ -711,6 +733,19 @@ class Wizard {
                 document.querySelectorAll(".se-dropdown.open").forEach(d => d.classList.remove("open"));
             });
 
+            // Auto-select preferred partner if set
+            const partnerDropdown = document.getElementById("se-partner-dropdown");
+            if (partnerDropdown) {
+                const preferredId = partnerDropdown.dataset.preferred;
+                if (preferredId && preferredId !== "0") {
+                    const preferredItem = partnerDropdown.querySelector(`.se-dropdown__item[data-value="${preferredId}"]`);
+                    if (preferredItem) {
+                        preferredItem.click();
+                        console.log("SE Wizard: Auto-selected preferred partner ID:", preferredId);
+                    }
+                }
+            }
+
             wizard.querySelectorAll("input[name=\"se-event-type\"]").forEach(radio => {
                 radio.addEventListener("change", function() {
                     data.eventType = this.value;
@@ -797,6 +832,25 @@ class Wizard {
                             email: partner.dataset.email || "",
                             phone: partner.dataset.phone || ""
                         };
+
+                        // Save preference if "Remember my choice" is checked
+                        const rememberCheckbox = document.getElementById("se-remember-partner");
+                        if (rememberCheckbox && rememberCheckbox.checked) {
+                            fetch(ajaxurl, {
+                                method: "POST",
+                                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                                body: new URLSearchParams({
+                                    action: "frs_set_preferred_lo",
+                                    nonce: "' . wp_create_nonce( 'frs_lead_pages' ) . '",
+                                    lo_id: partner.value,
+                                    remember: "true"
+                                })
+                            }).then(r => r.json()).then(res => {
+                                console.log("SE Wizard: Saved preferred LO:", res);
+                            }).catch(err => {
+                                console.error("SE Wizard: Failed to save preference:", err);
+                            });
+                        }
                     } else {
                         data.partner = {};
                     }

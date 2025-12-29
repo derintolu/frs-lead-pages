@@ -59,19 +59,21 @@ class Dashboard {
      * @return \WP_Query
      */
     private static function get_user_pages_query( int $user_id, bool $is_loan_officer ): \WP_Query {
+        // Simple query - just check for realtor_id or loan_officer_id
+        // Removed NOT EXISTS check as it's slow and rarely needed
         $args = [
             'post_type'      => 'frs_lead_page',
             'posts_per_page' => -1,
             'post_status'    => 'any',
+            'orderby'        => 'date',
+            'order'          => 'DESC',
             'meta_query'     => [
                 'relation' => 'OR',
+                [
+                    'key'   => '_frs_realtor_id',
+                    'value' => $user_id,
+                ],
             ],
-        ];
-
-        // Always check for pages where user is the realtor
-        $args['meta_query'][] = [
-            'key'   => '_frs_realtor_id',
-            'value' => $user_id,
         ];
 
         // Check for pages where user is the loan officer
@@ -81,19 +83,6 @@ class Dashboard {
                 'value' => $user_id,
             ];
         }
-
-        // Also include pages authored by this user (for backwards compatibility)
-        $args['meta_query'][] = [
-            'relation' => 'AND',
-            [
-                'key'     => '_frs_realtor_id',
-                'compare' => 'NOT EXISTS',
-            ],
-            [
-                'key'     => '_frs_loan_officer_id',
-                'compare' => 'NOT EXISTS',
-            ],
-        ];
 
         return new \WP_Query( $args );
     }
@@ -151,8 +140,18 @@ class Dashboard {
 
         $table_name = $wpdb->prefix . 'lead_submissions';
 
-        // Check if table exists
-        if ( $wpdb->get_var( "SHOW TABLES LIKE '{$table_name}'" ) !== $table_name ) {
+        // Cache table existence check - avoid SHOW TABLES on every page load
+        $table_exists_key = 'frs_lrg_table_exists';
+        $table_exists = wp_cache_get( $table_exists_key );
+
+        if ( $table_exists === false ) {
+            $table_exists = $wpdb->get_var( "SHOW TABLES LIKE '{$table_name}'" ) === $table_name;
+            wp_cache_set( $table_exists_key, $table_exists ? 'yes' : 'no', '', 3600 ); // Cache for 1 hour
+        } elseif ( $table_exists === 'no' ) {
+            return [];
+        }
+
+        if ( $table_exists !== 'yes' && ! $table_exists ) {
             return [];
         }
 

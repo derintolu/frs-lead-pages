@@ -532,11 +532,31 @@ class Wizard {
     }
 
     /**
+     * Enqueue modal assets
+     */
+    private static function enqueue_assets(): void {
+        $base_url = plugins_url( 'includes/RateQuote/', FRS_LEAD_PAGES_PLUGIN_FILE );
+        $version  = FRS_LEAD_PAGES_VERSION;
+
+        wp_enqueue_style( 'frs-rate-quote-wizard', $base_url . 'style.css', [], $version );
+        wp_enqueue_script( 'frs-rate-quote-wizard', $base_url . 'script.js', [], $version, true );
+
+        wp_localize_script( 'frs-rate-quote-wizard', 'frsRateQuoteWizard', [
+            'triggerClass' => self::TRIGGER_CLASS,
+            'triggerHash'  => self::TRIGGER_HASH,
+            'ajaxUrl'      => admin_url( 'admin-ajax.php' ),
+            'nonce'        => wp_create_nonce( 'frs_lead_pages' ),
+        ] );
+    }
+
+    /**
      * Render modal styles
      */
     private static function render_modal_styles(): string {
-        ob_start();
-        ?>
+        self::enqueue_assets();
+        return '';
+        // Styles now loaded from external style.css file
+        $unused = <<<'UNUSED'
         <style>
         /* Rate Quote Wizard - Emerald Green Theme */
         :root {
@@ -1103,16 +1123,16 @@ class Wizard {
             }
         }
         </style>
-        <?php
-        return ob_get_clean();
+UNUSED;
     }
 
     /**
      * Render modal scripts
      */
     private static function render_modal_scripts(): string {
-        ob_start();
-        ?>
+        return '';
+        // Scripts now loaded from external script.js file
+        $unused = <<<'UNUSED'
         <script>
         (function() {
             const modal = document.getElementById('rq-wizard-modal');
@@ -1491,8 +1511,7 @@ class Wizard {
             }
         })();
         </script>
-        <?php
-        return ob_get_clean();
+UNUSED;
     }
 
     /**

@@ -486,11 +486,32 @@ class Wizard {
     }
 
     /**
+     * Enqueue modal assets
+     */
+    private static function enqueue_assets(): void {
+        $base_url = plugins_url( 'includes/MortgageCalculator/', FRS_LEAD_PAGES_PLUGIN_FILE );
+        $version  = FRS_LEAD_PAGES_VERSION;
+
+        wp_enqueue_style( 'frs-mortgage-calculator-wizard', $base_url . 'style.css', [], $version );
+        wp_enqueue_script( 'frs-mortgage-calculator-wizard', $base_url . 'script.js', [], $version, true );
+
+        wp_localize_script( 'frs-mortgage-calculator-wizard', 'frsMortgageCalculatorWizard', [
+            'triggerClass' => self::TRIGGER_CLASS,
+            'triggerHash'  => self::TRIGGER_HASH,
+            'siteUrl'      => home_url(),
+            'ajaxUrl'      => admin_url( 'admin-ajax.php' ),
+            'nonce'        => wp_create_nonce( 'frs_lead_pages' ),
+        ] );
+    }
+
+    /**
      * Render modal styles
      */
     private static function render_modal_styles(): string {
-        ob_start();
-        ?>
+        self::enqueue_assets();
+        return '';
+        // Styles now loaded from external style.css file
+        $unused = <<<'UNUSED'
         <style>
         /* Mortgage Calculator Wizard - 21st Century Lending Brand */
         :root {
@@ -1497,16 +1518,16 @@ class Wizard {
             }
         }
         </style>
-                <?php
-        return ob_get_clean();
+UNUSED;
     }
 
     /**
      * Render modal scripts
      */
     private static function render_modal_scripts(): string {
-        ob_start();
-        ?>
+        return '';
+        // Scripts now loaded from external script.js file
+        $unused = <<<'UNUSED'
         <script>
         (function() {
             const modal = document.getElementById('mc-wizard-modal');
@@ -2063,8 +2084,7 @@ class Wizard {
             });
         })();
         </script>
-        <?php
-        return ob_get_clean();
+UNUSED;
     }
 
     /**

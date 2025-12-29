@@ -89,14 +89,23 @@ class LoanOfficers {
 
         // Normalize data structure
         return array_map( function( $lo ) {
+            $nmls = $lo['nmls'] ?? $lo['nmls_id'] ?? '';
+            $arrive = $lo['arrive'] ?? '';
+
+            // Generate arrive link from NMLS if not provided
+            if ( empty( $arrive ) && ! empty( $nmls ) ) {
+                $arrive = 'https://apply.21stcenturylending.com/register/' . $nmls;
+            }
+
             return [
                 'id'        => $lo['id'] ?? 0,
                 'name'      => $lo['name'] ?? $lo['display_name'] ?? '',
                 'email'     => $lo['email'] ?? '',
                 'phone'     => $lo['phone'] ?? '',
-                'nmls'      => $lo['nmls'] ?? $lo['nmls_id'] ?? '',
+                'nmls'      => $nmls,
                 'title'     => $lo['title'] ?? $lo['job_title'] ?? 'Loan Officer',
                 'photo_url' => $lo['photo_url'] ?? $lo['avatar'] ?? '',
+                'arrive'    => $arrive,
                 'active'    => $lo['active'] ?? true,
             ];
         }, $body );
@@ -116,17 +125,52 @@ class LoanOfficers {
         ] );
 
         return array_map( function( $user ) {
+            $nmls = \FRSLeadPages\frs_get_user_nmls( $user->ID );
+            $arrive = self::get_user_arrive_link( $user->ID, $nmls );
+
             return [
                 'id'        => $user->ID,
                 'name'      => $user->display_name,
                 'email'     => $user->user_email,
                 'phone'     => get_user_meta( $user->ID, 'phone', true ) ?: get_user_meta( $user->ID, 'billing_phone', true ),
-                'nmls'      => \FRSLeadPages\frs_get_user_nmls( $user->ID ),
+                'nmls'      => $nmls,
                 'title'     => get_user_meta( $user->ID, 'title', true ) ?: get_user_meta( $user->ID, 'job_title', true ) ?: 'Loan Officer',
                 'photo_url' => get_avatar_url( $user->ID, [ 'size' => 200 ] ),
+                'arrive'    => $arrive,
                 'active'    => true,
             ];
         }, $users );
+    }
+
+    /**
+     * Get user's arrive link from profile or generate from NMLS
+     *
+     * @param int    $user_id User ID
+     * @param string $nmls NMLS number
+     * @return string Arrive link URL
+     */
+    public static function get_user_arrive_link( int $user_id, string $nmls ): string {
+        // Try to get from frs_profiles table via frs-wp-users
+        global $wpdb;
+        $table = $wpdb->prefix . 'frs_profiles';
+
+        if ( $wpdb->get_var( $wpdb->prepare( "SHOW TABLES LIKE %s", $table ) ) === $table ) {
+            $arrive = $wpdb->get_var( $wpdb->prepare(
+                "SELECT arrive FROM {$table} WHERE user_id = %d",
+                $user_id
+            ) );
+
+            if ( ! empty( $arrive ) ) {
+                return $arrive;
+            }
+        }
+
+        // Fallback: generate from NMLS
+        if ( ! empty( $nmls ) ) {
+            return 'https://apply.21stcenturylending.com/register/' . $nmls;
+        }
+
+        return '';
     }
 
     /**
@@ -185,14 +229,18 @@ class LoanOfficers {
             return null;
         }
 
+        $nmls = \FRSLeadPages\frs_get_user_nmls( $id );
+        $arrive = self::get_user_arrive_link( $id, $nmls );
+
         return [
             'id'        => $user->ID,
             'name'      => $user->display_name,
             'email'     => $user->user_email,
             'phone'     => get_user_meta( $id, 'phone', true ) ?: get_user_meta( $id, 'billing_phone', true ),
-            'nmls'      => \FRSLeadPages\frs_get_user_nmls( $id ),
+            'nmls'      => $nmls,
             'title'     => get_user_meta( $id, 'title', true ) ?: get_user_meta( $id, 'job_title', true ) ?: 'Loan Officer',
             'photo_url' => get_avatar_url( $id, [ 'size' => 200 ] ),
+            'arrive'    => $arrive,
             'active'    => true,
         ];
     }

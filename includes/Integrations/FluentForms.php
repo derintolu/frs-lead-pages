@@ -110,6 +110,13 @@ class FluentForms {
             return [];
         }
 
+        // Cache form IDs to avoid repeated DB queries
+        $cache_key = 'frs_lead_page_form_ids';
+        $cached = wp_cache_get( $cache_key );
+        if ( $cached !== false ) {
+            return $cached;
+        }
+
         $form_ids = [];
 
         // Get form IDs for each page type
@@ -127,6 +134,9 @@ class FluentForms {
             ->toArray();
 
         $form_ids = array_unique( array_merge( $form_ids, $additional_forms ) );
+
+        // Cache for 5 minutes
+        wp_cache_set( $cache_key, $form_ids, '', 300 );
 
         return $form_ids;
     }
@@ -1135,59 +1145,43 @@ class FluentForms {
             return [];
         }
 
-        // Get all pages owned by user
-        $pages = get_posts([
-            'post_type'      => 'frs_lead_page',
-            'posts_per_page' => -1,
-            'post_status'    => 'any',
-            'meta_query'     => [
-                'relation' => 'OR',
-                [
-                    'key'   => '_frs_loan_officer_id',
-                    'value' => $user_id,
-                ],
-                [
-                    'key'   => '_frs_realtor_id',
-                    'value' => $user_id,
-                ],
-            ],
-        ]);
-
-        if ( empty( $pages ) ) {
-            return [];
+        // Cache submissions per user for 2 minutes to avoid expensive queries
+        $cache_key = 'frs_user_submissions_' . $user_id;
+        $cached = wp_cache_get( $cache_key );
+        if ( $cached !== false ) {
+            return $cached;
         }
 
-        $page_ids = wp_list_pluck( $pages, 'ID' );
-
-        // Get all lead page form IDs (not just one)
+        // Get all lead page form IDs
         $form_ids = self::get_all_lead_page_form_ids();
         if ( empty( $form_ids ) ) {
+            wp_cache_set( $cache_key, [], '', 120 );
             return [];
         }
 
-        // Query submissions from ALL lead page forms
+        // Simpler query: just match by loan_officer_id or realtor_id in submission data
+        // This avoids the expensive per-page-id OR conditions
         $query = Submission::whereIn( 'form_id', $form_ids )
+            ->where( function( $q ) use ( $user_id ) {
+                $q->whereRaw( "JSON_UNQUOTE(JSON_EXTRACT(response, '$.loan_officer_id')) = ?", [ (string) $user_id ] )
+                  ->orWhereRaw( "JSON_UNQUOTE(JSON_EXTRACT(response, '$.realtor_id')) = ?", [ (string) $user_id ] );
+            })
             ->orderBy( 'id', 'DESC' );
 
-        // Build OR condition for: page_id matches OR loan_officer_id/realtor_id matches
-        $query->where(function($q) use ($page_ids, $user_id) {
-            // Match by page ID
-            foreach ($page_ids as $page_id) {
-                $q->orWhereRaw("JSON_EXTRACT(response, '$.lead_page_id') = ?", [(int) $page_id]);
-            }
-            // Also match by loan_officer_id or realtor_id directly in submission
-            $q->orWhereRaw("JSON_EXTRACT(response, '$.loan_officer_id') = ?", [(int) $user_id]);
-            $q->orWhereRaw("JSON_EXTRACT(response, '$.realtor_id') = ?", [(int) $user_id]);
-        });
+        $submissions = $query->get();
 
-        $submissions = $query->limit( 200 )->get();
+        // Cache page titles to avoid repeated get_the_title calls
+        $page_title_cache = [];
 
-        return $submissions->map( function( $submission ) {
+        $result = $submissions->map( function( $submission ) use ( &$page_title_cache ) {
             $response = json_decode( $submission->response, true );
 
-            // Get lead page info
+            // Get lead page info with caching
             $lead_page_id = $response['lead_page_id'] ?? 0;
-            $lead_page_title = $lead_page_id ? get_the_title( $lead_page_id ) : 'Unknown';
+            if ( $lead_page_id && ! isset( $page_title_cache[ $lead_page_id ] ) ) {
+                $page_title_cache[ $lead_page_id ] = get_the_title( $lead_page_id );
+            }
+            $lead_page_title = $page_title_cache[ $lead_page_id ] ?? 'Unknown';
 
             // Handle both nested (names.first_name) and flat (first_name) structures
             $first_name = $response['names']['first_name'] ?? $response['first_name'] ?? '';
@@ -1211,6 +1205,11 @@ class FluentForms {
                 'submission_id'   => $submission->id,
             ];
         })->toArray();
+
+        // Cache for 2 minutes
+        wp_cache_set( $cache_key, $result, '', 120 );
+
+        return $result;
     }
 
     /**

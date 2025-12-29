@@ -52,8 +52,8 @@ class Shortcodes {
             return $template;
         }
 
-        // Check for custom template in plugin
-        $custom_template = FRS_LEAD_PAGES_PLUGIN_DIR . 'templates/lead-page.php';
+        // Use the new Template class loader
+        $custom_template = FRS_LEAD_PAGES_PLUGIN_DIR . 'includes/Frontend/LeadPage/loader.php';
         if ( file_exists( $custom_template ) ) {
             return $custom_template;
         }

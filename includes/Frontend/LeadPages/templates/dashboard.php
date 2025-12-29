@@ -77,6 +77,10 @@ if ( ! defined( 'ABSPATH' ) ) {
         <button class="frs-tab" data-tab="leads">
             My Leads <span class="frs-tab-count"><?php echo count( $leads ); ?></span>
         </button>
+        <button class="frs-tab" data-tab="settings">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" style="margin-right:4px;vertical-align:-3px;"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Settings
+        </button>
     </div>
 
     <!-- Pages Tab -->
@@ -203,6 +207,231 @@ if ( ! defined( 'ABSPATH' ) ) {
             </div>
         <?php endif; ?>
     </div>
+
+    <!-- Settings Tab -->
+    <?php
+    $current_user_id = get_current_user_id();
+    $fub_connected = \FRSLeadPages\Integrations\FollowUpBoss::is_connected( $current_user_id );
+    $fub_status = \FRSLeadPages\Integrations\FollowUpBoss::get_status( $current_user_id );
+    $fub_stats = \FRSLeadPages\Integrations\FollowUpBoss::get_stats( $current_user_id );
+    $fub_nonce = wp_create_nonce( 'frs_fub_nonce' );
+    ?>
+    <div class="frs-tab-panel" data-panel="settings">
+        <div class="frs-settings-section">
+            <div class="frs-settings-header">
+                <div class="frs-settings-icon fub-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                </div>
+                <div class="frs-settings-title">
+                    <h3>Follow Up Boss</h3>
+                    <p>Connect your CRM to automatically sync leads</p>
+                </div>
+                <?php if ( $fub_connected ) : ?>
+                    <span class="frs-connection-badge connected">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        Connected
+                    </span>
+                <?php else : ?>
+                    <span class="frs-connection-badge disconnected">Not Connected</span>
+                <?php endif; ?>
+            </div>
+
+            <div class="frs-settings-body">
+                <?php if ( $fub_connected ) : ?>
+                    <!-- Connected State -->
+                    <div class="frs-fub-connected">
+                        <div class="frs-fub-account">
+                            <div class="frs-fub-account-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            </div>
+                            <div class="frs-fub-account-info">
+                                <strong><?php echo esc_html( $fub_status['account_name'] ?? 'Follow Up Boss Account' ); ?></strong>
+                                <span>Connected <?php echo esc_html( human_time_diff( strtotime( $fub_status['connected_at'] ?? 'now' ) ) ); ?> ago</span>
+                            </div>
+                        </div>
+
+                        <div class="frs-fub-stats">
+                            <div class="frs-fub-stat">
+                                <div class="frs-fub-stat-value"><?php echo number_format( $fub_stats['total_synced'] ?? 0 ); ?></div>
+                                <div class="frs-fub-stat-label">Leads Synced</div>
+                            </div>
+                            <?php if ( ! empty( $fub_stats['last_sync'] ) ) : ?>
+                                <div class="frs-fub-stat">
+                                    <div class="frs-fub-stat-value"><?php echo esc_html( human_time_diff( strtotime( $fub_stats['last_sync'] ) ) ); ?></div>
+                                    <div class="frs-fub-stat-label">Since Last Sync</div>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+
+                        <div class="frs-fub-actions">
+                            <button type="button" class="frs-btn frs-btn-secondary" id="frs-fub-test">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                Test Connection
+                            </button>
+                            <button type="button" class="frs-btn frs-btn-danger" id="frs-fub-disconnect">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+                                Disconnect
+                            </button>
+                        </div>
+                    </div>
+                <?php else : ?>
+                    <!-- Disconnected State -->
+                    <div class="frs-fub-connect">
+                        <p class="frs-fub-description">
+                            Connect your Follow Up Boss account to automatically send leads from your landing pages directly to your CRM.
+                            New leads will appear in Follow Up Boss with all their details and be ready for follow-up.
+                        </p>
+
+                        <div class="frs-fub-form">
+                            <div class="frs-field">
+                                <label class="frs-label" for="frs-fub-api-key">API Key</label>
+                                <div class="frs-input-group">
+                                    <input type="password" id="frs-fub-api-key" class="frs-input" placeholder="Enter your Follow Up Boss API key">
+                                    <button type="button" class="frs-input-toggle" id="frs-fub-toggle-key" title="Show/Hide">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                    </button>
+                                </div>
+                                <p class="frs-helper">
+                                    Find your API key in Follow Up Boss: <strong>Admin > API</strong>
+                                    <a href="https://app.followupboss.com/2/api" target="_blank" rel="noopener">Open API Settings</a>
+                                </p>
+                            </div>
+
+                            <button type="button" class="frs-btn" id="frs-fub-connect">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                                Connect to Follow Up Boss
+                            </button>
+                        </div>
+                    </div>
+                <?php endif; ?>
+
+                <div id="frs-fub-message" class="frs-message" style="display:none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    (function() {
+        var nonce = '<?php echo esc_js( $fub_nonce ); ?>';
+        var ajaxUrl = '<?php echo esc_js( admin_url( 'admin-ajax.php' ) ); ?>';
+
+        // Toggle API key visibility
+        var toggleBtn = document.getElementById('frs-fub-toggle-key');
+        var apiKeyInput = document.getElementById('frs-fub-api-key');
+        if (toggleBtn && apiKeyInput) {
+            toggleBtn.addEventListener('click', function() {
+                apiKeyInput.type = apiKeyInput.type === 'password' ? 'text' : 'password';
+            });
+        }
+
+        // Connect button
+        var connectBtn = document.getElementById('frs-fub-connect');
+        if (connectBtn) {
+            connectBtn.addEventListener('click', function() {
+                var apiKey = document.getElementById('frs-fub-api-key').value.trim();
+                if (!apiKey) {
+                    showMessage('Please enter your API key', 'error');
+                    return;
+                }
+
+                connectBtn.disabled = true;
+                connectBtn.innerHTML = '<span class="frs-spinner"></span> Connecting...';
+
+                fetch(ajaxUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        action: 'frs_fub_save_api_key',
+                        nonce: nonce,
+                        api_key: apiKey
+                    })
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(response) {
+                    if (response.success) {
+                        showMessage(response.data.message, 'success');
+                        setTimeout(function() { location.reload(); }, 1500);
+                    } else {
+                        showMessage(response.data.message, 'error');
+                        connectBtn.disabled = false;
+                        connectBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> Connect to Follow Up Boss';
+                    }
+                })
+                .catch(function() {
+                    showMessage('Connection error. Please try again.', 'error');
+                    connectBtn.disabled = false;
+                    connectBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> Connect to Follow Up Boss';
+                });
+            });
+        }
+
+        // Test connection button
+        var testBtn = document.getElementById('frs-fub-test');
+        if (testBtn) {
+            testBtn.addEventListener('click', function() {
+                testBtn.disabled = true;
+                testBtn.innerHTML = '<span class="frs-spinner"></span> Testing...';
+
+                fetch(ajaxUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        action: 'frs_fub_test_connection',
+                        nonce: nonce
+                    })
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(response) {
+                    showMessage(response.data.message, response.success ? 'success' : 'error');
+                    testBtn.disabled = false;
+                    testBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Test Connection';
+                });
+            });
+        }
+
+        // Disconnect button
+        var disconnectBtn = document.getElementById('frs-fub-disconnect');
+        if (disconnectBtn) {
+            disconnectBtn.addEventListener('click', function() {
+                if (!confirm('Are you sure you want to disconnect Follow Up Boss? New leads will no longer sync to your CRM.')) {
+                    return;
+                }
+
+                disconnectBtn.disabled = true;
+                disconnectBtn.innerHTML = '<span class="frs-spinner"></span> Disconnecting...';
+
+                fetch(ajaxUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        action: 'frs_fub_disconnect',
+                        nonce: nonce
+                    })
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(response) {
+                    if (response.success) {
+                        showMessage(response.data.message, 'success');
+                        setTimeout(function() { location.reload(); }, 1000);
+                    }
+                });
+            });
+        }
+
+        function showMessage(text, type) {
+            var msg = document.getElementById('frs-fub-message');
+            msg.textContent = text;
+            msg.className = 'frs-message frs-message--' + type;
+            msg.style.display = 'block';
+            setTimeout(function() { msg.style.display = 'none'; }, 5000);
+        }
+    })();
+    </script>
 
     <!-- QR Code Modal -->
     <div class="frs-qr-modal" id="frs-qr-modal">

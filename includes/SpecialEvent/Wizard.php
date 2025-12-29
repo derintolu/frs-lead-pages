@@ -1176,32 +1176,28 @@ class Wizard {
         return '<div style="text-align:center;padding:48px;"><h2>Access Denied</h2><p>You do not have permission to create event pages.</p></div>';
     }
 
+    /**
+     * Enqueue modal assets
+     */
+    private static function enqueue_assets(): void {
+        $base_url = plugins_url( 'includes/SpecialEvent/', FRS_LEAD_PAGES_PLUGIN_FILE );
+        $version  = FRS_LEAD_PAGES_VERSION;
+
+        wp_enqueue_style( 'frs-special-event-wizard', $base_url . 'style.css', [], $version );
+        wp_enqueue_script( 'frs-special-event-wizard', $base_url . 'script.js', [], $version, true );
+
+        wp_localize_script( 'frs-special-event-wizard', 'frsSpecialEventWizard', [
+            'triggerClass' => self::TRIGGER_CLASS,
+            'triggerHash'  => self::TRIGGER_HASH,
+        ] );
+    }
+
     private static function render_modal_styles(): string {
-        return '<style>
-            .se-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 99999; display: none; }
-            .se-modal.se-modal--open { display: flex; }
-            .se-modal__backdrop { display: none; }
-            .se-modal__container { width: 100vw; height: 100vh; overflow-y: auto; }
-            .se-modal__close { position: fixed; top: 24px; right: 24px; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.95); border: none; border-radius: 50%; cursor: pointer; color: #64748b; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-            .se-modal__close:hover { background: #fff; color: #0f172a; }
-            body.se-modal-open { overflow: hidden; }
-        </style>';
+        self::enqueue_assets();
+        return '';
     }
 
     private static function render_modal_scripts(): string {
-        return '<script>
-        (function() {
-            const modal = document.getElementById("se-wizard-modal");
-            if (!modal) return;
-            const closeBtn = modal.querySelector(".se-modal__close");
-            const triggerClass = "' . self::TRIGGER_CLASS . '";
-            function openModal() { modal.classList.add("se-modal--open"); document.body.classList.add("se-modal-open"); }
-            function closeModal() { modal.classList.remove("se-modal--open"); document.body.classList.remove("se-modal-open"); }
-            closeBtn.addEventListener("click", closeModal);
-            document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
-            document.addEventListener("click", (e) => { if (e.target.classList.contains(triggerClass) || e.target.closest("." + triggerClass)) { e.preventDefault(); openModal(); } });
-            if (window.location.hash === "#' . self::TRIGGER_HASH . '") openModal();
-        })();
-        </script>';
+        return '';
     }
 }

@@ -13,6 +13,7 @@ namespace FRSLeadPages\ApplyNow;
 use FRSLeadPages\Core\LoanOfficers;
 use FRSLeadPages\Core\Realtors;
 use FRSLeadPages\Core\UserMode;
+use FRSLeadPages\Integrations\InstantImages;
 
 class Wizard {
 
@@ -120,6 +121,29 @@ class Wizard {
     }
 
     /**
+     * Get stock copy options for Apply Now pages
+     *
+     * @return array
+     */
+    private static function get_stock_copy_options(): array {
+        return [
+            'headlines' => [
+                'Ready to Own Your Dream Home?',
+                'Start Your Home Loan Journey Today',
+                'Apply Now – Fast, Easy, Secure',
+                'Your Path to Homeownership Starts Here',
+                'Get Pre-Approved in Minutes',
+            ],
+            'descriptions' => [
+                'Take the first step toward owning your dream home. Our streamlined application process makes it easy to get started.',
+                'Whether you\'re a first-time buyer or looking to refinance, we\'re here to guide you every step of the way.',
+                'Get personalized loan options with competitive rates. Apply now and let\'s make your homeownership goals a reality.',
+                'Ready to take the next step? Our team is here to help you find the perfect loan for your situation.',
+            ],
+        ];
+    }
+
+    /**
      * Render wizard content
      */
     private static function render_wizard_content( bool $is_modal = false ): string {
@@ -132,16 +156,26 @@ class Wizard {
         $user = wp_get_current_user();
         $user_data = UserMode::get_current_user_data();
         $user_data['mode'] = $user_mode;
-        $user_data['photo'] = get_avatar_url( $user->ID, [ 'size' => 200 ] );
+        $user_data['photo'] = \FRSLeadPages\get_user_photo( $user->ID ) ?: get_avatar_url( $user->ID, [ 'size' => 200 ] );
 
         // Get partners based on user mode
         $partners = $partner_config['partners'];
 
-        // Get available forms
+        // Get available forms and calendars
         $forms = self::get_fluent_forms();
-
-        // Get Fluent Booking calendars for current user
         $calendars = self::get_user_calendars();
+
+        // Get stock copy options
+        $stock_copy = self::get_stock_copy_options();
+
+        // Stock hero images for Apply Now
+        $stock_images = [
+            'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1560184897-ae75f418493e?w=600&h=400&fit=crop',
+        ];
+
+        $total_steps = 5; // Partner, Content, Hero Image, Scheduling, Branding
 
         ob_start();
         ?>
@@ -149,18 +183,18 @@ class Wizard {
             <div class="an-wizard__hero">
                 <div class="an-wizard__hero-content">
                     <h1>Create Your<br>Apply Now Page</h1>
-                    <p>Build a loan application landing page with scheduling integration.</p>
+                    <p>Build a professional loan application landing page that converts.</p>
                 </div>
             </div>
 
             <div class="an-wizard__form">
                 <div class="an-wizard__progress">
-                    <div class="an-wizard__progress-bar" style="width: 25%"></div>
+                    <div class="an-wizard__progress-bar" style="width: 20%"></div>
                 </div>
 
                 <div class="an-wizard__header">
                     <p class="an-wizard__title">Apply Now Wizard</p>
-                    <p class="an-wizard__subtitle">Step <span id="an-step-num">1</span> of 4</p>
+                    <p class="an-wizard__subtitle">Step <span id="an-step-num">1</span> of <?php echo $total_steps; ?></p>
                 </div>
 
                 <div class="an-wizard__nav-top">
@@ -255,12 +289,14 @@ class Wizard {
                                         $partner_name = $partner['name'];
                                         $partner_photo = $partner['photo_url'] ?? '';
                                         $partner_nmls = $partner['nmls'] ?? '';
+                                        $partner_arrive = $partner['arrive'] ?? '';
                                         $is_preferred = ( (int) $partner_id === (int) ( $partner_config['preferred_id'] ?? 0 ) );
                                         ?>
                                         <div class="an-dropdown__item<?php echo $is_preferred ? ' an-dropdown__item--preferred' : ''; ?>"
                                              data-value="<?php echo esc_attr( $partner_id ); ?>"
                                              data-name="<?php echo esc_attr( $partner_name ); ?>"
                                              data-nmls="<?php echo esc_attr( $partner_nmls ); ?>"
+                                             data-arrive="<?php echo esc_attr( $partner_arrive ); ?>"
                                              data-photo="<?php echo esc_attr( $partner_photo ); ?>">
                                             <img src="<?php echo esc_url( $partner_photo ); ?>" alt="" class="an-dropdown__photo">
                                             <div class="an-dropdown__info">
@@ -288,26 +324,78 @@ class Wizard {
                     </div>
                 </div>
 
-                <!-- Step 1: Page Content -->
+                <!-- Step 1: Page Content with Stock Copy -->
                 <div class="an-step" data-step="1" style="display:none;">
                     <div class="an-step__header">
-                        <h2>Page Content</h2>
-                        <p>Set your headline and description</p>
+                        <h2>Craft Your Message</h2>
+                        <p>Choose compelling copy that converts</p>
                     </div>
                     <div class="an-step__body">
                         <div class="an-field">
                             <label class="an-label">Headline</label>
-                            <input type="text" id="an-headline" class="an-input" value="Apply Now - Start Your Home Loan Journey" placeholder="Enter headline">
+                            <div id="an-headline-options" class="an-radio-group">
+                                <?php foreach ( $stock_copy['headlines'] as $i => $headline ) : ?>
+                                    <label class="an-radio-btn">
+                                        <input type="radio" name="an-headline-choice" value="<?php echo esc_attr( $headline ); ?>" <?php echo $i === 0 ? 'checked' : ''; ?>>
+                                        <span class="an-radio-btn__label"><?php echo esc_html( $headline ); ?></span>
+                                    </label>
+                                <?php endforeach; ?>
+                                <label class="an-radio-btn">
+                                    <input type="radio" name="an-headline-choice" value="custom">
+                                    <span class="an-radio-btn__label">Write my own...</span>
+                                </label>
+                            </div>
+                            <input type="text" id="an-headline-custom" class="an-input" placeholder="Enter your custom headline" style="display:none; margin-top:12px;">
+                            <input type="hidden" id="an-headline" value="<?php echo esc_attr( $stock_copy['headlines'][0] ); ?>">
                         </div>
                         <div class="an-field">
-                            <label class="an-label">Subheadline <span class="an-label-hint">(optional)</span></label>
-                            <input type="text" id="an-subheadline" class="an-input" value="Quick and easy application process" placeholder="Enter subheadline">
+                            <label class="an-label">Description</label>
+                            <div id="an-description-options" class="an-radio-group an-radio-group--vertical">
+                                <?php foreach ( $stock_copy['descriptions'] as $i => $desc ) : ?>
+                                    <label class="an-radio-btn an-radio-btn--block">
+                                        <input type="radio" name="an-description-choice" value="<?php echo esc_attr( $desc ); ?>" <?php echo $i === 0 ? 'checked' : ''; ?>>
+                                        <span class="an-radio-btn__label"><?php echo esc_html( $desc ); ?></span>
+                                    </label>
+                                <?php endforeach; ?>
+                                <label class="an-radio-btn an-radio-btn--block">
+                                    <input type="radio" name="an-description-choice" value="custom">
+                                    <span class="an-radio-btn__label">Write my own...</span>
+                                </label>
+                            </div>
+                            <textarea id="an-description-custom" class="an-textarea" placeholder="Enter your custom description" rows="3" style="display:none; margin-top:12px;"></textarea>
+                            <input type="hidden" id="an-subheadline" value="<?php echo esc_attr( $stock_copy['descriptions'][0] ); ?>">
                         </div>
                     </div>
                 </div>
 
-                <!-- Step 2: Scheduling Options -->
+                <!-- Step 2: Hero Image -->
                 <div class="an-step" data-step="2" style="display:none;">
+                    <div class="an-step__header">
+                        <h2>Choose Your Hero Image</h2>
+                        <p>Select an eye-catching background for your page</p>
+                    </div>
+                    <div class="an-step__body">
+                        <div id="an-images-grid" class="an-images-grid">
+                            <?php foreach ( $stock_images as $i => $img_url ) : ?>
+                                <div class="an-image-option<?php echo $i === 0 ? ' an-image-option--selected' : ''; ?>" data-url="<?php echo esc_attr( $img_url ); ?>">
+                                    <img src="<?php echo esc_url( $img_url ); ?>" alt="Stock image <?php echo $i + 1; ?>">
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <div class="an-upload-section">
+                            <p>Or find the perfect stock photo:</p>
+                            <?php echo InstantImages::render_search_button( 'an', '#2563EB' ); ?>
+                            <p style="margin-top: 16px;">Or upload your own:</p>
+                            <input type="file" id="an-image-upload" accept="image/*" class="an-file-input">
+                            <label for="an-image-upload" class="an-btn an-btn--secondary">Upload Image</label>
+                        </div>
+                        <input type="hidden" id="an-hero-image" value="<?php echo esc_attr( $stock_images[0] ); ?>">
+                        <?php echo InstantImages::render_search_modal( 'an', 'an-hero-image' ); ?>
+                    </div>
+                </div>
+
+                <!-- Step 3: Scheduling Options with Custom Dropdowns -->
+                <div class="an-step" data-step="3" style="display:none;">
                     <div class="an-step__header">
                         <h2>Scheduling Integration</h2>
                         <p>Choose how visitors can connect with you</p>
@@ -316,7 +404,7 @@ class Wizard {
                         <input type="hidden" id="an-schedule-type" name="schedule_type" value="form">
 
                         <div class="an-schedule-options">
-                            <div class="an-schedule-card" data-type="form">
+                            <div class="an-schedule-card selected" data-type="form">
                                 <div class="an-schedule-card__icon">
                                     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -346,34 +434,50 @@ class Wizard {
                             <?php endif; ?>
                         </div>
 
-                        <!-- Form Selection (shown when form is selected) -->
+                        <!-- Form Selection with Custom Dropdown -->
                         <div id="an-form-selection" class="an-form-selection">
                             <label class="an-label" style="margin-top: 24px;">Select Form</label>
-                            <select id="an-form-id" class="an-select">
-                                <option value="">-- Select a form --</option>
-                                <?php foreach ( $forms as $form ) : ?>
-                                    <option value="<?php echo esc_attr( $form['id'] ); ?>"><?php echo esc_html( $form['title'] ); ?></option>
-                                <?php endforeach; ?>
-                            </select>
+                            <input type="hidden" id="an-form-id" value="">
+                            <div class="an-dropdown" id="an-form-dropdown">
+                                <button type="button" class="an-dropdown__trigger">
+                                    <span class="an-dropdown__value">Choose a form...</span>
+                                    <svg class="an-dropdown__arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                                </button>
+                                <div class="an-dropdown__menu">
+                                    <?php foreach ( $forms as $form ) : ?>
+                                        <div class="an-dropdown__item an-dropdown__item--simple" data-value="<?php echo esc_attr( $form['id'] ); ?>">
+                                            <span class="an-dropdown__name"><?php echo esc_html( $form['title'] ); ?></span>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
                             <p class="an-helper">Choose a Fluent Form for your application</p>
                         </div>
 
-                        <!-- Calendar Selection (shown when booking is selected) -->
+                        <!-- Calendar Selection with Custom Dropdown -->
                         <div id="an-calendar-selection" class="an-calendar-selection" style="display: none;">
                             <label class="an-label" style="margin-top: 24px;">Select Calendar</label>
-                            <select id="an-calendar-id" class="an-select">
-                                <option value="">-- Select a calendar --</option>
-                                <?php foreach ( $calendars as $calendar ) : ?>
-                                    <option value="<?php echo esc_attr( $calendar['id'] ); ?>"><?php echo esc_html( $calendar['title'] ); ?></option>
-                                <?php endforeach; ?>
-                            </select>
+                            <input type="hidden" id="an-calendar-id" value="">
+                            <div class="an-dropdown" id="an-calendar-dropdown">
+                                <button type="button" class="an-dropdown__trigger">
+                                    <span class="an-dropdown__value">Choose a calendar...</span>
+                                    <svg class="an-dropdown__arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                                </button>
+                                <div class="an-dropdown__menu">
+                                    <?php foreach ( $calendars as $calendar ) : ?>
+                                        <div class="an-dropdown__item an-dropdown__item--simple" data-value="<?php echo esc_attr( $calendar['id'] ); ?>">
+                                            <span class="an-dropdown__name"><?php echo esc_html( $calendar['title'] ); ?></span>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
                             <p class="an-helper">Choose your Fluent Booking calendar</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Step 3: Your Branding -->
-                <div class="an-step" data-step="3" style="display:none;">
+                <!-- Step 4: Your Branding -->
+                <div class="an-step" data-step="4" style="display:none;">
                     <div class="an-step__header">
                         <h2>Your Branding</h2>
                         <p>Review and customize your profile info</p>
@@ -385,45 +489,75 @@ class Wizard {
                             </div>
                             <div class="an-branding-info">
                                 <p class="an-branding-name" id="an-preview-name"><?php echo esc_html( $user_data['name'] ); ?></p>
-                                <p class="an-branding-detail" id="an-preview-license"><?php echo esc_html( $is_loan_officer ? ( $user_data['nmls'] ?? '' ) : ( $user_data['license'] ?? '' ) ); ?></p>
+                                <p class="an-branding-detail" id="an-preview-license"><?php echo esc_html( $is_loan_officer ? ( $user_data['nmls'] ? 'NMLS# ' . $user_data['nmls'] : '' ) : ( $user_data['license'] ?? '' ) ); ?></p>
                             </div>
                         </div>
 
                         <?php if ( $is_loan_officer ) : ?>
                             <!-- LO Mode: Show LO fields -->
-                            <div class="an-field">
-                                <label class="an-label">Display Name</label>
-                                <input type="text" id="an-lo-name" class="an-input" value="<?php echo esc_attr( $user_data['name'] ); ?>">
+                            <div class="an-row">
+                                <div class="an-field an-field--half">
+                                    <label class="an-label">Display Name</label>
+                                    <input type="text" id="an-lo-name" class="an-input" value="<?php echo esc_attr( $user_data['name'] ); ?>">
+                                </div>
+                                <div class="an-field an-field--half">
+                                    <label class="an-label">NMLS #</label>
+                                    <input type="text" id="an-lo-nmls" class="an-input" value="<?php echo esc_attr( $user_data['nmls'] ?? '' ); ?>">
+                                </div>
                             </div>
-                            <div class="an-field">
-                                <label class="an-label">NMLS #</label>
-                                <input type="text" id="an-lo-nmls" class="an-input" value="<?php echo esc_attr( $user_data['nmls'] ?? '' ); ?>">
+                            <div class="an-row">
+                                <div class="an-field an-field--half">
+                                    <label class="an-label">Contact Phone</label>
+                                    <input type="tel" id="an-lo-phone" class="an-input" value="<?php echo esc_attr( $user_data['phone'] ); ?>">
+                                </div>
+                                <div class="an-field an-field--half">
+                                    <label class="an-label">Contact Email</label>
+                                    <input type="email" id="an-lo-email" class="an-input" value="<?php echo esc_attr( $user_data['email'] ); ?>">
+                                </div>
                             </div>
-                            <div class="an-field">
-                                <label class="an-label">Contact Phone</label>
-                                <input type="tel" id="an-lo-phone" class="an-input" value="<?php echo esc_attr( $user_data['phone'] ); ?>">
-                            </div>
-                            <div class="an-field">
-                                <label class="an-label">Contact Email</label>
-                                <input type="email" id="an-lo-email" class="an-input" value="<?php echo esc_attr( $user_data['email'] ); ?>">
-                            </div>
+
+                            <?php if ( ! empty( $user_data['arrive'] ) ) : ?>
+                                <div class="an-arrive-preview">
+                                    <label class="an-label">Apply Now Link (CTA)</label>
+                                    <div class="an-arrive-link">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                                            <polyline points="15 3 21 3 21 9"/>
+                                            <line x1="10" y1="14" x2="21" y2="3"/>
+                                        </svg>
+                                        <span><?php echo esc_html( $user_data['arrive'] ); ?></span>
+                                    </div>
+                                    <p class="an-helper">This link will be used as the Apply Now button on your page</p>
+                                </div>
+                                <input type="hidden" id="an-arrive-link" value="<?php echo esc_attr( $user_data['arrive'] ); ?>">
+                            <?php endif; ?>
                         <?php else : ?>
                             <!-- Realtor Mode: Show Realtor fields -->
-                            <div class="an-field">
-                                <label class="an-label">Display Name</label>
-                                <input type="text" id="an-realtor-name" class="an-input" value="<?php echo esc_attr( $user_data['name'] ); ?>">
+                            <div class="an-row">
+                                <div class="an-field an-field--half">
+                                    <label class="an-label">Display Name</label>
+                                    <input type="text" id="an-realtor-name" class="an-input" value="<?php echo esc_attr( $user_data['name'] ); ?>">
+                                </div>
+                                <div class="an-field an-field--half">
+                                    <label class="an-label">License Number</label>
+                                    <input type="text" id="an-realtor-license" class="an-input" value="<?php echo esc_attr( $user_data['license'] ?? '' ); ?>">
+                                </div>
                             </div>
-                            <div class="an-field">
-                                <label class="an-label">License Number</label>
-                                <input type="text" id="an-realtor-license" class="an-input" value="<?php echo esc_attr( $user_data['license'] ?? '' ); ?>">
+                            <div class="an-row">
+                                <div class="an-field an-field--half">
+                                    <label class="an-label">Contact Phone</label>
+                                    <input type="tel" id="an-realtor-phone" class="an-input" value="<?php echo esc_attr( $user_data['phone'] ); ?>">
+                                </div>
+                                <div class="an-field an-field--half">
+                                    <label class="an-label">Contact Email</label>
+                                    <input type="email" id="an-realtor-email" class="an-input" value="<?php echo esc_attr( $user_data['email'] ); ?>">
+                                </div>
                             </div>
-                            <div class="an-field">
-                                <label class="an-label">Contact Phone</label>
-                                <input type="tel" id="an-realtor-phone" class="an-input" value="<?php echo esc_attr( $user_data['phone'] ); ?>">
-                            </div>
-                            <div class="an-field">
-                                <label class="an-label">Contact Email</label>
-                                <input type="email" id="an-realtor-email" class="an-input" value="<?php echo esc_attr( $user_data['email'] ); ?>">
+
+                            <!-- Show selected LO info -->
+                            <p class="an-section-label" style="margin-top:24px;">Loan Officer (from Step 1)</p>
+                            <div id="an-partner-preview" class="an-lo-preview">
+                                <!-- Populated by JS -->
                             </div>
                         <?php endif; ?>
                     </div>
@@ -465,6 +599,8 @@ class Wizard {
                 </div>
             </div>
         </div>
+        <?php echo InstantImages::render_search_styles( 'an', '#2563EB' ); ?>
+        <?php echo InstantImages::render_search_scripts( 'an', 'an-hero-image', 'an-images-grid' ); ?>
         <?php
         return ob_get_clean();
     }
@@ -532,967 +668,49 @@ class Wizard {
     }
 
     /**
-     * Render modal styles
+     * Enqueue wizard assets
      */
-    private static function render_modal_styles(): string {
-        ob_start();
-        ?>
-        <style>
-        /* Apply Now Wizard - Indigo Theme */
-        :root {
-            --an-primary: #6366f1;
-            --an-primary-dark: #4f46e5;
-            --an-primary-light: #818cf8;
-            --an-primary-bg: #eef2ff;
-            --an-text: #1e293b;
-            --an-text-light: #64748b;
-            --an-border: #e5e7eb;
-            --an-white: #ffffff;
-            --an-success: #10b981;
-            --an-error: #ef4444;
-        }
+    private static function enqueue_assets(): void {
+        $base_url = plugins_url( 'includes/ApplyNow/', FRS_LEAD_PAGES_PLUGIN_FILE );
+        $version  = FRS_LEAD_PAGES_VERSION;
 
-        /* Modal Overlay */
-        .an-modal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            z-index: 99999;
-            overflow-y: auto;
-        }
-        .an-modal.is-open {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .an-modal__backdrop {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.6);
-            z-index: 1;
-        }
-        .an-modal__container {
-            position: relative;
-            z-index: 2;
-            width: 100vw;
-            height: 100vh;
-            overflow-y: auto;
-        }
-        .an-modal__close {
-            position: fixed;
-            top: 24px;
-            right: 24px;
-            z-index: 10;
-            width: 48px;
-            height: 48px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(255,255,255,0.95);
-            border: none;
-            border-radius: 50%;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            transition: all 0.2s;
-        }
-        .an-modal__close:hover {
-            background: var(--an-white);
-            transform: scale(1.1);
-        }
-        .an-modal__close svg {
-            color: var(--an-text);
-        }
+        wp_enqueue_style(
+            'frs-apply-now-wizard',
+            $base_url . 'style.css',
+            [],
+            $version
+        );
 
-        /* Wizard Layout */
-        .an-wizard {
-            display: flex;
-            min-height: 100vh;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        }
+        wp_enqueue_script(
+            'frs-apply-now-wizard',
+            $base_url . 'script.js',
+            [],
+            $version,
+            true
+        );
 
-        /* Hero Section */
-        .an-wizard__hero {
-            width: 50%;
-            height: 100vh;
-            background: linear-gradient(135deg, var(--an-primary) 0%, var(--an-primary-dark) 100%);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding: 64px;
-            position: fixed;
-            left: 0;
-            top: 0;
-            overflow: hidden;
-            color: var(--an-white);
-        }
-        .an-wizard__hero::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-        }
-        .an-wizard__hero h1 {
-            font-size: 42px;
-            font-weight: 700;
-            line-height: 1.1;
-            margin: 0 0 16px 0;
-            color: var(--an-white);
-            position: relative;
-        }
-        .an-wizard__hero p {
-            font-size: 18px;
-            opacity: 0.9;
-            margin: 0;
-            line-height: 1.6;
-            max-width: 400px;
-            position: relative;
-        }
-
-        /* Form Section */
-        .an-wizard__form {
-            width: 50%;
-            margin-left: 50%;
-            min-height: 100vh;
-            background: var(--an-white);
-            padding: 48px 56px;
-            box-sizing: border-box;
-        }
-
-        /* Progress Bar */
-        .an-wizard__progress {
-            height: 4px;
-            margin-bottom: 32px;
-            background: var(--an-border);
-        }
-        .an-wizard__progress-bar {
-            height: 100%;
-            background: var(--an-primary);
-            transition: width 0.3s ease;
-        }
-
-        /* Header */
-        .an-wizard__header {
-            padding: 20px 0;
-            border-bottom: 1px solid var(--an-border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-        }
-        .an-wizard__title {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--an-primary);
-            margin: 0;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .an-wizard__nav-top {
-            display: flex;
-            gap: 12px;
-            justify-content: flex-end;
-            margin-bottom: 16px;
-        }
-        .an-btn--sm {
-            padding: 8px 16px;
-            font-size: 13px;
-        }
-        .an-wizard__subtitle {
-            font-size: 14px;
-            color: var(--an-text-light);
-            margin: 0;
-        }
-
-        /* Step Sections */
-        .an-step__header {
-            margin-bottom: 24px;
-        }
-        .an-step__header h2 {
-            font-size: 22px;
-            font-weight: 700;
-            color: var(--an-text);
-            margin: 0 0 8px 0;
-        }
-        .an-step__header p {
-            font-size: 15px;
-            color: var(--an-text-light);
-            margin: 0;
-        }
-
-        /* Form Elements */
-        .an-label {
-            display: block;
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--an-text);
-            margin-bottom: 8px;
-        }
-        .an-label-hint {
-            font-weight: 400;
-            color: var(--an-text-light);
-        }
-        .an-input,
-        .an-select,
-        .an-textarea {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid var(--an-border);
-            border-radius: 10px;
-            font-size: 15px;
-            transition: all 0.2s;
-            box-sizing: border-box;
-        }
-        .an-input:focus,
-        .an-select:focus,
-        .an-textarea:focus {
-            outline: none;
-            border-color: var(--an-primary);
-            box-shadow: 0 0 0 3px var(--an-primary-bg);
-        }
-        .an-helper {
-            font-size: 13px;
-            color: var(--an-text-light);
-            margin-top: 8px;
-        }
-        .an-field {
-            margin-bottom: 20px;
-        }
-
-        /* Dropdown */
-        .an-dropdown {
-            position: relative;
-        }
-        .an-dropdown__trigger {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid var(--an-border);
-            border-radius: 10px;
-            background: var(--an-white);
-            font-size: 15px;
-            text-align: left;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            transition: all 0.2s;
-        }
-        .an-dropdown__trigger:hover {
-            border-color: var(--an-primary-light);
-        }
-        .an-dropdown.is-open .an-dropdown__trigger {
-            border-color: var(--an-primary);
-            box-shadow: 0 0 0 3px var(--an-primary-bg);
-        }
-        .an-dropdown__arrow {
-            transition: transform 0.2s;
-        }
-        .an-dropdown.is-open .an-dropdown__arrow {
-            transform: rotate(180deg);
-        }
-        .an-dropdown__menu {
-            display: none;
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            margin-top: 4px;
-            background: var(--an-white);
-            border: 2px solid var(--an-border);
-            border-radius: 8px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            z-index: 100;
-            max-height: 280px;
-            overflow-y: auto;
-        }
-        .an-dropdown.is-open .an-dropdown__menu {
-            display: block;
-        }
-        .an-dropdown__item {
-            padding: 12px 16px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            cursor: pointer;
-            transition: background 0.15s;
-        }
-        .an-dropdown__item:hover {
-            background: var(--an-primary-bg);
-        }
-        .an-dropdown__item.is-selected {
-            background: var(--an-primary-bg);
-        }
-        .an-dropdown__photo {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-        .an-dropdown__info {
-            display: flex;
-            flex-direction: column;
-        }
-        .an-dropdown__name {
-            font-weight: 600;
-            color: var(--an-text);
-        }
-        .an-dropdown__nmls {
-            font-size: 13px;
-            color: var(--an-text-light);
-        }
-        .an-dropdown__item--preferred {
-            background: #fef3c7;
-            border-left: 3px solid #f59e0b;
-        }
-        .an-dropdown__item--preferred:hover {
-            background: #fde68a;
-        }
-        .an-dropdown__preferred-badge {
-            margin-left: auto;
-            font-size: 11px;
-            font-weight: 600;
-            color: #b45309;
-            background: #fef3c7;
-            padding: 2px 8px;
-            border-radius: 10px;
-        }
-        .an-checkbox {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-        }
-        .an-checkbox input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            accent-color: var(--an-primary);
-            cursor: pointer;
-        }
-        .an-checkbox__label {
-            font-size: 14px;
-            color: var(--an-text-light);
-        }
-
-        /* Page Type Cards (LO mode) */
-        .an-page-type-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 8px; }
-        .an-page-type-card { border: 2px solid #e2e8f0; border-radius: 12px; padding: 24px 16px; text-align: center; cursor: pointer; transition: all 0.2s ease; background: #fff; }
-        .an-page-type-card:hover { border-color: var(--an-primary-light); background: var(--an-primary-bg); }
-        .an-page-type-card.selected { border-color: var(--an-primary); background: var(--an-primary-bg); box-shadow: 0 0 0 4px rgba(99,102,241,0.15); }
-        .an-page-type-card__icon { width: 64px; height: 64px; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; background: var(--an-primary-bg); border-radius: 50%; }
-        .an-page-type-card__icon svg { stroke: var(--an-primary); }
-        .an-page-type-card.selected .an-page-type-card__icon { background: var(--an-primary); }
-        .an-page-type-card.selected .an-page-type-card__icon svg { stroke: #fff; }
-        .an-page-type-card h3 { font-size: 16px; font-weight: 600; color: var(--an-text); margin: 0 0 4px; }
-        .an-page-type-card p { font-size: 13px; color: var(--an-text-light); margin: 0; }
-        .an-partner-selection { margin-top: 16px; }
-
-        /* Schedule Options */
-        .an-schedule-options { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 8px; }
-        .an-schedule-card { border: 2px solid #e2e8f0; border-radius: 12px; padding: 24px 16px; text-align: center; cursor: pointer; transition: all 0.2s ease; background: #fff; }
-        .an-schedule-card:hover { border-color: var(--an-primary-light); background: var(--an-primary-bg); }
-        .an-schedule-card.selected { border-color: var(--an-primary); background: var(--an-primary-bg); box-shadow: 0 0 0 4px rgba(99,102,241,0.15); }
-        .an-schedule-card__icon { width: 64px; height: 64px; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; background: var(--an-primary-bg); border-radius: 50%; }
-        .an-schedule-card__icon svg { stroke: var(--an-primary); }
-        .an-schedule-card.selected .an-schedule-card__icon { background: var(--an-primary); }
-        .an-schedule-card.selected .an-schedule-card__icon svg { stroke: #fff; }
-        .an-schedule-card h3 { font-size: 16px; font-weight: 600; color: var(--an-text); margin: 0 0 4px; }
-        .an-schedule-card p { font-size: 13px; color: var(--an-text-light); margin: 0; }
-
-        /* Branding Preview */
-        .an-branding-preview {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            padding: 20px;
-            background: var(--an-primary-bg);
-            border-radius: 12px;
-            margin-bottom: 24px;
-        }
-        .an-branding-photo img {
-            width: 64px;
-            height: 64px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid var(--an-white);
-        }
-        .an-branding-name {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--an-text);
-            margin: 0 0 4px;
-        }
-        .an-branding-detail {
-            font-size: 14px;
-            color: var(--an-text-light);
-            margin: 0;
-        }
-
-        /* Success State */
-        .an-success {
-            text-align: center;
-            padding: 40px 20px;
-        }
-        .an-success__icon {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, var(--an-success) 0%, #059669 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 24px;
-        }
-        .an-success__icon svg {
-            stroke: var(--an-white);
-        }
-        .an-success h2 {
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--an-text);
-            margin: 0 0 8px;
-        }
-        .an-success p {
-            font-size: 15px;
-            color: var(--an-text-light);
-            margin: 0 0 24px;
-        }
-        .an-success__url-box {
-            display: flex;
-            gap: 8px;
-            max-width: 500px;
-            margin: 0 auto 24px;
-        }
-        .an-success__url-box input {
-            flex: 1;
-            padding: 12px 16px;
-            border: 2px solid var(--an-border);
-            border-radius: 8px;
-            font-size: 14px;
-            background: #f8fafc;
-        }
-        .an-success__actions {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-        }
-
-        /* Footer */
-        .an-wizard__footer {
-            margin-top: 32px;
-            padding-top: 24px;
-            border-top: 1px solid var(--an-border);
-            display: flex;
-            justify-content: space-between;
-            gap: 12px;
-        }
-
-        /* Buttons */
-        .an-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: none;
-        }
-        .an-btn--primary {
-            background: var(--an-primary);
-            color: var(--an-white);
-        }
-        .an-btn--primary:hover {
-            background: var(--an-primary-dark);
-        }
-        .an-btn--primary:disabled {
-            background: var(--an-border);
-            cursor: not-allowed;
-        }
-        .an-btn--secondary {
-            background: var(--an-white);
-            color: var(--an-text);
-            border: 2px solid var(--an-border);
-        }
-        .an-btn--secondary:hover {
-            border-color: var(--an-primary);
-            color: var(--an-primary);
-        }
-        .an-btn--ghost {
-            background: transparent;
-            color: var(--an-text-light);
-            border: none;
-        }
-        .an-btn--ghost:hover {
-            color: var(--an-primary);
-        }
-
-        /* Loading State */
-        .an-btn.is-loading {
-            pointer-events: none;
-            opacity: 0.7;
-        }
-        .an-btn.is-loading::after {
-            content: '';
-            width: 16px;
-            height: 16px;
-            border: 2px solid transparent;
-            border-top-color: currentColor;
-            border-radius: 50%;
-            animation: an-spin 0.8s linear infinite;
-            margin-left: 8px;
-        }
-        @keyframes an-spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* Messages */
-        .an-message {
-            padding: 16px 20px;
-            border-radius: 8px;
-            font-size: 14px;
-        }
-        .an-message--warning {
-            background: #fef3c7;
-            color: #92400e;
-        }
-        .an-message--error {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        /* Responsive */
-        @media (max-width: 1024px) {
-            .an-wizard {
-                flex-direction: column;
-                height: auto;
-                min-height: 100vh;
-            }
-            .an-wizard__hero {
-                width: 100%;
-                height: auto;
-                position: relative;
-                padding: 48px 32px;
-            }
-            .an-wizard__hero h1 {
-                font-size: 32px;
-            }
-            .an-wizard__form {
-                width: 100%;
-                margin-left: 0;
-                padding: 32px;
-            }
-        }
-        @media (max-width: 640px) {
-            .an-wizard__hero {
-                padding: 32px 24px;
-            }
-            .an-wizard__hero h1 {
-                font-size: 28px;
-            }
-            .an-wizard__form {
-                padding: 24px;
-            }
-            .an-page-type-cards,
-            .an-schedule-options {
-                grid-template-columns: 1fr;
-            }
-        }
-        </style>
-        <?php
-        return ob_get_clean();
+        wp_localize_script( 'frs-apply-now-wizard', 'frsApplyNowWizard', [
+            'triggerClass' => self::TRIGGER_CLASS,
+            'triggerHash'  => self::TRIGGER_HASH,
+            'ajaxUrl'      => admin_url( 'admin-ajax.php' ),
+            'nonce'        => wp_create_nonce( 'frs_lead_pages' ),
+        ] );
     }
 
     /**
-     * Render modal scripts
+     * Render modal styles (now uses external CSS)
+     */
+    private static function render_modal_styles(): string {
+        self::enqueue_assets();
+        return '';
+    }
+
+    /**
+     * Render modal scripts (now uses external JS)
      */
     private static function render_modal_scripts(): string {
-        ob_start();
-        ?>
-        <script>
-        (function() {
-            const modal = document.getElementById('an-wizard-modal');
-            const wizard = document.getElementById('an-wizard');
-            if (!modal || !wizard) return;
-
-            let currentStep = 0;
-            const totalSteps = 4;
-            let selectedPartner = null;
-            let selectedScheduleType = 'form';
-
-            // Get user data and mode
-            const userData = JSON.parse(wizard.dataset.user || "{}");
-            const userMode = userData.mode || "realtor";
-            const isLoanOfficer = userMode === "loan_officer";
-
-            // Page type card selection (LO mode)
-            const pageTypeCards = wizard.querySelectorAll('.an-page-type-card');
-            const pageTypeInput = document.getElementById('an-page-type');
-            const partnerSelectionDiv = document.getElementById('an-partner-selection');
-            const partnerInput = document.getElementById('an-partner');
-
-            if (pageTypeCards.length > 0 && isLoanOfficer) {
-                pageTypeCards.forEach(card => {
-                    card.addEventListener('click', () => {
-                        pageTypeCards.forEach(c => c.classList.remove('selected'));
-                        card.classList.add('selected');
-                        const pageType = card.dataset.type;
-                        if (pageTypeInput) pageTypeInput.value = pageType;
-
-                        if (partnerSelectionDiv) {
-                            if (pageType === 'cobranded') {
-                                partnerSelectionDiv.style.display = 'block';
-                            } else {
-                                partnerSelectionDiv.style.display = 'none';
-                                if (partnerInput) partnerInput.value = '';
-                                selectedPartner = null;
-                                const dropdownValue = wizard.querySelector('#an-partner-dropdown .an-dropdown__value');
-                                if (dropdownValue) dropdownValue.textContent = 'Choose a partner...';
-                                wizard.querySelectorAll('#an-partner-dropdown .an-dropdown__item').forEach(i => i.classList.remove('is-selected'));
-                            }
-                        }
-                    });
-                });
-            }
-
-            // Schedule type card selection
-            const scheduleCards = wizard.querySelectorAll('.an-schedule-card');
-            const scheduleTypeInput = document.getElementById('an-schedule-type');
-            const formSelection = document.getElementById('an-form-selection');
-            const calendarSelection = document.getElementById('an-calendar-selection');
-
-            if (scheduleCards.length > 0) {
-                // Default select first card
-                scheduleCards[0].classList.add('selected');
-
-                scheduleCards.forEach(card => {
-                    card.addEventListener('click', () => {
-                        scheduleCards.forEach(c => c.classList.remove('selected'));
-                        card.classList.add('selected');
-                        selectedScheduleType = card.dataset.type;
-                        if (scheduleTypeInput) scheduleTypeInput.value = selectedScheduleType;
-
-                        // Toggle form/calendar selection
-                        if (selectedScheduleType === 'form') {
-                            formSelection.style.display = 'block';
-                            calendarSelection.style.display = 'none';
-                        } else {
-                            formSelection.style.display = 'none';
-                            calendarSelection.style.display = 'block';
-                        }
-                    });
-                });
-            }
-
-            // Open modal
-            document.querySelectorAll('.<?php echo self::TRIGGER_CLASS; ?>').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    modal.classList.add('is-open');
-                    document.body.style.overflow = 'hidden';
-                });
-            });
-
-            // Check URL hash
-            if (window.location.hash === '#<?php echo self::TRIGGER_HASH; ?>') {
-                modal.classList.add('is-open');
-                document.body.style.overflow = 'hidden';
-            }
-
-            // Close modal
-            modal.querySelector('.an-modal__backdrop').addEventListener('click', closeModal);
-            modal.querySelector('.an-modal__close').addEventListener('click', closeModal);
-
-            function closeModal() {
-                modal.classList.remove('is-open');
-                document.body.style.overflow = '';
-            }
-
-            // Dropdown functionality
-            const dropdown = document.getElementById('an-partner-dropdown');
-            if (dropdown) {
-                const trigger = dropdown.querySelector('.an-dropdown__trigger');
-                const menu = dropdown.querySelector('.an-dropdown__menu');
-                const items = dropdown.querySelectorAll('.an-dropdown__item');
-                const input = document.getElementById('an-partner');
-                const valueDisplay = dropdown.querySelector('.an-dropdown__value');
-
-                trigger.addEventListener('click', () => {
-                    dropdown.classList.toggle('is-open');
-                });
-
-                items.forEach(item => {
-                    item.addEventListener('click', () => {
-                        items.forEach(i => i.classList.remove('is-selected'));
-                        item.classList.add('is-selected');
-                        input.value = item.dataset.value;
-                        selectedPartner = {
-                            id: item.dataset.value,
-                            name: item.dataset.name,
-                            nmls: item.dataset.nmls || '',
-                            license: item.dataset.license || '',
-                            company: item.dataset.company || '',
-                            photo: item.dataset.photo || '',
-                            email: item.dataset.email || '',
-                            phone: item.dataset.phone || ''
-                        };
-                        valueDisplay.innerHTML = `
-                            <img src="${item.dataset.photo || ''}" style="width:24px;height:24px;border-radius:50%;margin-right:8px;">
-                            ${item.dataset.name}
-                        `;
-                        dropdown.classList.remove('is-open');
-                    });
-                });
-
-                document.addEventListener('click', (e) => {
-                    if (!dropdown.contains(e.target)) {
-                        dropdown.classList.remove('is-open');
-                    }
-                });
-
-                // Auto-select preferred partner if set
-                const preferredId = dropdown.dataset.preferred;
-                if (preferredId && preferredId !== '0') {
-                    const preferredItem = dropdown.querySelector(`.an-dropdown__item[data-value="${preferredId}"]`);
-                    if (preferredItem) {
-                        preferredItem.click();
-                    }
-                }
-            }
-
-            // Copy URL button
-            const copyUrlBtn = document.getElementById('an-copy-url');
-            if (copyUrlBtn) {
-                copyUrlBtn.addEventListener('click', () => {
-                    const urlInput = document.getElementById('an-success-url');
-                    if (urlInput) {
-                        navigator.clipboard.writeText(urlInput.value).then(() => {
-                            const originalText = copyUrlBtn.textContent;
-                            copyUrlBtn.textContent = 'Copied!';
-                            setTimeout(() => {
-                                copyUrlBtn.textContent = originalText;
-                            }, 2000);
-                        });
-                    }
-                });
-            }
-
-            // Create another button
-            const createAnotherBtn = document.getElementById('an-create-another');
-            if (createAnotherBtn) {
-                createAnotherBtn.addEventListener('click', () => {
-                    currentStep = 0;
-                    selectedPartner = null;
-                    selectedScheduleType = 'form';
-                    goToStep(0);
-                    document.querySelector('.an-wizard__footer').style.display = 'flex';
-                });
-            }
-
-            // Navigation
-            const prevBtn = document.getElementById('an-prev-btn');
-            const nextBtn = document.getElementById('an-next-btn');
-            const backBtnTop = document.getElementById('an-back-top');
-            const nextBtnTop = document.getElementById('an-next-top');
-
-            prevBtn.addEventListener('click', () => {
-                if (currentStep > 0) {
-                    goToStep(currentStep - 1);
-                }
-            });
-
-            nextBtn.addEventListener('click', () => {
-                if (validateStep()) {
-                    if (currentStep < totalSteps - 1) {
-                        goToStep(currentStep + 1);
-                    } else {
-                        submitWizard();
-                    }
-                }
-            });
-
-            if (nextBtnTop) {
-                nextBtnTop.addEventListener('click', () => {
-                    if (validateStep()) {
-                        if (currentStep < totalSteps - 1) {
-                            goToStep(currentStep + 1);
-                        } else {
-                            submitWizard();
-                        }
-                    }
-                });
-            }
-            if (backBtnTop) {
-                backBtnTop.addEventListener('click', () => {
-                    if (currentStep > 0) {
-                        goToStep(currentStep - 1);
-                    }
-                });
-            }
-
-            function goToStep(step) {
-                document.querySelectorAll('.an-step').forEach(el => el.style.display = 'none');
-                const stepEl = document.querySelector(`.an-step[data-step="${step}"]`);
-                if (stepEl) stepEl.style.display = 'block';
-                currentStep = step;
-
-                // Update progress
-                const progress = ((step + 1) / totalSteps) * 100;
-                document.querySelector('.an-wizard__progress-bar').style.width = progress + '%';
-                document.getElementById('an-step-num').textContent = step + 1;
-
-                // Update buttons
-                prevBtn.style.display = step === 0 ? 'none' : 'flex';
-                if (backBtnTop) backBtnTop.style.display = step === 0 ? 'none' : 'inline-flex';
-                if (nextBtnTop) nextBtnTop.style.display = step < totalSteps - 1 ? 'inline-flex' : 'none';
-
-                if (step === totalSteps - 1) {
-                    nextBtn.innerHTML = 'Create Page <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
-                } else {
-                    nextBtn.innerHTML = 'Continue <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
-                }
-            }
-
-            function validateStep() {
-                if (currentStep === 0) {
-                    if (isLoanOfficer) {
-                        const pageType = document.getElementById('an-page-type')?.value;
-                        if (!pageType) {
-                            alert('Please select Solo Page or Co-branded');
-                            return false;
-                        }
-                        if (pageType === 'cobranded' && !selectedPartner) {
-                            alert('Please select a partner for co-branding');
-                            return false;
-                        }
-                    } else {
-                        const partnerDropdown = document.getElementById('an-partner-dropdown');
-                        const isRequired = partnerDropdown?.dataset.required === 'true';
-                        if (isRequired && !selectedPartner) {
-                            alert('Please select a loan officer');
-                            return false;
-                        }
-
-                        // Save preference if checked
-                        if (selectedPartner) {
-                            const rememberCheckbox = document.getElementById('an-remember-partner');
-                            if (rememberCheckbox && rememberCheckbox.checked) {
-                                fetch(ajaxurl, {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                                    body: new URLSearchParams({
-                                        action: 'frs_set_preferred_lo',
-                                        nonce: '<?php echo wp_create_nonce( 'frs_lead_pages' ); ?>',
-                                        lo_id: selectedPartner.id,
-                                        remember: 'true'
-                                    })
-                                });
-                            }
-                        }
-                    }
-                } else if (currentStep === 1) {
-                    const headline = document.getElementById('an-headline')?.value?.trim();
-                    if (!headline) {
-                        alert('Please enter a headline');
-                        return false;
-                    }
-                } else if (currentStep === 2) {
-                    if (selectedScheduleType === 'form') {
-                        const formId = document.getElementById('an-form-id')?.value;
-                        if (!formId) {
-                            alert('Please select a form');
-                            return false;
-                        }
-                    } else if (selectedScheduleType === 'booking') {
-                        const calendarId = document.getElementById('an-calendar-id')?.value;
-                        if (!calendarId) {
-                            alert('Please select a calendar');
-                            return false;
-                        }
-                    }
-                }
-                return true;
-            }
-
-            function submitWizard() {
-                nextBtn.classList.add('is-loading');
-                nextBtn.disabled = true;
-
-                const data = {
-                    action: 'frs_create_apply_now',
-                    nonce: '<?php echo wp_create_nonce( 'frs_lead_pages' ); ?>',
-                    user_mode: userMode,
-                    headline: document.getElementById('an-headline')?.value || '',
-                    subheadline: document.getElementById('an-subheadline')?.value || '',
-                    schedule_type: selectedScheduleType,
-                    form_id: document.getElementById('an-form-id')?.value || '',
-                    calendar_id: document.getElementById('an-calendar-id')?.value || ''
-                };
-
-                if (isLoanOfficer) {
-                    data.lo_name = document.getElementById('an-lo-name')?.value || userData.name;
-                    data.lo_nmls = document.getElementById('an-lo-nmls')?.value || '';
-                    data.lo_phone = document.getElementById('an-lo-phone')?.value || '';
-                    data.lo_email = document.getElementById('an-lo-email')?.value || '';
-
-                    if (selectedPartner) {
-                        data.partner_id = selectedPartner.id;
-                        data.partner_name = selectedPartner.name;
-                        data.partner_license = selectedPartner.license;
-                        data.partner_company = selectedPartner.company;
-                        data.partner_phone = selectedPartner.phone;
-                        data.partner_email = selectedPartner.email;
-                    }
-                } else {
-                    data.realtor_name = document.getElementById('an-realtor-name')?.value || userData.name;
-                    data.realtor_license = document.getElementById('an-realtor-license')?.value || '';
-                    data.realtor_phone = document.getElementById('an-realtor-phone')?.value || '';
-                    data.realtor_email = document.getElementById('an-realtor-email')?.value || '';
-                    data.loan_officer_id = selectedPartner?.id || '';
-                }
-
-                fetch('<?php echo admin_url( 'admin-ajax.php' ); ?>', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: new URLSearchParams(data)
-                })
-                .then(res => res.json())
-                .then(response => {
-                    if (response.success) {
-                        showSuccessState(response.data.url);
-                    } else {
-                        alert(response.data.message || 'Error creating page');
-                        nextBtn.classList.remove('is-loading');
-                        nextBtn.disabled = false;
-                    }
-                })
-                .catch(err => {
-                    console.error(err);
-                    alert('Error creating page');
-                    nextBtn.classList.remove('is-loading');
-                    nextBtn.disabled = false;
-                });
-            }
-
-            function showSuccessState(pageUrl) {
-                document.querySelectorAll('.an-step').forEach(el => el.style.display = 'none');
-                const successStep = document.querySelector('.an-step[data-step="success"]');
-                if (successStep) successStep.style.display = 'block';
-
-                document.getElementById('an-success-url').value = pageUrl;
-                document.getElementById('an-view-page').href = pageUrl;
-                document.querySelector('.an-wizard__footer').style.display = 'none';
-
-                nextBtn.classList.remove('is-loading');
-                nextBtn.disabled = false;
-            }
-        })();
-        </script>
-        <?php
-        return ob_get_clean();
+        // Assets are already enqueued by render_modal_styles()
+        return '';
     }
 
     /**
@@ -1512,11 +730,13 @@ class Wizard {
             wp_send_json_error( [ 'message' => 'Not authorized' ] );
         }
 
-        $headline = sanitize_text_field( $_POST['headline'] ?? 'Apply Now - Start Your Home Loan Journey' );
+        $headline = sanitize_text_field( $_POST['headline'] ?? 'Ready to Own Your Dream Home?' );
         $subheadline = sanitize_text_field( $_POST['subheadline'] ?? '' );
         $schedule_type = sanitize_text_field( $_POST['schedule_type'] ?? 'form' );
         $form_id = absint( $_POST['form_id'] ?? 0 );
         $calendar_id = absint( $_POST['calendar_id'] ?? 0 );
+        $hero_image = esc_url_raw( $_POST['hero_image'] ?? '' );
+        $arrive_link = esc_url_raw( $_POST['arrive_link'] ?? '' );
 
         // Create post
         $post_data = [
@@ -1539,6 +759,8 @@ class Wizard {
         update_post_meta( $post_id, '_frs_schedule_type', $schedule_type );
         update_post_meta( $post_id, '_frs_form_id', $form_id );
         update_post_meta( $post_id, '_frs_calendar_id', $calendar_id );
+        update_post_meta( $post_id, '_frs_hero_image_url', $hero_image );
+        update_post_meta( $post_id, '_frs_arrive_link', $arrive_link );
 
         // Save creator info and partner info based on user mode
         $user_mode = sanitize_text_field( $_POST['user_mode'] ?? 'realtor' );

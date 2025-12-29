@@ -784,6 +784,337 @@
     text-decoration: underline;
 }
 
+/* Settings Tab */
+.frs-tab svg {
+    width: 16px;
+    height: 16px;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 6px;
+}
+
+.frs-tab svg path {
+    fill: none;
+    stroke: currentColor;
+}
+
+.frs-settings-section {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 24px;
+}
+
+.frs-settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f9fafb;
+}
+
+.frs-settings-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.frs-settings-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e0f2fe;
+    border-radius: 10px;
+}
+
+.frs-settings-icon svg {
+    width: 22px;
+    height: 22px;
+    stroke: #0284c7;
+}
+
+.frs-settings-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #111827;
+}
+
+.frs-settings-desc {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.frs-connection-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.frs-connection-badge.connected {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.frs-connection-badge.disconnected {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+.frs-connection-badge svg {
+    width: 16px;
+    height: 16px;
+}
+
+.frs-settings-body {
+    padding: 24px;
+}
+
+/* Connected State */
+.frs-fub-connected {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.frs-fub-account {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    background: #f0f9ff;
+    border-radius: 10px;
+    border: 1px solid #bae6fd;
+}
+
+.frs-fub-account-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.frs-fub-account-name {
+    font-weight: 600;
+    color: #0369a1;
+    font-size: 15px;
+}
+
+.frs-fub-account-connected {
+    font-size: 12px;
+    color: #64748b;
+}
+
+.frs-fub-account-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.frs-fub-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+}
+
+.frs-fub-stat {
+    padding: 16px;
+    background: #f9fafb;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.frs-fub-stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.frs-fub-stat-label {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 4px;
+}
+
+/* Disconnected State */
+.frs-fub-disconnected {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.frs-fub-info {
+    padding: 16px;
+    background: #f0f9ff;
+    border-radius: 10px;
+    border-left: 4px solid #0284c7;
+}
+
+.frs-fub-info p {
+    margin: 0;
+    font-size: 14px;
+    color: #374151;
+    line-height: 1.6;
+}
+
+.frs-fub-info a {
+    color: #0284c7;
+    text-decoration: none;
+}
+
+.frs-fub-info a:hover {
+    text-decoration: underline;
+}
+
+.frs-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.frs-input-group label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+}
+
+.frs-input-wrapper {
+    display: flex;
+    gap: 8px;
+}
+
+.frs-input-field {
+    flex: 1;
+    display: flex;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.frs-input-field:focus-within {
+    border-color: #0ea5e9;
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+}
+
+.frs-input-field input {
+    flex: 1;
+    padding: 10px 14px;
+    border: none;
+    font-size: 14px;
+    outline: none;
+    font-family: inherit;
+}
+
+.frs-input-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    background: #f3f4f6;
+    border: none;
+    border-left: 1px solid #d1d5db;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.frs-input-toggle:hover {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.frs-input-toggle svg {
+    width: 18px;
+    height: 18px;
+}
+
+.frs-input-help {
+    font-size: 12px;
+    color: #6b7280;
+    margin: 0;
+}
+
+/* Messages */
+.frs-message {
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    display: none;
+}
+
+.frs-message.visible {
+    display: block;
+}
+
+.frs-message--success {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.frs-message--error {
+    background: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+/* Danger Button */
+.frs-btn-danger {
+    background: #fef2f2 !important;
+    color: #dc2626 !important;
+    border: 1px solid #fecaca !important;
+}
+
+.frs-btn-danger:hover {
+    background: #fee2e2 !important;
+    border-color: #f87171 !important;
+}
+
+.frs-btn-danger svg {
+    stroke: #dc2626 !important;
+}
+
+/* Small Button */
+.frs-btn-sm {
+    padding: 8px 14px;
+    font-size: 13px;
+}
+
+/* Spinner */
+.frs-spinner {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: frs-spin 0.8s linear infinite;
+}
+
+@keyframes frs-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Button loading state */
+.frs-btn.loading {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.frs-btn.loading .frs-spinner {
+    margin-right: 6px;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .frs-page-row {
@@ -812,5 +1143,34 @@
     .frs-leads-table {
         display: block;
         overflow-x: auto;
+    }
+
+    /* Settings responsive */
+    .frs-settings-header {
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+    }
+
+    .frs-fub-account {
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+    }
+
+    .frs-fub-account-actions {
+        width: 100%;
+    }
+
+    .frs-fub-account-actions .frs-btn {
+        flex: 1;
+    }
+
+    .frs-input-wrapper {
+        flex-direction: column;
+    }
+
+    .frs-fub-stats {
+        grid-template-columns: 1fr 1fr;
     }
 }

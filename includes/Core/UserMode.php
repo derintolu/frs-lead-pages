@@ -101,6 +101,7 @@ class UserMode {
             $data['nmls'] = \FRSLeadPages\frs_get_user_nmls( $user->ID );
             $data['title'] = get_user_meta( $user->ID, 'title', true ) ?: get_user_meta( $user->ID, 'job_title', true ) ?: 'Loan Officer';
             $data['company'] = '21st Century Lending';
+            $data['arrive'] = LoanOfficers::get_user_arrive_link( $user->ID, $data['nmls'] );
         } else {
             $data['license'] = get_user_meta( $user->ID, 'license_number', true ) ?: get_user_meta( $user->ID, 'dre_license', true );
             $data['title'] = get_user_meta( $user->ID, 'title', true ) ?: get_user_meta( $user->ID, 'job_title', true ) ?: 'Sales Associate';

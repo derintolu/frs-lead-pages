@@ -1867,116 +1867,33 @@ Smooth closing process"></textarea>
     }
 
     /**
+     * Enqueue modal assets
+     */
+    private static function enqueue_assets(): void {
+        $base_url = plugins_url( 'includes/CustomerSpotlight/', FRS_LEAD_PAGES_PLUGIN_FILE );
+        $version  = FRS_LEAD_PAGES_VERSION;
+
+        wp_enqueue_style( 'frs-customer-spotlight-wizard', $base_url . 'style.css', [], $version );
+        wp_enqueue_script( 'frs-customer-spotlight-wizard', $base_url . 'script.js', [], $version, true );
+
+        wp_localize_script( 'frs-customer-spotlight-wizard', 'frsCustomerSpotlightWizard', [
+            'triggerClass' => self::TRIGGER_CLASS,
+            'triggerHash'  => self::TRIGGER_HASH,
+        ] );
+    }
+
+    /**
      * Render modal-specific styles
      */
     private static function render_modal_styles(): string {
-        return '
-        <style>
-            .cs-modal {
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                z-index: 99999;
-                display: none;
-            }
-            .cs-modal.cs-modal--open {
-                display: flex;
-            }
-            .cs-modal__backdrop {
-                display: none;
-            }
-            .cs-modal__container {
-                width: 100vw;
-                height: 100vh;
-                overflow-y: auto;
-            }
-            .cs-modal__close {
-                position: fixed;
-                top: 24px;
-                right: 24px;
-                width: 48px;
-                height: 48px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                background: rgba(255,255,255,0.95);
-                border: none;
-                border-radius: 50%;
-                cursor: pointer;
-                color: #64748b;
-                transition: all 0.2s;
-                z-index: 100;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            }
-            .cs-modal__close:hover {
-                background: #fff;
-                color: #0f172a;
-                transform: scale(1.05);
-            }
-            body.cs-modal-open {
-                overflow: hidden;
-            }
-        </style>';
+        self::enqueue_assets();
+        return '';
     }
 
     /**
      * Render modal-specific scripts
      */
     private static function render_modal_scripts(): string {
-        $trigger_class = self::TRIGGER_CLASS;
-        $trigger_hash = self::TRIGGER_HASH;
-
-        return '
-        <script>
-        (function() {
-            const modal = document.getElementById("cs-wizard-modal");
-            if (!modal) return;
-
-            const backdrop = modal.querySelector(".cs-modal__backdrop");
-            const closeBtn = modal.querySelector(".cs-modal__close");
-            const triggerClass = "' . $trigger_class . '";
-            const triggerHash = "' . $trigger_hash . '";
-
-            function openModal() {
-                modal.classList.add("cs-modal--open");
-                document.body.classList.add("cs-modal-open");
-            }
-
-            function closeModal() {
-                modal.classList.remove("cs-modal--open");
-                document.body.classList.remove("cs-modal-open");
-                if (window.location.hash === "#" + triggerHash) {
-                    history.replaceState(null, null, window.location.pathname + window.location.search);
-                }
-            }
-
-            closeBtn.addEventListener("click", closeModal);
-            backdrop.addEventListener("click", closeModal);
-
-            document.addEventListener("keydown", (e) => {
-                if (e.key === "Escape" && modal.classList.contains("cs-modal--open")) {
-                    closeModal();
-                }
-            });
-
-            document.addEventListener("click", (e) => {
-                if (e.target.classList.contains(triggerClass) || e.target.closest("." + triggerClass)) {
-                    e.preventDefault();
-                    openModal();
-                }
-            });
-
-            function checkHash() {
-                if (window.location.hash === "#" + triggerHash) {
-                    openModal();
-                }
-            }
-
-            checkHash();
-            window.addEventListener("hashchange", checkHash);
-        })();
-        </script>';
+        return '';
     }
 }

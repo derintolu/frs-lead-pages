@@ -111,11 +111,11 @@ function init() {
 
     // Load core classes
     Core\PostTypes::init();
-    Core\Assets::init();
     Core\Shortcodes::init();
 
     // Initialize integrations
     Integrations\FluentForms::init();
+    Integrations\FollowUpBoss::init();
 
     // Initialize Partner Portal (multisite support)
     Core\PartnerPortal::init();

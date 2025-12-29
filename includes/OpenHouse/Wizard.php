@@ -2074,122 +2074,45 @@ class Wizard {
     }
 
     /**
-     * Render modal-specific styles
+     * Enqueue wizard assets
      */
-    private static function render_modal_styles(): string {
-        return '
-        <style>
-            .oh-modal {
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                z-index: 99999;
-                display: none;
-            }
-            .oh-modal.oh-modal--open {
-                display: flex;
-            }
-            .oh-modal__backdrop {
-                display: none;
-            }
-            .oh-modal__container {
-                width: 100vw;
-                height: 100vh;
-                overflow-y: auto;
-            }
-            .oh-modal__close {
-                position: fixed;
-                top: 24px;
-                right: 24px;
-                width: 48px;
-                height: 48px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                background: rgba(255,255,255,0.95);
-                border: none;
-                border-radius: 50%;
-                cursor: pointer;
-                color: #64748b;
-                transition: background 0.2s, color 0.2s, transform 0.2s;
-                z-index: 100;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            }
-            .oh-modal__close:hover {
-                background: #fff;
-                color: #0f172a;
-                transform: scale(1.05);
-            }
-            body.oh-modal-open {
-                overflow: hidden;
-            }
-        </style>';
+    private static function enqueue_assets(): void {
+        $base_url = plugins_url( 'includes/OpenHouse/', FRS_LEAD_PAGES_PLUGIN_FILE );
+        $version  = FRS_LEAD_PAGES_VERSION;
+
+        wp_enqueue_style(
+            'frs-open-house-wizard',
+            $base_url . 'style.css',
+            [],
+            $version
+        );
+
+        wp_enqueue_script(
+            'frs-open-house-wizard',
+            $base_url . 'script.js',
+            [],
+            $version,
+            true
+        );
+
+        wp_localize_script( 'frs-open-house-wizard', 'frsOpenHouseWizard', [
+            'triggerClass' => self::TRIGGER_CLASS,
+            'triggerHash'  => self::TRIGGER_HASH,
+        ] );
     }
 
     /**
-     * Render modal-specific scripts
+     * Render modal styles (now uses external CSS)
+     */
+    private static function render_modal_styles(): string {
+        self::enqueue_assets();
+        return '';
+    }
+
+    /**
+     * Render modal scripts (now uses external JS)
      */
     private static function render_modal_scripts(): string {
-        $trigger_class = self::TRIGGER_CLASS;
-        $trigger_hash = self::TRIGGER_HASH;
-
-        return '
-        <script>
-        (function() {
-            const modal = document.getElementById("oh-wizard-modal");
-            if (!modal) return;
-
-            const backdrop = modal.querySelector(".oh-modal__backdrop");
-            const closeBtn = modal.querySelector(".oh-modal__close");
-            const triggerClass = "' . $trigger_class . '";
-            const triggerHash = "' . $trigger_hash . '";
-
-            function openModal() {
-                modal.classList.add("oh-modal--open");
-                document.body.classList.add("oh-modal-open");
-            }
-
-            function closeModal() {
-                modal.classList.remove("oh-modal--open");
-                document.body.classList.remove("oh-modal-open");
-                if (window.location.hash === "#" + triggerHash) {
-                    history.replaceState(null, null, window.location.pathname + window.location.search);
-                }
-            }
-
-            // Close button click
-            closeBtn.addEventListener("click", closeModal);
-
-            // Backdrop click
-            backdrop.addEventListener("click", closeModal);
-
-            // ESC key
-            document.addEventListener("keydown", (e) => {
-                if (e.key === "Escape" && modal.classList.contains("oh-modal--open")) {
-                    closeModal();
-                }
-            });
-
-            // Trigger class click handlers
-            document.addEventListener("click", (e) => {
-                if (e.target.classList.contains(triggerClass) || e.target.closest("." + triggerClass)) {
-                    e.preventDefault();
-                    openModal();
-                }
-            });
-
-            // Hash trigger - check on load and on hash change
-            function checkHash() {
-                if (window.location.hash === "#" + triggerHash) {
-                    openModal();
-                }
-            }
-
-            checkHash();
-            window.addEventListener("hashchange", checkHash);
-        })();
-        </script>';
+        return '';
     }
 }

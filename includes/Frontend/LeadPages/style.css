@@ -815,10 +815,10 @@
 .frs-settings-section {
     background: #fff;
     border: 1px solid #e2e8f0;
-    border-radius: 16px;
+    border-radius: 14px;
     overflow: hidden;
     margin-bottom: 24px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.04);
 }
 
 .frs-settings-header {
@@ -840,6 +840,11 @@
     border-radius: 12px;
     flex-shrink: 0;
     box-shadow: 0 2px 8px rgba(14, 165, 233, 0.25);
+}
+
+.frs-settings-icon.fub-icon {
+    background: linear-gradient(135deg, #1e3a5f 0%, #0f2744 100%);
+    box-shadow: 0 2px 8px rgba(15, 39, 68, 0.35);
 }
 
 .frs-settings-icon svg {
@@ -986,14 +991,18 @@
 
 /* Disconnected State - Connect Form */
 .frs-fub-connect {
-    max-width: 520px;
+    max-width: 560px;
 }
 
 .frs-fub-description {
     margin: 0 0 24px;
-    font-size: 15px;
+    padding: 16px 18px;
+    font-size: 14px;
     line-height: 1.7;
     color: #475569;
+    background: #f8fafc;
+    border-radius: 10px;
+    border-left: 3px solid #0ea5e9;
 }
 
 .frs-fub-form {
@@ -1017,23 +1026,24 @@
 .frs-input-group {
     display: flex;
     gap: 0;
-    border: 1px solid #cbd5e1;
-    border-radius: 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
     overflow: hidden;
     background: #fff;
     transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .frs-input-group:focus-within {
     border-color: #0ea5e9;
-    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.12);
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.12), 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .frs-input {
     flex: 1;
-    padding: 12px 16px;
+    padding: 11px 14px;
     border: none;
-    font-size: 15px;
+    font-size: 14px;
     outline: none;
     font-family: inherit;
     background: transparent;
@@ -1041,25 +1051,25 @@
 }
 
 .frs-input::placeholder {
-    color: #94a3b8;
+    color: #9ca3af;
 }
 
 .frs-input-toggle {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 48px;
-    background: #f8fafc;
+    width: 44px;
+    background: #f9fafb;
     border: none;
-    border-left: 1px solid #e2e8f0;
-    color: #64748b;
+    border-left: 1px solid #e5e7eb;
+    color: #6b7280;
     cursor: pointer;
     transition: all 0.15s ease;
 }
 
 .frs-input-toggle:hover {
-    background: #f1f5f9;
-    color: #475569;
+    background: #f3f4f6;
+    color: #374151;
 }
 
 .frs-input-toggle svg {

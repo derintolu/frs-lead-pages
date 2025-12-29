@@ -843,14 +843,16 @@
 }
 
 .frs-settings-icon.fub-icon {
+    width: 96px;
+    height: 96px;
     background: transparent;
     box-shadow: none;
     padding: 0;
 }
 
 .frs-settings-icon.fub-icon img {
-    width: 64px;
-    height: 64px;
+    width: 96px;
+    height: 96px;
     object-fit: contain;
 }
 

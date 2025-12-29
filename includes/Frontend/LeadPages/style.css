@@ -843,8 +843,15 @@
 }
 
 .frs-settings-icon.fub-icon {
-    background: linear-gradient(135deg, #1e3a5f 0%, #0f2744 100%);
-    box-shadow: 0 2px 8px rgba(15, 39, 68, 0.35);
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
+}
+
+.frs-settings-icon.fub-icon img {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
 }
 
 .frs-settings-icon svg {

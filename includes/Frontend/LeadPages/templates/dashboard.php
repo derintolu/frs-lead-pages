@@ -220,9 +220,7 @@ if ( ! defined( 'ABSPATH' ) ) {
         <div class="frs-settings-section">
             <div class="frs-settings-header">
                 <div class="frs-settings-icon fub-icon">
-                    <svg viewBox="0 0 32 32" width="26" height="26" fill="none">
-                        <path d="M8 6h16v4H12v4h10v4H12v8H8V6z" fill="white"/>
-                    </svg>
+                    <img src="<?php echo esc_url( FRS_LEAD_PAGES_PLUGIN_URL . 'assets/images/follow-up-boss-logo.png' ); ?>" alt="Follow Up Boss" width="32" height="32">
                 </div>
                 <div class="frs-settings-title">
                     <h3>Follow Up Boss</h3>

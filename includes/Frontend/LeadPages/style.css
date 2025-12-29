@@ -33,22 +33,31 @@
 .frs-btn {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
-    padding: 10px 20px;
-    background: #0ea5e9 !important;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%) !important;
     color: #fff !important;
     text-decoration: none !important;
-    border-radius: 8px;
+    border-radius: 10px;
     font-weight: 600;
     font-size: 14px;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
     border: none;
     cursor: pointer;
+    box-shadow: 0 2px 4px rgba(14, 165, 233, 0.2);
 }
 
 .frs-btn:hover {
-    background: #0284c7 !important;
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
     color: #fff !important;
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+    transform: translateY(-1px);
+}
+
+.frs-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(14, 165, 233, 0.2);
 }
 
 .frs-btn svg {
@@ -58,16 +67,21 @@
 }
 
 .frs-btn-secondary {
-    background: #f3f4f6 !important;
-    color: #374151 !important;
+    background: #fff !important;
+    color: #475569 !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .frs-btn-secondary:hover {
-    background: #e5e7eb !important;
+    background: #f8fafc !important;
+    border-color: #cbd5e1 !important;
+    color: #334155 !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
 }
 
 .frs-btn-secondary svg {
-    stroke: #374151 !important;
+    stroke: #64748b !important;
 }
 
 /* Dropdown using native details/summary */
@@ -800,235 +814,252 @@
 
 .frs-settings-section {
     background: #fff;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
     overflow: hidden;
     margin-bottom: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .frs-settings-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 20px 24px;
-    border-bottom: 1px solid #e5e7eb;
-    background: #f9fafb;
-}
-
-.frs-settings-header-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+    gap: 16px;
+    padding: 24px 28px;
+    border-bottom: 1px solid #e2e8f0;
+    background: linear-gradient(to bottom, #fafbfc, #f6f8fa);
 }
 
 .frs-settings-icon {
-    width: 40px;
-    height: 40px;
+    width: 48px;
+    height: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #e0f2fe;
-    border-radius: 10px;
+    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+    border-radius: 12px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(14, 165, 233, 0.25);
 }
 
 .frs-settings-icon svg {
-    width: 22px;
-    height: 22px;
-    stroke: #0284c7;
+    width: 24px;
+    height: 24px;
+    stroke: #fff;
 }
 
 .frs-settings-title {
-    margin: 0;
-    font-size: 16px;
-    font-weight: 600;
-    color: #111827;
+    flex: 1;
+    min-width: 0;
 }
 
-.frs-settings-desc {
-    margin: 4px 0 0;
-    font-size: 13px;
-    color: #6b7280;
+.frs-settings-title h3 {
+    margin: 0 0 4px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #0f172a;
+    letter-spacing: -0.01em;
+}
+
+.frs-settings-title p {
+    margin: 0;
+    font-size: 14px;
+    color: #64748b;
 }
 
 .frs-connection-badge {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 6px 12px;
-    border-radius: 20px;
+    padding: 8px 14px;
+    border-radius: 24px;
     font-size: 13px;
-    font-weight: 500;
+    font-weight: 600;
+    flex-shrink: 0;
 }
 
 .frs-connection-badge.connected {
-    background: #dcfce7;
-    color: #166534;
+    background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+    color: #15803d;
+    box-shadow: 0 1px 2px rgba(22, 163, 74, 0.1);
 }
 
 .frs-connection-badge.disconnected {
-    background: #f3f4f6;
-    color: #6b7280;
+    background: #f1f5f9;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
 }
 
 .frs-connection-badge svg {
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
 }
 
 .frs-settings-body {
-    padding: 24px;
+    padding: 28px;
 }
 
 /* Connected State */
 .frs-fub-connected {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 24px;
 }
 
 .frs-fub-account {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 16px;
-    background: #f0f9ff;
-    border-radius: 10px;
+    gap: 16px;
+    padding: 20px;
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border-radius: 12px;
     border: 1px solid #bae6fd;
 }
 
+.frs-fub-account-icon {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    flex-shrink: 0;
+}
+
+.frs-fub-account-icon svg {
+    stroke: #0284c7;
+}
+
 .frs-fub-account-info {
+    flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 4px;
 }
 
-.frs-fub-account-name {
+.frs-fub-account-info strong {
     font-weight: 600;
     color: #0369a1;
-    font-size: 15px;
+    font-size: 16px;
 }
 
-.frs-fub-account-connected {
-    font-size: 12px;
+.frs-fub-account-info span {
+    font-size: 13px;
     color: #64748b;
-}
-
-.frs-fub-account-actions {
-    display: flex;
-    gap: 8px;
 }
 
 .frs-fub-stats {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 16px;
 }
 
 .frs-fub-stat {
-    padding: 16px;
-    background: #f9fafb;
-    border-radius: 10px;
+    padding: 20px;
+    background: #f8fafc;
+    border-radius: 12px;
     text-align: center;
+    border: 1px solid #e2e8f0;
+}
+
+.frs-fub-actions {
+    display: flex;
+    gap: 12px;
+    padding-top: 4px;
 }
 
 .frs-fub-stat-value {
-    font-size: 24px;
+    font-size: 28px;
     font-weight: 700;
-    color: #111827;
+    color: #0f172a;
+    letter-spacing: -0.02em;
 }
 
 .frs-fub-stat-label {
-    font-size: 12px;
-    color: #6b7280;
-    margin-top: 4px;
+    font-size: 13px;
+    color: #64748b;
+    margin-top: 6px;
+    font-weight: 500;
 }
 
-/* Disconnected State */
-.frs-fub-disconnected {
+/* Disconnected State - Connect Form */
+.frs-fub-connect {
+    max-width: 520px;
+}
+
+.frs-fub-description {
+    margin: 0 0 24px;
+    font-size: 15px;
+    line-height: 1.7;
+    color: #475569;
+}
+
+.frs-fub-form {
     display: flex;
     flex-direction: column;
     gap: 20px;
 }
 
-.frs-fub-info {
-    padding: 16px;
-    background: #f0f9ff;
-    border-radius: 10px;
-    border-left: 4px solid #0284c7;
-}
-
-.frs-fub-info p {
-    margin: 0;
-    font-size: 14px;
-    color: #374151;
-    line-height: 1.6;
-}
-
-.frs-fub-info a {
-    color: #0284c7;
-    text-decoration: none;
-}
-
-.frs-fub-info a:hover {
-    text-decoration: underline;
-}
-
-.frs-input-group {
+.frs-field {
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
 
-.frs-input-group label {
+.frs-label {
     font-size: 14px;
-    font-weight: 500;
-    color: #374151;
+    font-weight: 600;
+    color: #1e293b;
 }
 
-.frs-input-wrapper {
+.frs-input-group {
     display: flex;
-    gap: 8px;
-}
-
-.frs-input-field {
-    flex: 1;
-    display: flex;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
+    gap: 0;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
     overflow: hidden;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    background: #fff;
+    transition: all 0.2s ease;
 }
 
-.frs-input-field:focus-within {
+.frs-input-group:focus-within {
     border-color: #0ea5e9;
-    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.12);
 }
 
-.frs-input-field input {
+.frs-input {
     flex: 1;
-    padding: 10px 14px;
+    padding: 12px 16px;
     border: none;
-    font-size: 14px;
+    font-size: 15px;
     outline: none;
     font-family: inherit;
+    background: transparent;
+    color: #0f172a;
+}
+
+.frs-input::placeholder {
+    color: #94a3b8;
 }
 
 .frs-input-toggle {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 44px;
-    background: #f3f4f6;
+    width: 48px;
+    background: #f8fafc;
     border: none;
-    border-left: 1px solid #d1d5db;
-    color: #6b7280;
+    border-left: 1px solid #e2e8f0;
+    color: #64748b;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: all 0.15s ease;
 }
 
 .frs-input-toggle:hover {
-    background: #e5e7eb;
-    color: #374151;
+    background: #f1f5f9;
+    color: #475569;
 }
 
 .frs-input-toggle svg {
@@ -1036,18 +1067,37 @@
     height: 18px;
 }
 
-.frs-input-help {
-    font-size: 12px;
-    color: #6b7280;
+.frs-helper {
+    font-size: 13px;
+    color: #64748b;
     margin: 0;
+    line-height: 1.5;
+}
+
+.frs-helper strong {
+    color: #475569;
+    font-weight: 500;
+}
+
+.frs-helper a {
+    color: #0284c7;
+    text-decoration: none;
+    font-weight: 500;
+    margin-left: 4px;
+}
+
+.frs-helper a:hover {
+    text-decoration: underline;
 }
 
 /* Messages */
 .frs-message {
-    padding: 12px 16px;
-    border-radius: 8px;
+    padding: 14px 18px;
+    border-radius: 10px;
     font-size: 14px;
+    font-weight: 500;
     display: none;
+    margin-top: 20px;
 }
 
 .frs-message.visible {
@@ -1055,27 +1105,30 @@
 }
 
 .frs-message--success {
-    background: #dcfce7;
+    background: linear-gradient(135deg, #dcfce7 0%, #d1fae5 100%);
     color: #166534;
     border: 1px solid #bbf7d0;
 }
 
 .frs-message--error {
-    background: #fef2f2;
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
     color: #991b1b;
     border: 1px solid #fecaca;
 }
 
 /* Danger Button */
 .frs-btn-danger {
-    background: #fef2f2 !important;
+    background: #fff !important;
     color: #dc2626 !important;
     border: 1px solid #fecaca !important;
+    box-shadow: 0 1px 2px rgba(220, 38, 38, 0.06);
 }
 
 .frs-btn-danger:hover {
-    background: #fee2e2 !important;
+    background: #fef2f2 !important;
     border-color: #f87171 !important;
+    box-shadow: 0 2px 4px rgba(220, 38, 38, 0.1);
+    transform: translateY(-1px);
 }
 
 .frs-btn-danger svg {

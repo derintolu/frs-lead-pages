@@ -1059,17 +1059,17 @@
     align-items: center;
     justify-content: center;
     width: 44px;
-    background: #f9fafb;
+    background: #e5e7eb;
     border: none;
-    border-left: 1px solid #e5e7eb;
-    color: #6b7280;
+    color: #4b5563;
     cursor: pointer;
     transition: all 0.15s ease;
+    box-shadow: inset 1px 0 3px rgba(0, 0, 0, 0.08);
 }
 
 .frs-input-toggle:hover {
-    background: #f3f4f6;
-    color: #374151;
+    background: #d1d5db;
+    color: #1f2937;
 }
 
 .frs-input-toggle svg {

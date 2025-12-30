@@ -19,7 +19,7 @@ class Firecrawl {
     /**
      * Get API key from settings
      */
-    private static function get_api_key(): string {
+    public static function get_api_key(): string {
         // Try frs-lead-pages setting first, fallback to psb setting
         $key = get_option( 'frs_lead_pages_firecrawl_api_key', '' );
         if ( empty( $key ) ) {

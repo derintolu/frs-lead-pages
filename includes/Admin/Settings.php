@@ -7,6 +7,8 @@
 
 namespace FRSLeadPages\Admin;
 
+use FRSLeadPages\Integrations\Firecrawl;
+
 class Settings {
 
     /**
@@ -22,6 +24,8 @@ class Settings {
         add_action( 'admin_init', [ __CLASS__, 'register_settings' ] );
         add_action( 'wp_ajax_frs_lead_pages_refresh_los', [ __CLASS__, 'ajax_refresh_los' ] );
         add_action( 'wp_ajax_frs_lead_pages_retry_webhooks', [ __CLASS__, 'ajax_retry_webhooks' ] );
+        add_action( 'wp_ajax_frs_lead_pages_test_firecrawl', [ __CLASS__, 'ajax_test_firecrawl' ] );
+        add_action( 'admin_notices', [ __CLASS__, 'firecrawl_admin_notices' ] );
     }
 
     /**
@@ -72,6 +76,13 @@ class Settings {
             'type'              => 'integer',
             'sanitize_callback' => 'absint',
             'default'           => 3600,
+        ] );
+
+        // Firecrawl API Settings
+        register_setting( self::OPTION_GROUP, 'frs_lead_pages_firecrawl_api_key', [
+            'type'              => 'string',
+            'sanitize_callback' => 'sanitize_text_field',
+            'default'           => '',
         ] );
 
         // Webhook Section
@@ -129,6 +140,22 @@ class Settings {
             'frs-lead-pages-settings',
             'frs_lead_pages_api_section'
         );
+
+        // Firecrawl Section
+        add_settings_section(
+            'frs_lead_pages_firecrawl_section',
+            __( 'Firecrawl Property Lookup', 'frs-lead-pages' ),
+            [ __CLASS__, 'render_firecrawl_section' ],
+            'frs-lead-pages-settings'
+        );
+
+        add_settings_field(
+            'frs_lead_pages_firecrawl_api_key',
+            __( 'API Key', 'frs-lead-pages' ),
+            [ __CLASS__, 'render_firecrawl_api_key_field' ],
+            'frs-lead-pages-settings',
+            'frs_lead_pages_firecrawl_section'
+        );
     }
 
     /**
@@ -172,6 +199,44 @@ class Settings {
                     <?php _e( 'No failed webhooks.', 'frs-lead-pages' ); ?>
                 </p>
             <?php endif; ?>
+
+            <hr>
+
+            <!-- Firecrawl Status Section -->
+            <h2><?php _e( 'Firecrawl API Status', 'frs-lead-pages' ); ?></h2>
+            <?php
+            $firecrawl_status = get_transient( 'frs_firecrawl_api_status' );
+            $is_configured = Firecrawl::is_configured();
+            ?>
+            <?php if ( ! $is_configured ) : ?>
+                <p class="description" style="color: #d63638;">
+                    <span class="dashicons dashicons-warning"></span>
+                    <?php _e( 'Firecrawl API key not configured. Property lookup will not work.', 'frs-lead-pages' ); ?>
+                </p>
+            <?php elseif ( $firecrawl_status === 'error' ) : ?>
+                <p class="description" style="color: #d63638;">
+                    <span class="dashicons dashicons-no"></span>
+                    <?php
+                    $error = get_transient( 'frs_firecrawl_last_error' );
+                    printf( __( 'Last API call failed: %s', 'frs-lead-pages' ), esc_html( $error ) );
+                    ?>
+                </p>
+            <?php elseif ( $firecrawl_status === 'ok' ) : ?>
+                <p class="description" style="color: #00a32a;">
+                    <span class="dashicons dashicons-yes"></span>
+                    <?php _e( 'API connection verified.', 'frs-lead-pages' ); ?>
+                </p>
+            <?php else : ?>
+                <p class="description">
+                    <?php _e( 'API status unknown. Click Test to verify connection.', 'frs-lead-pages' ); ?>
+                </p>
+            <?php endif; ?>
+            <p>
+                <button type="button" class="button" id="frs-test-firecrawl" <?php disabled( ! $is_configured ); ?>>
+                    <?php _e( 'Test API Connection', 'frs-lead-pages' ); ?>
+                </button>
+                <span id="frs-firecrawl-result" style="margin-left: 10px;"></span>
+            </p>
 
             <hr>
 
@@ -232,6 +297,25 @@ class Settings {
                     }
                 });
             });
+
+            $('#frs-test-firecrawl').on('click', function() {
+                var $btn = $(this);
+                var $result = $('#frs-firecrawl-result');
+                $btn.prop('disabled', true);
+                $result.text('Testing...').css('color', '');
+
+                $.post(ajaxurl, {
+                    action: 'frs_lead_pages_test_firecrawl',
+                    _wpnonce: '<?php echo wp_create_nonce( 'frs_lead_pages_firecrawl' ); ?>'
+                }, function(response) {
+                    $btn.prop('disabled', false);
+                    if (response.success) {
+                        $result.text('Connection successful! Credits remaining: ' + response.data.credits).css('color', '#00a32a');
+                    } else {
+                        $result.text('Error: ' + response.data).css('color', '#d63638');
+                    }
+                });
+            });
         });
         </script>
         <?php
@@ -246,6 +330,10 @@ class Settings {
 
     public static function render_api_section() {
         echo '<p>' . __( 'Configure the connection to frs-wp-users for loan officer data.', 'frs-lead-pages' ) . '</p>';
+    }
+
+    public static function render_firecrawl_section() {
+        echo '<p>' . __( 'Configure Firecrawl API for property address lookup and data enrichment.', 'frs-lead-pages' ) . '</p>';
     }
 
     /**
@@ -296,6 +384,21 @@ class Settings {
         <?php
     }
 
+    public static function render_firecrawl_api_key_field() {
+        // Check both possible option names for backward compatibility
+        $value = get_option( 'frs_lead_pages_firecrawl_api_key', '' );
+        if ( empty( $value ) ) {
+            $value = get_option( 'psb_firecrawl_api_key', '' );
+        }
+        ?>
+        <input type="password" name="frs_lead_pages_firecrawl_api_key" value="<?php echo esc_attr( $value ); ?>" class="regular-text" />
+        <p class="description">
+            <?php _e( 'Your Firecrawl API key for property lookups.', 'frs-lead-pages' ); ?>
+            <a href="https://firecrawl.dev" target="_blank"><?php _e( 'Get an API key', 'frs-lead-pages' ); ?></a>
+        </p>
+        <?php
+    }
+
     /**
      * AJAX: Refresh loan officers
      */
@@ -327,5 +430,115 @@ class Settings {
         $remaining = count( get_option( 'frs_lead_pages_failed_webhooks', [] ) );
 
         wp_send_json_success( array_merge( $result, [ 'remaining' => $remaining ] ) );
+    }
+
+    /**
+     * AJAX: Test Firecrawl API connection
+     */
+    public static function ajax_test_firecrawl() {
+        check_ajax_referer( 'frs_lead_pages_firecrawl', '_wpnonce' );
+
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_send_json_error( 'Permission denied' );
+        }
+
+        if ( ! Firecrawl::is_configured() ) {
+            wp_send_json_error( 'API key not configured' );
+        }
+
+        // Test with a simple scrape request to check API health
+        $api_key = Firecrawl::get_api_key();
+        $response = wp_remote_post( 'https://api.firecrawl.dev/v1/scrape', [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $api_key,
+                'Content-Type'  => 'application/json',
+            ],
+            'body'    => wp_json_encode( [
+                'url'     => 'https://example.com',
+                'formats' => [ 'markdown' ],
+            ] ),
+            'timeout' => 30,
+        ] );
+
+        if ( is_wp_error( $response ) ) {
+            set_transient( 'frs_firecrawl_api_status', 'error', HOUR_IN_SECONDS );
+            set_transient( 'frs_firecrawl_last_error', $response->get_error_message(), HOUR_IN_SECONDS );
+            wp_send_json_error( $response->get_error_message() );
+        }
+
+        $code = wp_remote_retrieve_response_code( $response );
+        $body = wp_remote_retrieve_body( $response );
+        $data = json_decode( $body, true );
+
+        if ( $code === 401 || $code === 403 ) {
+            set_transient( 'frs_firecrawl_api_status', 'error', HOUR_IN_SECONDS );
+            set_transient( 'frs_firecrawl_last_error', 'Invalid API key', HOUR_IN_SECONDS );
+            wp_send_json_error( 'Invalid API key' );
+        }
+
+        if ( $code === 402 ) {
+            set_transient( 'frs_firecrawl_api_status', 'error', HOUR_IN_SECONDS );
+            set_transient( 'frs_firecrawl_last_error', 'No credits remaining', HOUR_IN_SECONDS );
+            wp_send_json_error( 'No credits remaining. Please add more credits to your Firecrawl account.' );
+        }
+
+        if ( $code >= 200 && $code < 300 ) {
+            set_transient( 'frs_firecrawl_api_status', 'ok', DAY_IN_SECONDS );
+            delete_transient( 'frs_firecrawl_last_error' );
+
+            // Try to get credits info if available
+            $credits = isset( $data['creditsUsed'] ) ? 'used ' . $data['creditsUsed'] : 'available';
+            wp_send_json_success( [ 'credits' => $credits, 'status' => 'ok' ] );
+        }
+
+        // Unknown error
+        $error_message = isset( $data['error'] ) ? $data['error'] : 'HTTP ' . $code;
+        set_transient( 'frs_firecrawl_api_status', 'error', HOUR_IN_SECONDS );
+        set_transient( 'frs_firecrawl_last_error', $error_message, HOUR_IN_SECONDS );
+        wp_send_json_error( $error_message );
+    }
+
+    /**
+     * Display admin notices for Firecrawl API issues
+     */
+    public static function firecrawl_admin_notices() {
+        // Only show on relevant pages
+        $screen = get_current_screen();
+        if ( ! $screen || ( $screen->post_type !== 'frs_lead_page' && $screen->id !== 'frs_lead_page_page_frs-lead-pages-settings' ) ) {
+            return;
+        }
+
+        // Check if configured
+        if ( ! Firecrawl::is_configured() ) {
+            ?>
+            <div class="notice notice-warning">
+                <p>
+                    <strong><?php _e( 'Generation Station:', 'frs-lead-pages' ); ?></strong>
+                    <?php _e( 'Firecrawl API key is not configured. Property address lookup will not work.', 'frs-lead-pages' ); ?>
+                    <a href="<?php echo admin_url( 'edit.php?post_type=frs_lead_page&page=frs-lead-pages-settings' ); ?>">
+                        <?php _e( 'Configure now', 'frs-lead-pages' ); ?>
+                    </a>
+                </p>
+            </div>
+            <?php
+            return;
+        }
+
+        // Check API status
+        $status = get_transient( 'frs_firecrawl_api_status' );
+        if ( $status === 'error' ) {
+            $error = get_transient( 'frs_firecrawl_last_error' );
+            ?>
+            <div class="notice notice-error">
+                <p>
+                    <strong><?php _e( 'Generation Station:', 'frs-lead-pages' ); ?></strong>
+                    <?php printf( __( 'Firecrawl API error: %s', 'frs-lead-pages' ), esc_html( $error ) ); ?>
+                    <a href="<?php echo admin_url( 'edit.php?post_type=frs_lead_page&page=frs-lead-pages-settings' ); ?>">
+                        <?php _e( 'Check settings', 'frs-lead-pages' ); ?>
+                    </a>
+                </p>
+            </div>
+            <?php
+        }
     }
 }

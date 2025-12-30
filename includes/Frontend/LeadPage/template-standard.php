@@ -14,6 +14,8 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+use FRSLeadPages\Frontend\LeadPage\Template;
+
 // Extract commonly used variables
 $page_id         = $data['page_id'];
 $page_type       = $data['page_type'];

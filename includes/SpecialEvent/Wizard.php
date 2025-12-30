@@ -24,7 +24,6 @@ class Wizard {
         add_shortcode( 'special_event_wizard', [ __CLASS__, 'render' ] );
         add_shortcode( 'special_event_wizard_button', [ __CLASS__, 'render_button' ] );
         add_action( 'wp_ajax_frs_create_event', [ __CLASS__, 'ajax_create_event' ] );
-        add_action( 'wp_footer', [ __CLASS__, 'render_modal_container' ] );
     }
 
     public static function render_button( array $atts = [] ): string {

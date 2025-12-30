@@ -36,7 +36,6 @@ class Wizard {
         add_action( 'wp_ajax_frs_create_apply_now', [ __CLASS__, 'ajax_create_apply_now' ] );
 
         // Add modal to footer on frontend
-        add_action( 'wp_footer', [ __CLASS__, 'render_modal_container' ] );
     }
 
     /**

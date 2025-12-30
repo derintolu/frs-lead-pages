@@ -40,7 +40,6 @@ class Wizard {
         add_action( 'wp_ajax_frs_oh_wizard_frame', [ __CLASS__, 'render_iframe_content' ] );
 
         // Add modal to footer on frontend
-        add_action( 'wp_footer', [ __CLASS__, 'render_modal_container' ] );
     }
 
     /**

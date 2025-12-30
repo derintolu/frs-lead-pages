@@ -35,7 +35,6 @@ class Wizard {
         add_action( 'wp_ajax_frs_create_rate_quote', [ __CLASS__, 'ajax_create_rate_quote' ] );
 
         // Add modal to footer on frontend
-        add_action( 'wp_footer', [ __CLASS__, 'render_modal_container' ] );
     }
 
     /**

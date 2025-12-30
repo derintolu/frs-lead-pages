@@ -480,3 +480,21 @@ if ( ! defined( 'ABSPATH' ) ) {
         </div>
     </div>
 </div>
+<?php
+// Render wizard modals - they're triggered by buttons in this dashboard
+\FRSLeadPages\OpenHouse\Wizard::render_modal_container();
+\FRSLeadPages\CustomerSpotlight\Wizard::render_modal_container();
+\FRSLeadPages\SpecialEvent\Wizard::render_modal_container();
+\FRSLeadPages\MortgageCalculator\Wizard::render_modal_container();
+\FRSLeadPages\RateQuote\Wizard::render_modal_container();
+\FRSLeadPages\ApplyNow\Wizard::render_modal_container();
+?>
+<script>
+// Move wizard modals to body for proper fixed positioning
+document.addEventListener('DOMContentLoaded', function() {
+    ['oh-wizard-modal', 'cs-wizard-modal', 'se-wizard-modal', 'mc-wizard-modal', 'rq-wizard-modal', 'an-wizard-modal'].forEach(function(id) {
+        var modal = document.getElementById(id);
+        if (modal) document.body.appendChild(modal);
+    });
+});
+</script>

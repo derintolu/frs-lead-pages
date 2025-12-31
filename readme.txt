@@ -12,7 +12,7 @@ Lead generation landing page builder with multi-step wizard for mortgage and rea
 
 == Description ==
 
-FRS Lead Pages (Generation Station) is a powerful lead generation landing page builder designed for mortgage loan officers and real estate agents. Create beautiful, high-converting landing pages with an intuitive multi-step wizard.
+FRS Lead Pages is a powerful lead generation landing page builder designed for mortgage loan officers and real estate agents. Create beautiful, high-converting landing pages with an intuitive multi-step wizard.
 
 = Features =
 

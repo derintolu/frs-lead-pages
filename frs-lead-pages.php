@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: FRS Lead Pages (Generation Station)
+ * Plugin Name: FRS Lead Pages
  * Plugin URI: https://21stcenturylending.com
  * Description: Lead generation landing page builder with multi-step wizard. Create Open House, Customer Spotlight, and Event pages with LO/Realtor co-branding.
  * Version: 1.3.0

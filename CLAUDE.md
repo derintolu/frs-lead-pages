@@ -1,4 +1,4 @@
-# CLAUDE.md - FRS Lead Pages (Generation Station)
+# CLAUDE.md - FRS Lead Pages
 
 ## Quick Reference
 
@@ -9,7 +9,7 @@
 | URL | Purpose |
 |-----|---------|
 | `https://tutorlms-exploration.local/marketing/lead-pages/` | Main Lead Pages dashboard - wizards render here |
-| `https://tutorlms-exploration.local/generation-station/` | Generation Station page with wizard buttons |
+| `https://tutorlms-exploration.local/generation-station/` | Lead Pages wizard page |
 | `https://tutorlms-exploration.local/me/` | Portal home - verify no PHP errors |
 
 ## Wizards

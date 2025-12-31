@@ -36,7 +36,7 @@ class PostTypes {
                 'search_items'       => __( 'Search Lead Pages', 'frs-lead-pages' ),
                 'not_found'          => __( 'No lead pages found', 'frs-lead-pages' ),
                 'not_found_in_trash' => __( 'No lead pages found in trash', 'frs-lead-pages' ),
-                'menu_name'          => __( 'Generation Station', 'frs-lead-pages' ),
+                'menu_name'          => __( 'Lead Pages', 'frs-lead-pages' ),
             ],
             'public'              => true,
             'publicly_queryable'  => true,

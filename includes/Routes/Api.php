@@ -778,7 +778,7 @@ class Api {
             ],
             'email'  => $data['email'] ?? '',
             'phone'  => $data['phone'] ?? '',
-            'source' => 'Generation Station - Page #' . $page_id,
+            'source' => 'Lead Page #' . $page_id,
         ];
 
         // Submit via FluentForm API

@@ -43,7 +43,7 @@ class PortalSettings {
      */
     public static function add_menu_page(): void {
         add_submenu_page(
-            'frs-lead-pages',
+            'edit.php?post_type=frs_lead_page',
             'Portal Settings',
             'Portal Settings',
             'manage_options',

@@ -1,6 +1,6 @@
 <?php
 /**
- * Admin Settings Page for Generation Station
+ * Admin Settings Page for FRS Lead Pages
  *
  * @package FRSLeadPages
  */
@@ -34,7 +34,7 @@ class Settings {
     public static function add_menu_page() {
         add_submenu_page(
             'edit.php?post_type=frs_lead_page',
-            __( 'Generation Station Settings', 'frs-lead-pages' ),
+            __( 'Lead Pages Settings', 'frs-lead-pages' ),
             __( 'Settings', 'frs-lead-pages' ),
             'manage_options',
             'frs-lead-pages-settings',
@@ -513,7 +513,7 @@ class Settings {
             ?>
             <div class="notice notice-warning">
                 <p>
-                    <strong><?php _e( 'Generation Station:', 'frs-lead-pages' ); ?></strong>
+                    <strong><?php _e( 'Lead Pages:', 'frs-lead-pages' ); ?></strong>
                     <?php _e( 'Firecrawl API key is not configured. Property address lookup will not work.', 'frs-lead-pages' ); ?>
                     <a href="<?php echo admin_url( 'edit.php?post_type=frs_lead_page&page=frs-lead-pages-settings' ); ?>">
                         <?php _e( 'Configure now', 'frs-lead-pages' ); ?>
@@ -531,7 +531,7 @@ class Settings {
             ?>
             <div class="notice notice-error">
                 <p>
-                    <strong><?php _e( 'Generation Station:', 'frs-lead-pages' ); ?></strong>
+                    <strong><?php _e( 'Lead Pages:', 'frs-lead-pages' ); ?></strong>
                     <?php printf( __( 'Firecrawl API error: %s', 'frs-lead-pages' ), esc_html( $error ) ); ?>
                     <a href="<?php echo admin_url( 'edit.php?post_type=frs_lead_page&page=frs-lead-pages-settings' ); ?>">
                         <?php _e( 'Check settings', 'frs-lead-pages' ); ?>

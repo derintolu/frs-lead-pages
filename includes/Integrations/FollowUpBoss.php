@@ -5,6 +5,10 @@
  * Sends leads to Follow Up Boss CRM via their Events API.
  * Each loan officer can connect their own FUB account.
  *
+ * NOTE: This class now delegates to FRSUsers\Integrations\FollowUpBoss when available.
+ * The centralized class stores credentials in wp_frs_profiles for multisite support.
+ * Falls back to user_meta for backwards compatibility.
+ *
  * @package FRSLeadPages
  * @see https://docs.followupboss.com/reference/events-post
  */
@@ -19,12 +23,12 @@ class FollowUpBoss {
     const API_URL = 'https://api.followupboss.com/v1';
 
     /**
-     * User meta key for storing API key
+     * User meta key for storing API key (legacy - for backwards compatibility)
      */
     const API_KEY_META = '_frs_followupboss_api_key';
 
     /**
-     * User meta key for storing connection status
+     * User meta key for storing connection status (legacy)
      */
     const STATUS_META = '_frs_followupboss_status';
 
@@ -34,13 +38,22 @@ class FollowUpBoss {
     const SOURCE_NAME = '21st Century Lending Lead Pages';
 
     /**
+     * Check if centralized FUB class is available
+     *
+     * @return bool
+     */
+    private static function has_centralized_class(): bool {
+        return class_exists( '\FRSUsers\Integrations\FollowUpBoss' );
+    }
+
+    /**
      * Initialize the integration
      */
     public static function init(): void {
         // Hook into FluentForms submission to send leads
         add_action( 'fluentform/submission_inserted', [ __CLASS__, 'on_form_submission' ], 20, 3 );
 
-        // AJAX handlers for frontend settings
+        // AJAX handlers for frontend settings (legacy - kept for backwards compatibility)
         add_action( 'wp_ajax_frs_fub_save_api_key', [ __CLASS__, 'ajax_save_api_key' ] );
         add_action( 'wp_ajax_frs_fub_test_connection', [ __CLASS__, 'ajax_test_connection' ] );
         add_action( 'wp_ajax_frs_fub_disconnect', [ __CLASS__, 'ajax_disconnect' ] );
@@ -53,6 +66,12 @@ class FollowUpBoss {
      * @return bool
      */
     public static function is_connected( int $user_id ): bool {
+        // Try centralized class first
+        if ( self::has_centralized_class() ) {
+            return \FRSUsers\Integrations\FollowUpBoss::is_connected( $user_id );
+        }
+
+        // Fallback to legacy user_meta
         $api_key = self::get_api_key( $user_id );
         return ! empty( $api_key );
     }
@@ -64,6 +83,12 @@ class FollowUpBoss {
      * @return string
      */
     public static function get_api_key( int $user_id ): string {
+        // Try centralized class first
+        if ( self::has_centralized_class() ) {
+            return \FRSUsers\Integrations\FollowUpBoss::get_api_key( $user_id );
+        }
+
+        // Fallback to legacy user_meta
         return get_user_meta( $user_id, self::API_KEY_META, true ) ?: '';
     }
 
@@ -75,6 +100,13 @@ class FollowUpBoss {
      * @return bool
      */
     public static function save_api_key( int $user_id, string $api_key ): bool {
+        // Try centralized class first
+        if ( self::has_centralized_class() ) {
+            $result = \FRSUsers\Integrations\FollowUpBoss::save_api_key( $user_id, $api_key );
+            return $result['success'] ?? false;
+        }
+
+        // Fallback to legacy user_meta
         if ( empty( $api_key ) ) {
             delete_user_meta( $user_id, self::API_KEY_META );
             delete_user_meta( $user_id, self::STATUS_META );
@@ -104,6 +136,12 @@ class FollowUpBoss {
      * @return array
      */
     public static function get_status( int $user_id ): array {
+        // Try centralized class first
+        if ( self::has_centralized_class() ) {
+            return \FRSUsers\Integrations\FollowUpBoss::get_status( $user_id );
+        }
+
+        // Fallback to legacy user_meta
         $status = get_user_meta( $user_id, self::STATUS_META, true );
 
         if ( empty( $status ) ) {
@@ -124,6 +162,12 @@ class FollowUpBoss {
      * @return array
      */
     public static function test_connection( string $api_key ): array {
+        // Try centralized class first
+        if ( self::has_centralized_class() ) {
+            return \FRSUsers\Integrations\FollowUpBoss::test_connection( $api_key );
+        }
+
+        // Fallback to direct API call
         if ( empty( $api_key ) ) {
             return [
                 'success' => false,
@@ -179,6 +223,15 @@ class FollowUpBoss {
      * @return array Result
      */
     public static function send_lead( array $lead_data, int $lo_user_id ): array {
+        // Try centralized class first
+        if ( self::has_centralized_class() ) {
+            // Add Lead Pages specific source info
+            $lead_data['source'] = $lead_data['source'] ?? self::SOURCE_NAME;
+            $lead_data['system'] = 'FRS Lead Pages';
+            return \FRSUsers\Integrations\FollowUpBoss::send_lead( $lead_data, $lo_user_id );
+        }
+
+        // Fallback to legacy implementation
         $api_key = self::get_api_key( $lo_user_id );
 
         if ( empty( $api_key ) ) {
@@ -498,6 +551,12 @@ class FollowUpBoss {
 
         $user_id = get_current_user_id();
 
+        // Try centralized class first (saves empty key to disconnect)
+        if ( self::has_centralized_class() ) {
+            \FRSUsers\Integrations\FollowUpBoss::save_api_key( $user_id, '' );
+        }
+
+        // Also clear legacy user_meta for backwards compatibility
         delete_user_meta( $user_id, self::API_KEY_META );
         delete_user_meta( $user_id, self::STATUS_META );
 
@@ -541,6 +600,12 @@ class FollowUpBoss {
      * @return array
      */
     public static function get_stats( int $user_id ): array {
+        // Try centralized class first
+        if ( self::has_centralized_class() ) {
+            return \FRSUsers\Integrations\FollowUpBoss::get_stats( $user_id );
+        }
+
+        // Fallback to legacy user_meta
         return [
             'total_synced' => (int) get_user_meta( $user_id, '_frs_fub_sync_count', true ),
             'last_sync'    => get_user_meta( $user_id, '_frs_fub_last_sync', true ) ?: null,

@@ -1,15 +1,18 @@
 <?php
 /**
  * Plugin Name: FRS Lead Pages
- * Plugin URI: https://21stcenturylending.com
+ * Plugin URI: https://myhub21.com
  * Description: Lead generation landing page builder with multi-step wizard. Create Open House, Customer Spotlight, and Event pages with LO/Realtor co-branding.
  * Version: 1.3.0
- * Author: 21st Century Lending
- * Author URI: https://21stcenturylending.com
+ * Author: Derin Tolu / FRS Brand Experience Teams
+ * Author URI: https://myhub21.com
+ * License: GPL-2.0-or-later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: frs-lead-pages
  * Domain Path: /languages
  * Requires at least: 6.0
  * Requires PHP: 8.1
+ * Network: true
  *
  * @package FRSLeadPages
  */

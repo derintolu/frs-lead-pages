@@ -256,7 +256,7 @@ class Template {
 
         // 1. Check FRS Profiles table (headshot_id)
         if ( class_exists( 'FRSUsers\Models\Profile' ) ) {
-            $profile = \FRSUsers\Models\Profile::where( 'user_id', $user_id )->first();
+            $profile = \FRSUsers\Models\Profile::get_by_user_id( $user_id );
             if ( $profile && ! empty( $profile->headshot_id ) ) {
                 $url = wp_get_attachment_url( $profile->headshot_id );
                 if ( $url ) {

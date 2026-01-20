@@ -195,7 +195,7 @@ class Shortcodes {
             }
         }
 
-        // Also get leads from wp_lead_submissions table (frs-lrg plugin)
+        // Also get leads from wp_lead_submissions table (if available)
         $lrg_leads = self::get_lrg_leads( $current_user_id, 'any' );
 
         // Merge and sort by date
@@ -265,7 +265,7 @@ class Shortcodes {
     }
 
     /**
-     * Get leads from wp_lead_submissions table (frs-lrg plugin)
+     * Get leads from wp_lead_submissions table (if available)
      *
      * @param int    $user_id   User ID to filter by
      * @param string $user_type 'loan_officer' or 'realtor' (unused - now queries both)

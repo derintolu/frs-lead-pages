@@ -122,9 +122,9 @@ $accent_color   = $data['accent_color'];
     <!-- Calculator Widget -->
     <main class="calc-main" style="--gradient-start: <?php echo esc_attr( $gradient_start ); ?>; --gradient-end: <?php echo esc_attr( $gradient_end ); ?>;">
         <?php
-        // Enqueue frs-lrg widget assets
-        if ( class_exists( '\LendingResourceHub\Assets\Frontend' ) ) {
-            \LendingResourceHub\Assets\Frontend::get_instance()->enqueue_widget_assets();
+        // Enqueue frs-mortgage-calculator widget assets
+        if ( function_exists( '\FRSMortgageCalculator\enqueue_assets' ) ) {
+            \FRSMortgageCalculator\enqueue_assets();
         }
 
         // Build data attributes for calculator

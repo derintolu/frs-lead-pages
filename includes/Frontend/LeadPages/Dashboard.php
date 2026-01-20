@@ -116,7 +116,7 @@ class Dashboard {
             }
         }
 
-        // Also get leads from wp_lead_submissions table (frs-lrg plugin)
+        // Also get leads from wp_lead_submissions table (if available)
         $lrg_leads = self::get_lrg_leads( $user_id, $is_loan_officer ? 'loan_officer' : 'realtor' );
         $leads = array_merge( $leads, $lrg_leads );
 

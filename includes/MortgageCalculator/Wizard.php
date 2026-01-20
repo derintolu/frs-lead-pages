@@ -1746,7 +1746,7 @@ UNUSED;
      data-gradient-start="${gradientStart}"
      data-gradient-end="${gradientEnd}">
 </div>
-<script src="${siteUrl}/wp-content/plugins/frs-lrg/assets/widget/dist/widget.js"><\/script>`;
+<script src="${siteUrl}/wp-content/plugins/frs-mortgage-calculator/assets/dist/assets/widget.js"><\/script>`;
                 } else {
                     // Realtor mode: Partner is the LO
                     if (!selectedPartner) return;
@@ -1766,7 +1766,7 @@ UNUSED;
      data-gradient-start="${gradientStart}"
      data-gradient-end="${gradientEnd}">
 </div>
-<script src="${siteUrl}/wp-content/plugins/frs-lrg/assets/widget/dist/widget.js"><\/script>`;
+<script src="${siteUrl}/wp-content/plugins/frs-mortgage-calculator/assets/dist/assets/widget.js"><\/script>`;
                 }
 
                 const codeEl = document.getElementById('mc-embed-code');

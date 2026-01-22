@@ -115,6 +115,11 @@ function init() {
     // Load core classes
     Core\PostTypes::init();
     Core\Shortcodes::init();
+    Core\Analytics::init();
+
+    // Initialize blocks
+    Blocks\LeadStats::init();
+    Blocks\LeadStatsTable::init();
 
     // Initialize integrations
     Integrations\FluentForms::init();
@@ -280,6 +285,12 @@ function maybe_generate_qr( $post_id, $post ) {
 function activate() {
     // Register capabilities for roles
     Core\Capabilities::register();
+
+    // Create analytics table
+    Core\Analytics::create_table();
+
+    // Migrate existing view counts to new tracking system
+    Core\Analytics::migrate_existing_counts();
 
     // Flush rewrite rules for custom post types
     Core\PostTypes::register();

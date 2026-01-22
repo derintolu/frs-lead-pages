@@ -43,6 +43,11 @@ class Dashboard {
         // Get user's leads
         $leads = self::get_user_leads( $current_user_id, $is_loan_officer );
 
+        // Get analytics data
+        $analytics_period = $_GET['analytics_period'] ?? '30days';
+        $analytics_summary = \FRSLeadPages\Core\Analytics::get_user_stats( $current_user_id, $analytics_period );
+        $analytics_pages = \FRSLeadPages\Core\Analytics::get_user_pages_stats( $current_user_id, $analytics_period );
+
         // Enqueue assets
         self::enqueue_assets();
 

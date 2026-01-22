@@ -77,6 +77,10 @@ if ( ! defined( 'ABSPATH' ) ) {
         <button class="frs-tab" data-tab="leads">
             My Leads <span class="frs-tab-count"><?php echo count( $leads ); ?></span>
         </button>
+        <button class="frs-tab" data-tab="analytics">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" style="margin-right:4px;vertical-align:-3px;"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            Analytics
+        </button>
         <button class="frs-tab" data-tab="settings">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" style="margin-right:4px;vertical-align:-3px;"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
             Settings
@@ -206,6 +210,116 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <p>When visitors submit forms on your lead pages, they'll appear here.</p>
             </div>
         <?php endif; ?>
+    </div>
+
+    <!-- Analytics Tab -->
+    <div class="frs-tab-panel" data-panel="analytics">
+        
+        <!-- Time Period Filter -->
+        <div class="frs-analytics-filter">
+            <span class="frs-analytics-filter-label">Show:</span>
+            <div class="frs-analytics-filter-buttons">
+                <button type="button" 
+                        class="frs-filter-btn <?php echo $analytics_period === '30days' ? 'active' : ''; ?>"
+                        data-period="30days">Last 30 Days</button>
+                <button type="button" 
+                        class="frs-filter-btn <?php echo $analytics_period === 'week' ? 'active' : ''; ?>"
+                        data-period="week">This Week</button>
+                <button type="button" 
+                        class="frs-filter-btn <?php echo $analytics_period === 'all' ? 'active' : ''; ?>"
+                        data-period="all">All Time</button>
+            </div>
+        </div>
+
+        <!-- Summary Stats -->
+        <div class="frs-analytics-summary">
+            <div class="frs-analytics-card">
+                <div class="frs-analytics-card-icon views">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </div>
+                <div class="frs-analytics-card-content">
+                    <div class="frs-analytics-card-value"><?php echo number_format( $analytics_summary['views'] ); ?></div>
+                    <div class="frs-analytics-card-label">Page Views</div>
+                </div>
+            </div>
+            <div class="frs-analytics-card">
+                <div class="frs-analytics-card-icon qr">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/><rect x="18" y="14" width="3" height="3"/><rect x="14" y="18" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/></svg>
+                </div>
+                <div class="frs-analytics-card-content">
+                    <div class="frs-analytics-card-value"><?php echo number_format( $analytics_summary['qr_scans'] ); ?></div>
+                    <div class="frs-analytics-card-label">QR Scans</div>
+                </div>
+            </div>
+            <div class="frs-analytics-card">
+                <div class="frs-analytics-card-icon leads">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <div class="frs-analytics-card-content">
+                    <div class="frs-analytics-card-value"><?php echo number_format( $analytics_summary['submissions'] ); ?></div>
+                    <div class="frs-analytics-card-label">Leads</div>
+                </div>
+            </div>
+            <div class="frs-analytics-card">
+                <div class="frs-analytics-card-icon conversion">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
+                </div>
+                <div class="frs-analytics-card-content">
+                    <div class="frs-analytics-card-value"><?php echo esc_html( $analytics_summary['conversion_rate'] ); ?>%</div>
+                    <div class="frs-analytics-card-label">Conversion Rate</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Per-Page Stats Table -->
+        <div class="frs-analytics-table-wrapper">
+            <h3 class="frs-analytics-table-title">Performance by Page</h3>
+            <?php if ( ! empty( $analytics_pages ) ) : ?>
+                <table class="frs-analytics-table">
+                    <thead>
+                        <tr>
+                            <th>Page</th>
+                            <th>Type</th>
+                            <th>Views</th>
+                            <th>QR Scans</th>
+                            <th>Leads</th>
+                            <th>Conversion</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ( $analytics_pages as $page ) : 
+                            $type_labels = [
+                                'open_house'          => 'Open House',
+                                'customer_spotlight'  => 'Spotlight',
+                                'special_event'       => 'Event',
+                                'mortgage_calculator' => 'Calculator',
+                                'rate_quote'          => 'Rate Quote',
+                                'apply_now'           => 'Apply Now',
+                            ];
+                            $type_label = $type_labels[ $page['page_type'] ] ?? 'Page';
+                        ?>
+                            <tr>
+                                <td>
+                                    <a href="<?php echo esc_url( $page['url'] ); ?>" target="_blank" class="frs-analytics-page-link">
+                                        <?php echo esc_html( $page['title'] ); ?>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                                    </a>
+                                </td>
+                                <td><span class="frs-page-badge <?php echo esc_attr( $page['page_type'] ); ?>"><?php echo esc_html( $type_label ); ?></span></td>
+                                <td><?php echo number_format( $page['views'] ); ?></td>
+                                <td><?php echo number_format( $page['qr_scans'] ); ?></td>
+                                <td><?php echo number_format( $page['submissions'] ); ?></td>
+                                <td><?php echo esc_html( $page['conversion_rate'] ); ?>%</td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php else : ?>
+                <div class="frs-empty frs-empty-small">
+                    <p>No analytics data yet. Create lead pages and share them to start tracking!</p>
+                </div>
+            <?php endif; ?>
+        </div>
     </div>
 
     <!-- Settings Tab -->

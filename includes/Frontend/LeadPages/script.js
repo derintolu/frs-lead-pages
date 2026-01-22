@@ -308,4 +308,35 @@
             });
         });
     }
+
+    /**
+     * Analytics Period Filter
+     */
+    function initAnalyticsFilter() {
+        document.querySelectorAll('.frs-filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const period = btn.dataset.period;
+                if (!period) return;
+
+                // Update URL and reload
+                const url = new URL(window.location.href);
+                url.searchParams.set('analytics_period', period);
+                url.searchParams.set('tab', 'analytics');
+                
+                window.location.href = url.toString();
+            });
+        });
+
+        // Check if we should switch to analytics tab on page load
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('tab') === 'analytics') {
+            const analyticsTab = document.querySelector('[data-tab="analytics"]');
+            if (analyticsTab) {
+                analyticsTab.click();
+            }
+        }
+    }
+
+    // Initialize analytics filter
+    initAnalyticsFilter();
 })();

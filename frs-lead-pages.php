@@ -3,7 +3,7 @@
  * Plugin Name: FRS Lead Pages
  * Plugin URI: https://myhub21.com
  * Description: Lead generation landing page builder with multi-step wizard. Create Open House, Customer Spotlight, and Event pages with LO/Realtor co-branding.
- * Version: 1.3.0
+ * Version: 1.4.0
  * Author: Derin Tolu / FRS Brand Experience Teams
  * Author URI: https://myhub21.com
  * License: GPL-2.0-or-later

@@ -300,8 +300,8 @@ class PartnerPortal {
     public static function get_partner_step_config(): array {
         $config = UserMode::get_partner_step_config();
 
-        // If in Realtor mode, update with available LOs and preferred selection
-        if ( UserMode::is_realtor() ) {
+        // If in Partner mode, update with available LOs and preferred selection
+        if ( UserMode::is_partner() ) {
             $available_los = self::get_available_loan_officers();
             $preferred_lo = self::get_preferred_loan_officer();
 

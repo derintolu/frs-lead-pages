@@ -2,7 +2,7 @@
 /**
  * User Mode Detection
  *
- * Determines whether the current user is a Loan Officer or Realtor
+ * Determines whether the current user is a Loan Officer or Partner
  * and provides the appropriate partner selection options.
  *
  * @package FRSLeadPages
@@ -16,7 +16,7 @@ class UserMode {
      * User mode constants
      */
     const MODE_LOAN_OFFICER = 'loan_officer';
-    const MODE_REALTOR = 'realtor';
+    const MODE_PARTNER = 'partner';
     const MODE_ADMIN = 'admin';
 
     /**
@@ -38,7 +38,7 @@ class UserMode {
             if ( $mode === 'lo' || $mode === 'loan_officer' ) {
                 return self::MODE_LOAN_OFFICER;
             } elseif ( $mode === 'partner' ) {
-                return self::MODE_REALTOR;
+                return self::MODE_PARTNER;
             }
             // Default admin to LO mode
             return self::MODE_LOAN_OFFICER;
@@ -46,7 +46,7 @@ class UserMode {
 
         // Check for partner/agent roles
         if ( array_intersect( [ 'realtor_partner', 'agent' ], $user->roles ) ) {
-            return self::MODE_REALTOR;
+            return self::MODE_PARTNER;
         }
 
         // Everyone else is loan officer mode (including loan_officer, editor, author, contributor)
@@ -63,12 +63,12 @@ class UserMode {
     }
 
     /**
-     * Check if current user is a realtor
+     * Check if current user is a partner (agent)
      *
      * @return bool
      */
-    public static function is_realtor(): bool {
-        return self::get_mode() === self::MODE_REALTOR;
+    public static function is_partner(): bool {
+        return self::get_mode() === self::MODE_PARTNER;
     }
 
     /**
@@ -134,8 +134,8 @@ class UserMode {
     /**
      * Check if partner selection is optional for current mode
      *
-     * For LOs, partnering with a realtor is optional.
-     * For Realtors, partnering with an LO is required.
+     * For LOs, partnering is optional.
+     * For Partners, partnering with an LO is required.
      *
      * @return bool
      */
@@ -146,8 +146,8 @@ class UserMode {
     /**
      * Get wizard step 0 config based on user mode
      *
-     * For Realtors: Uses PartnerPortal to get available LOs and preferred selection
-     * For LOs: Returns all Realtors (optional selection)
+     * For Partners: Uses PartnerPortal to get available LOs and preferred selection
+     * For LOs: Returns all partners (optional selection)
      *
      * @return array Configuration for the partner selection step
      */
@@ -170,7 +170,7 @@ class UserMode {
             ];
         }
 
-        // Realtor mode: Use PartnerPortal for available LOs and preferences
+        // Partner mode: Use PartnerPortal for available LOs and preferences
         $available_los = PartnerPortal::get_available_loan_officers();
         $preferred_lo = PartnerPortal::get_preferred_loan_officer();
 
@@ -223,7 +223,7 @@ class UserMode {
             $meta['_frs_lo_email'] = $branding['loEmail'] ?? '';
             $meta['_frs_lo_nmls'] = $branding['loNmls'] ?? '';
 
-            // Realtor is optional partner
+            // Partner is optional
             if ( $partner_id ) {
                 $meta['_frs_realtor_id'] = $partner_id;
                 $realtor = Realtors::get_realtor( $partner_id );
@@ -236,7 +236,7 @@ class UserMode {
                 }
             }
         } else {
-            // Realtor is primary
+            // Partner is primary
             $meta['_frs_realtor_id'] = $user_id;
             $meta['_frs_realtor_name'] = $branding['realtorName'] ?? '';
             $meta['_frs_realtor_phone'] = $branding['realtorPhone'] ?? '';

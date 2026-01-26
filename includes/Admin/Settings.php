@@ -46,6 +46,19 @@ class Settings {
      * Register settings
      */
     public static function register_settings() {
+        // Branding Settings
+        register_setting( self::OPTION_GROUP, 'frs_lead_pages_primary_color', [
+            'type'              => 'string',
+            'sanitize_callback' => 'sanitize_hex_color',
+            'default'           => '#1e3a5f',
+        ] );
+
+        register_setting( self::OPTION_GROUP, 'frs_lead_pages_primary_hover', [
+            'type'              => 'string',
+            'sanitize_callback' => 'sanitize_hex_color',
+            'default'           => '#152a45',
+        ] );
+
         // Webhook Settings
         register_setting( self::OPTION_GROUP, 'frs_lead_pages_webhook_url', [
             'type'              => 'string',
@@ -84,6 +97,30 @@ class Settings {
             'sanitize_callback' => 'sanitize_text_field',
             'default'           => '',
         ] );
+
+        // Branding Section
+        add_settings_section(
+            'frs_lead_pages_branding_section',
+            __( 'Branding', 'frs-lead-pages' ),
+            [ __CLASS__, 'render_branding_section' ],
+            'frs-lead-pages-settings'
+        );
+
+        add_settings_field(
+            'frs_lead_pages_primary_color',
+            __( 'Primary Color', 'frs-lead-pages' ),
+            [ __CLASS__, 'render_primary_color_field' ],
+            'frs-lead-pages-settings',
+            'frs_lead_pages_branding_section'
+        );
+
+        add_settings_field(
+            'frs_lead_pages_primary_hover',
+            __( 'Primary Hover Color', 'frs-lead-pages' ),
+            [ __CLASS__, 'render_primary_hover_field' ],
+            'frs-lead-pages-settings',
+            'frs_lead_pages_branding_section'
+        );
 
         // Webhook Section
         add_settings_section(
@@ -334,6 +371,28 @@ class Settings {
 
     public static function render_firecrawl_section() {
         echo '<p>' . __( 'Configure Firecrawl API for property address lookup and data enrichment.', 'frs-lead-pages' ) . '</p>';
+    }
+
+    public static function render_branding_section() {
+        echo '<p>' . __( 'Customize the colors used on landing pages.', 'frs-lead-pages' ) . '</p>';
+    }
+
+    public static function render_primary_color_field() {
+        $value = get_option( 'frs_lead_pages_primary_color', '#1e3a5f' );
+        ?>
+        <input type="color" name="frs_lead_pages_primary_color" value="<?php echo esc_attr( $value ); ?>" />
+        <input type="text" value="<?php echo esc_attr( $value ); ?>" class="small-text" readonly style="margin-left: 8px;" />
+        <p class="description"><?php _e( 'Used for buttons, links, and form focus states.', 'frs-lead-pages' ); ?></p>
+        <?php
+    }
+
+    public static function render_primary_hover_field() {
+        $value = get_option( 'frs_lead_pages_primary_hover', '#152a45' );
+        ?>
+        <input type="color" name="frs_lead_pages_primary_hover" value="<?php echo esc_attr( $value ); ?>" />
+        <input type="text" value="<?php echo esc_attr( $value ); ?>" class="small-text" readonly style="margin-left: 8px;" />
+        <p class="description"><?php _e( 'Hover state for buttons and interactive elements.', 'frs-lead-pages' ); ?></p>
+        <?php
     }
 
     /**

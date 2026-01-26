@@ -26,14 +26,16 @@ html { margin-top: 0 !important; }
 .lead-page {
     display: grid;
     grid-template-columns: 55% 45%;
-    min-height: 100vh;
+    height: 100dvh;
 }
 
 /* Hero Section */
 .lead-page__hero {
     position: relative;
     background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-    min-height: 100vh;
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
 }
 
 .lead-page__hero-image {
@@ -253,7 +255,7 @@ html { margin-top: 0 !important; }
 .lead-page__price {
     font-size: 28px;
     font-weight: 700;
-    color: var(--accent);
+    color: var(--frs-primary);
     margin-top: 12px;
 }
 
@@ -264,7 +266,7 @@ html { margin-top: 0 !important; }
     gap: 8px;
     margin-top: 16px;
     padding: 10px 18px;
-    background: #1e3a5f;
+    background: var(--frs-primary);
     color: #ffffff;
     font-size: 14px;
     font-weight: 600;
@@ -354,7 +356,7 @@ html { margin-top: 0 !important; }
 
 .lead-page__contact-btn:hover {
     background: #f1f5f9;
-    color: #1e3a5f;
+    color: var(--frs-primary);
     border-color: #cbd5e1;
 }
 
@@ -371,7 +373,9 @@ html { margin-top: 0 !important; }
     padding: 48px 40px;
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow-y: auto;
     border-left: 1px solid rgba(255, 255, 255, 0.3);
 }
 
@@ -474,13 +478,13 @@ html { margin-top: 0 !important; }
 }
 
 .lead-page__form-container .ff-el-form-control:focus {
-    border-color: var(--accent) !important;
-    box-shadow: 0 0 0 3px var(--accent-light) !important;
+    border-color: var(--frs-primary) !important;
+    box-shadow: 0 0 0 3px var(--frs-primary-light) !important;
     outline: none !important;
 }
 
 .lead-page__form-container .ff-btn-submit {
-    background: #1e3a5f !important;
+    background: var(--frs-primary) !important;
     border: none !important;
     border-radius: 10px !important;
     padding: 14px 24px !important;
@@ -491,7 +495,7 @@ html { margin-top: 0 !important; }
 }
 
 .lead-page__form-container .ff-btn-submit:hover {
-    background: #152a45 !important;
+    background: var(--frs-primary-hover) !important;
 }
 
 .lead-page__form-container .ff-el-group {
@@ -548,7 +552,7 @@ html { margin-top: 0 !important; }
 
 .lead-page__form-container .ff-step-titles li.ff_active,
 .lead-page__form-container .ff-step-titles li.ff_completed {
-    background: var(--accent);
+    background: var(--frs-primary);
 }
 
 .lead-page__form-container .ff-el-progress-status {
@@ -586,13 +590,13 @@ html { margin-top: 0 !important; }
 }
 
 .lead-page__form-container .ff-btn-next {
-    background: #1e3a5f !important;
+    background: var(--frs-primary) !important;
     color: #fff !important;
     margin-left: auto !important;
 }
 
 .lead-page__form-container .ff-btn-next:hover {
-    background: #152a45 !important;
+    background: var(--frs-primary-hover) !important;
 }
 
 /* FluentForms radio buttons */
@@ -626,26 +630,36 @@ html { margin-top: 0 !important; }
 
 .lead-page__form-container .ff-el-form-check input[type="radio"]:checked + span,
 .lead-page__form-container .ff-el-form-check label:has(input:checked) {
-    background: var(--accent);
-    border-color: var(--accent);
+    background: var(--frs-primary);
+    border-color: var(--frs-primary);
     color: #fff;
 }
 
 /* Responsive */
 @media (max-width: 1024px) {
     html, body {
-        height: auto;
-        overflow: auto;
+        height: 100dvh;
+        overflow: hidden;
     }
 
     .lead-page {
         display: flex;
         flex-direction: column;
-        min-height: auto;
+        height: 100dvh;
     }
 
     .lead-page__hero {
-        min-height: auto;
+        height: 40dvh;
+        max-height: 40dvh;
+        min-height: 40dvh;
+        overflow: hidden;
+    }
+
+    .lead-page__form {
+        height: 60dvh;
+        max-height: 60dvh;
+        min-height: 60dvh;
+        overflow-y: auto;
     }
 
     .lead-page__hero-content {

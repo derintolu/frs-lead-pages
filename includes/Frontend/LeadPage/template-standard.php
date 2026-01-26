@@ -68,28 +68,6 @@ $calendar_urls = Template::get_calendar_urls( $data );
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <style>
-        :root {
-            --accent: <?php echo esc_attr( $accent_color ); ?>;
-            --accent-light: <?php echo esc_attr( $accent_color ); ?>15;
-        }
-
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        html, body {
-            height: 100%;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            -webkit-font-smoothing: antialiased;
-            background: #f8fafc;
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-        }
-
-        #wpadminbar { display: none !important; }
-        html { margin-top: 0 !important; }
-    </style>
-
     <?php wp_head(); ?>
 </head>
 <body <?php body_class( 'frs-lead-page frs-lead-page--' . esc_attr( $page_type ) ); ?>>

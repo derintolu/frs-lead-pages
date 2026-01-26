@@ -57,7 +57,44 @@ class Template {
             wp_enqueue_style( 'frs-lead-page-standard', $base_url . 'style-standard.css', [], $version );
         }
 
+        // Output CSS variables from admin settings
+        $primary       = get_option( 'frs_lead_pages_primary_color', '#1e3a5f' );
+        $primary_hover = get_option( 'frs_lead_pages_primary_hover', '#152a45' );
+        $primary_light = self::hex_to_rgba( $primary, 0.15 );
+
+        $css_vars = ":root {
+            --frs-primary: {$primary};
+            --frs-primary-hover: {$primary_hover};
+            --frs-primary-light: {$primary_light};
+        }";
+
+        wp_add_inline_style(
+            $page_type === 'mortgage_calculator' ? 'frs-lead-page-calculator' : 'frs-lead-page-standard',
+            $css_vars
+        );
+
         wp_enqueue_script( 'frs-lead-page', $base_url . 'script.js', [], $version, true );
+    }
+
+    /**
+     * Convert hex color to rgba
+     *
+     * @param string $hex   Hex color
+     * @param float  $alpha Alpha value
+     * @return string
+     */
+    private static function hex_to_rgba( string $hex, float $alpha ): string {
+        $hex = ltrim( $hex, '#' );
+
+        if ( strlen( $hex ) === 3 ) {
+            $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+        }
+
+        $r = hexdec( substr( $hex, 0, 2 ) );
+        $g = hexdec( substr( $hex, 2, 2 ) );
+        $b = hexdec( substr( $hex, 4, 2 ) );
+
+        return "rgba({$r}, {$g}, {$b}, {$alpha})";
     }
 
     /**

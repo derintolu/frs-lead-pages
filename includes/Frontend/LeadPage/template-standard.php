@@ -281,12 +281,48 @@ $calendar_urls = Template::get_calendar_urls( $data );
 
         <div class="lead-page__form-container">
             <?php
-            if ( $form_id && defined( 'FLUENTFORM' ) ) {
-                // Render FluentForms
-                echo do_shortcode( '[fluentform id="' . absint( $form_id ) . '"]' );
+            // Map page type to form file
+            $form_files = [
+                'open_house'         => 'open-house.html',
+                'customer_spotlight' => 'customer-spotlight.html',
+                'special_event'      => 'special-event.html',
+                'rate_quote'         => 'rate-quote.html',
+                'apply_now'          => 'apply-now.html',
+            ];
+
+            $form_file = $form_files[ $page_type ] ?? 'open-house.html';
+            $form_path = FRS_LEAD_PAGES_PLUGIN_DIR . 'forms/' . $form_file;
+
+            if ( file_exists( $form_path ) ) {
+                // Get form HTML and inject hidden fields
+                $form_html = file_get_contents( $form_path );
+
+                // Hidden fields for tracking
+                $hidden_fields = sprintf(
+                    '<input type="hidden" name="page_id" value="%d">
+                    <input type="hidden" name="page_type" value="%s">
+                    <input type="hidden" name="loan_officer_id" value="%d">
+                    <input type="hidden" name="realtor_id" value="%d">
+                    <input type="hidden" name="lo_name" value="%s">
+                    <input type="hidden" name="lo_email" value="%s">
+                    <input type="hidden" name="realtor_name" value="%s">
+                    <input type="hidden" name="realtor_email" value="%s">',
+                    $page_id,
+                    esc_attr( $page_type ),
+                    $data['lo_id'] ?? 0,
+                    $data['realtor_id'] ?? 0,
+                    esc_attr( $lo_data['name'] ?? '' ),
+                    esc_attr( $lo_data['email'] ?? '' ),
+                    esc_attr( $realtor_data['name'] ?? '' ),
+                    esc_attr( $realtor_data['email'] ?? '' )
+                );
+
+                // Insert hidden fields after opening form tag
+                $form_html = preg_replace( '/(<form[^>]*>)/', '$1' . $hidden_fields, $form_html );
+
+                echo $form_html;
             } else {
-                // Fallback message if FluentForms not available
-                echo '<p style="color: #64748b; text-align: center; padding: 40px 20px;">Form not available. Please contact the site administrator.</p>';
+                echo '<p style="color: #64748b; text-align: center; padding: 40px 20px;">Form not available.</p>';
             }
             ?>
         </div>

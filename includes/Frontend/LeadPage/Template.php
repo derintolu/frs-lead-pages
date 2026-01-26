@@ -74,6 +74,10 @@ class Template {
         );
 
         wp_enqueue_script( 'frs-lead-page', $base_url . 'script.js', [], $version, true );
+
+        // Enqueue form handler
+        $forms_url = plugins_url( 'forms/', FRS_LEAD_PAGES_PLUGIN_FILE );
+        wp_enqueue_script( 'frs-lead-form-handler', $forms_url . 'form-handler.js', [], $version, true );
     }
 
     /**

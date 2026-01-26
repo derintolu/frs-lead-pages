@@ -452,6 +452,128 @@ html { margin-top: 0 !important; }
     flex: 1;
 }
 
+/* Lead Capture Forms */
+.frs-lead-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.frs-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.frs-form-group label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+}
+
+.frs-lead-form input[type="text"],
+.frs-lead-form input[type="email"],
+.frs-lead-form input[type="tel"],
+.frs-lead-form select,
+.frs-lead-form textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 15px;
+    font-family: inherit;
+    transition: all 0.2s;
+    background: #fff;
+}
+
+.frs-lead-form input:focus,
+.frs-lead-form select:focus,
+.frs-lead-form textarea:focus {
+    outline: none;
+    border-color: var(--frs-primary);
+    box-shadow: 0 0 0 3px var(--frs-primary-light);
+}
+
+.frs-lead-form input::placeholder,
+.frs-lead-form textarea::placeholder {
+    color: #94a3b8;
+}
+
+.frs-lead-form select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 40px;
+    cursor: pointer;
+}
+
+.frs-lead-form button[type="submit"] {
+    width: 100%;
+    padding: 14px 24px;
+    background: var(--frs-primary);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: 8px;
+}
+
+.frs-lead-form button[type="submit"]:hover {
+    background: var(--frs-primary-hover);
+}
+
+.frs-lead-form button[type="submit"]:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.frs-form--submitting input,
+.frs-form--submitting select,
+.frs-form--submitting textarea {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* Form Success */
+.frs-form-success {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.frs-form-success svg {
+    color: #10b981;
+    margin-bottom: 16px;
+}
+
+.frs-form-success h3 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 8px;
+}
+
+.frs-form-success p {
+    font-size: 15px;
+    color: #64748b;
+    margin: 0;
+}
+
+/* Form Error */
+.frs-form-error {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
 /* FluentForms Overrides */
 .lead-page__form-container .fluentform {
     font-family: inherit !important;

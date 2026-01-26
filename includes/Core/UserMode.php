@@ -44,17 +44,13 @@ class UserMode {
             return self::MODE_LOAN_OFFICER;
         }
 
-        // Check for loan officer role
-        if ( array_intersect( [ 'loan_officer', 'editor' ], $user->roles ) ) {
-            return self::MODE_LOAN_OFFICER;
-        }
-
-        // Check for realtor role
-        if ( array_intersect( [ 'realtor', 'realtor_partner', 'agent', 'author', 'contributor' ], $user->roles ) ) {
+        // Check for realtor/agent role first (specific roles only)
+        if ( array_intersect( [ 'realtor', 'realtor_partner', 'agent' ], $user->roles ) ) {
             return self::MODE_REALTOR;
         }
 
-        return '';
+        // Everyone else is loan officer mode (including loan_officer, editor, author, contributor)
+        return self::MODE_LOAN_OFFICER;
     }
 
     /**

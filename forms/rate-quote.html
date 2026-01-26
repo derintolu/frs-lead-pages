@@ -1,0 +1,31 @@
+<form class="frs-lead-form" data-page-type="rate-quote">
+    <div class="frs-form-group">
+        <input type="text" name="name" placeholder="Full Name" required>
+    </div>
+    <div class="frs-form-group">
+        <input type="email" name="email" placeholder="Email Address" required>
+    </div>
+    <div class="frs-form-group">
+        <input type="tel" name="phone" placeholder="Phone Number" required>
+    </div>
+    <div class="frs-form-group">
+        <select name="loan_type">
+            <option value="">What type of loan?</option>
+            <option value="purchase">Purchase</option>
+            <option value="refinance">Refinance</option>
+            <option value="cash_out">Cash-Out Refinance</option>
+            <option value="heloc">HELOC</option>
+        </select>
+    </div>
+    <div class="frs-form-group">
+        <select name="credit_score">
+            <option value="">Estimated credit score</option>
+            <option value="excellent">Excellent (740+)</option>
+            <option value="good">Good (700-739)</option>
+            <option value="fair">Fair (660-699)</option>
+            <option value="below">Below 660</option>
+            <option value="unknown">Not sure</option>
+        </select>
+    </div>
+    <button type="submit">Get My Rate Quote</button>
+</form>

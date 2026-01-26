@@ -78,10 +78,17 @@ class Api {
             ],
         ]);
 
-        // Lead Submissions (form submission)
+        // Lead Submissions (form submission) - with page_id in URL
         register_rest_route( self::NAMESPACE, '/pages/(?P<page_id>\d+)/submit', [
             'methods'             => 'POST',
             'callback'            => [ __CLASS__, 'submit_lead' ],
+            'permission_callback' => '__return_true', // Public
+        ]);
+
+        // Lead Submissions (fallback) - with page_id in body
+        register_rest_route( self::NAMESPACE, '/submit', [
+            'methods'             => 'POST',
+            'callback'            => [ __CLASS__, 'submit_lead_generic' ],
             'permission_callback' => '__return_true', // Public
         ]);
 
@@ -610,6 +617,23 @@ class Api {
             'message'       => 'Thank you! We will be in touch shortly.',
             'submission_id' => $result['submission_id'] ?? null,
         ], 200 );
+    }
+
+    /**
+     * POST /submit - Generic lead form submission (page_id in body)
+     */
+    public static function submit_lead_generic( WP_REST_Request $request ): WP_REST_Response {
+        $data = $request->get_json_params();
+        $page_id = (int) ( $data['page_id'] ?? 0 );
+
+        if ( ! $page_id ) {
+            return new WP_REST_Response( [ 'error' => 'Page ID is required' ], 400 );
+        }
+
+        // Set the page_id as a param so submit_lead can use it
+        $request->set_param( 'page_id', $page_id );
+
+        return self::submit_lead( $request );
     }
 
     /**

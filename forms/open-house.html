@@ -1,30 +1,153 @@
-<form class="frs-lead-form" data-page-type="open-house">
-    <div class="frs-form-group">
-        <input type="text" name="name" placeholder="Full Name" required>
+<form class="frs-lead-form frs-multistep-form" data-page-type="open_house" data-steps="4">
+    <!-- Progress Bar -->
+    <div class="frs-form-progress">
+        <div class="frs-form-progress-bar" style="width: 25%"></div>
+        <span class="frs-form-progress-text">Step 1 of 4</span>
     </div>
-    <div class="frs-form-group">
-        <input type="email" name="email" placeholder="Email Address" required>
+
+    <!-- Step 1: Contact Info -->
+    <div class="frs-form-step" data-step="1">
+        <div class="frs-form-row">
+            <div class="frs-form-group frs-form-half">
+                <label for="first_name">First Name <span class="required">*</span></label>
+                <input type="text" id="first_name" name="first_name" placeholder="First Name" required>
+            </div>
+            <div class="frs-form-group frs-form-half">
+                <label for="last_name">Last Name <span class="required">*</span></label>
+                <input type="text" id="last_name" name="last_name" placeholder="Last Name" required>
+            </div>
+        </div>
+        <div class="frs-form-group">
+            <label for="email">Email <span class="required">*</span></label>
+            <input type="email" id="email" name="email" placeholder="Email Address" required>
+        </div>
+        <div class="frs-form-group">
+            <label for="phone">Phone <span class="required">*</span></label>
+            <input type="tel" id="phone" name="phone" placeholder="Phone Number" required>
+        </div>
+        <div class="frs-form-actions">
+            <button type="button" class="frs-btn frs-btn-next">Next</button>
+        </div>
     </div>
-    <div class="frs-form-group">
-        <input type="tel" name="phone" placeholder="Phone Number">
+
+    <!-- Step 2: Working with agent + Pre-approved -->
+    <div class="frs-form-step" data-step="2" style="display: none;">
+        <div class="frs-form-group">
+            <label>Are you working with an agent?</label>
+            <div class="frs-button-group">
+                <label class="frs-button-option">
+                    <input type="radio" name="working_with_agent" value="Yes">
+                    <span class="frs-button-content">
+                        <svg class="frs-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        <span>Yes</span>
+                    </span>
+                </label>
+                <label class="frs-button-option">
+                    <input type="radio" name="working_with_agent" value="No">
+                    <span class="frs-button-content">
+                        <svg class="frs-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
+                        <span>No</span>
+                    </span>
+                </label>
+            </div>
+        </div>
+        <div class="frs-form-group" style="margin-top: 24px;">
+            <label>Are you pre-approved for financing?</label>
+            <div class="frs-button-group">
+                <label class="frs-button-option">
+                    <input type="radio" name="pre_approved" value="Yes">
+                    <span class="frs-button-content">
+                        <svg class="frs-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+                        <span>Yes</span>
+                    </span>
+                </label>
+                <label class="frs-button-option">
+                    <input type="radio" name="pre_approved" value="No">
+                    <span class="frs-button-content">
+                        <svg class="frs-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
+                        <span>No</span>
+                    </span>
+                </label>
+            </div>
+        </div>
+        <div class="frs-form-actions">
+            <button type="button" class="frs-btn frs-btn-prev">Previous</button>
+            <button type="button" class="frs-btn frs-btn-next">Next</button>
+        </div>
     </div>
-    <div class="frs-form-group">
-        <select name="preapproved">
-            <option value="">Are you pre-approved?</option>
-            <option value="yes">Yes</option>
-            <option value="no">No</option>
-            <option value="not_sure">Not sure</option>
-        </select>
+
+    <!-- Step 3: Interested in pre-approval -->
+    <div class="frs-form-step" data-step="3" style="display: none;">
+        <div class="frs-form-group">
+            <label>Interested in getting pre-approved?</label>
+            <div class="frs-button-group">
+                <label class="frs-button-option">
+                    <input type="radio" name="interested_in_preapproval" value="Yes">
+                    <span class="frs-button-content">
+                        <svg class="frs-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                        <span>Yes</span>
+                    </span>
+                </label>
+                <label class="frs-button-option">
+                    <input type="radio" name="interested_in_preapproval" value="No">
+                    <span class="frs-button-content">
+                        <svg class="frs-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                        <span>No</span>
+                    </span>
+                </label>
+                <label class="frs-button-option">
+                    <input type="radio" name="interested_in_preapproval" value="Already approved">
+                    <span class="frs-button-content">
+                        <svg class="frs-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+                        <span>Already approved</span>
+                    </span>
+                </label>
+            </div>
+        </div>
+        <div class="frs-form-actions">
+            <button type="button" class="frs-btn frs-btn-prev">Previous</button>
+            <button type="button" class="frs-btn frs-btn-next">Next</button>
+        </div>
     </div>
-    <div class="frs-form-group">
-        <select name="timeframe">
-            <option value="">When are you looking to buy?</option>
-            <option value="asap">ASAP</option>
-            <option value="1-3months">1-3 months</option>
-            <option value="3-6months">3-6 months</option>
-            <option value="6plus">6+ months</option>
-            <option value="just_looking">Just looking</option>
-        </select>
+
+    <!-- Step 4: Timeframe -->
+    <div class="frs-form-step" data-step="4" style="display: none;">
+        <div class="frs-form-group">
+            <label>When are you looking to buy?</label>
+            <div class="frs-button-group frs-button-grid">
+                <label class="frs-button-option">
+                    <input type="radio" name="timeframe" value="As soon as possible">
+                    <span class="frs-button-content">
+                        <svg class="frs-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                        <span>ASAP</span>
+                    </span>
+                </label>
+                <label class="frs-button-option">
+                    <input type="radio" name="timeframe" value="1-3 months">
+                    <span class="frs-button-content">
+                        <svg class="frs-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                        <span>1-3 months</span>
+                    </span>
+                </label>
+                <label class="frs-button-option">
+                    <input type="radio" name="timeframe" value="3-6 months">
+                    <span class="frs-button-content">
+                        <svg class="frs-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        <span>3-6 months</span>
+                    </span>
+                </label>
+                <label class="frs-button-option">
+                    <input type="radio" name="timeframe" value="Just browsing">
+                    <span class="frs-button-content">
+                        <svg class="frs-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                        <span>Just browsing</span>
+                    </span>
+                </label>
+            </div>
+        </div>
+        <div class="frs-form-actions">
+            <button type="button" class="frs-btn frs-btn-prev">Previous</button>
+            <button type="submit" class="frs-btn frs-btn-submit">Submit</button>
+        </div>
     </div>
-    <button type="submit">Register for Open House</button>
 </form>

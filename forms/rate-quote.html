@@ -1,31 +1,357 @@
-<form class="frs-lead-form" data-page-type="rate-quote">
-    <div class="frs-form-group">
-        <input type="text" name="name" placeholder="Full Name" required>
+<form class="frs-lead-form frs-multistep-form" data-page-type="rate_quote" data-steps="6">
+    <!-- Progress Bar -->
+    <div class="frs-form-progress">
+        <div class="frs-form-progress-bar" style="width: 17%"></div>
+        <span class="frs-form-progress-text">Step 1 of 6</span>
     </div>
-    <div class="frs-form-group">
-        <input type="email" name="email" placeholder="Email Address" required>
+
+    <!-- Step 1: Home Type + Journey Stage -->
+    <div class="frs-form-step" data-step="1">
+        <div class="frs-form-group">
+            <label>What type of home are you looking for?</label>
+            <div class="frs-button-group">
+                <label class="frs-button-option">
+                    <input type="radio" name="home_type" value="Single Family Home">
+                    <span class="frs-button-content">
+                        <svg class="frs-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                        <span>Single Family</span>
+                    </span>
+                </label>
+                <label class="frs-button-option">
+                    <input type="radio" name="home_type" value="Condo">
+                    <span class="frs-button-content">
+                        <svg class="frs-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></svg>
+                        <span>Condo</span>
+                    </span>
+                </label>
+                <label class="frs-button-option">
+                    <input type="radio" name="home_type" value="Townhouse">
+                    <span class="frs-button-content">
+                        <svg class="frs-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9v.01"/><path d="M9 12v.01"/><path d="M9 15v.01"/><path d="M9 18v.01"/></svg>
+                        <span>Townhouse</span>
+                    </span>
+                </label>
+            </div>
+        </div>
+        <div class="frs-form-group" style="margin-top: 24px;">
+            <label>Where are you in the homebuying journey?</label>
+            <div class="frs-button-group frs-button-grid">
+                <label class="frs-button-option">
+                    <input type="radio" name="journey_stage" value="Daydreaming">
+                    <span class="frs-button-content">
+                        <svg class="frs-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+                        <span>Daydreaming</span>
+                    </span>
+                </label>
+                <label class="frs-button-option">
+                    <input type="radio" name="journey_stage" value="Looking Around">
+                    <span class="frs-button-content">
+                        <svg class="frs-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                        <span>Looking Around</span>
+                    </span>
+                </label>
+                <label class="frs-button-option">
+                    <input type="radio" name="journey_stage" value="Getting Serious">
+                    <span class="frs-button-content">
+                        <svg class="frs-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                        <span>Getting Serious</span>
+                    </span>
+                </label>
+                <label class="frs-button-option">
+                    <input type="radio" name="journey_stage" value="Ready to Buy">
+                    <span class="frs-button-content">
+                        <svg class="frs-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+                        <span>Ready to Buy</span>
+                    </span>
+                </label>
+            </div>
+        </div>
+        <div class="frs-form-actions">
+            <button type="button" class="frs-btn frs-btn-next">Next</button>
+        </div>
     </div>
-    <div class="frs-form-group">
-        <input type="tel" name="phone" placeholder="Phone Number" required>
+
+    <!-- Step 2: Budget + Home Use + First Time Buyer -->
+    <div class="frs-form-step" data-step="2" style="display: none;">
+        <div class="frs-form-group">
+            <label>How much do you plan to spend?</label>
+            <div class="frs-button-group frs-button-grid">
+                <label class="frs-button-option">
+                    <input type="radio" name="budget" value="$700,000 or more">
+                    <span class="frs-button-content">
+                        <svg class="frs-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                        <span>$700k+</span>
+                    </span>
+                </label>
+                <label class="frs-button-option">
+                    <input type="radio" name="budget" value="$500,000 - $700,000">
+                    <span class="frs-button-content">
+                        <svg class="frs-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                        <span>$500k-$700k</span>
+                    </span>
+                </label>
+                <label class="frs-button-option">
+                    <input type="radio" name="budget" value="$300,000 - $500,000">
+                    <span class="frs-button-content">
+                        <svg class="frs-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                        <span>$300k-$500k</span>
+                    </span>
+                </label>
+                <label class="frs-button-option">
+                    <input type="radio" name="budget" value="Under $300,000">
+                    <span class="frs-button-content">
+                        <svg class="frs-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                        <span>Under $300k</span>
+                    </span>
+                </label>
+            </div>
+        </div>
+        <div class="frs-form-group" style="margin-top: 24px;">
+            <label>How will this home be used?</label>
+            <div class="frs-button-group">
+                <label class="frs-button-option">
+                    <input type="radio" name="home_use" value="Primary Home">
+                    <span class="frs-button-content">
+                        <svg class="frs-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                        <span>Primary</span>
+                    </span>
+                </label>
+                <label class="frs-button-option">
+                    <input type="radio" name="home_use" value="Secondary / Vacation Home">
+                    <span class="frs-button-content">
+                        <svg class="frs-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+                        <span>Vacation</span>
+                    </span>
+                </label>
+                <label class="frs-button-option">
+                    <input type="radio" name="home_use" value="Investment Property">
+                    <span class="frs-button-content">
+                        <svg class="frs-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>
+                        <span>Investment</span>
+                    </span>
+                </label>
+            </div>
+        </div>
+        <div class="frs-form-group" style="margin-top: 24px;">
+            <label>Is this your first home purchase?</label>
+            <div class="frs-button-group">
+                <label class="frs-button-option">
+                    <input type="radio" name="first_time_buyer" value="Yes">
+                    <span class="frs-button-content">
+                        <svg class="frs-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                        <span>Yes</span>
+                    </span>
+                </label>
+                <label class="frs-button-option">
+                    <input type="radio" name="first_time_buyer" value="No">
+                    <span class="frs-button-content">
+                        <svg class="frs-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                        <span>No</span>
+                    </span>
+                </label>
+            </div>
+        </div>
+        <div class="frs-form-actions">
+            <button type="button" class="frs-btn frs-btn-prev">Previous</button>
+            <button type="button" class="frs-btn frs-btn-next">Next</button>
+        </div>
     </div>
-    <div class="frs-form-group">
-        <select name="loan_type">
-            <option value="">What type of loan?</option>
-            <option value="purchase">Purchase</option>
-            <option value="refinance">Refinance</option>
-            <option value="cash_out">Cash-Out Refinance</option>
-            <option value="heloc">HELOC</option>
-        </select>
+
+    <!-- Step 3: Timeline + Military + Down Payment -->
+    <div class="frs-form-step" data-step="3" style="display: none;">
+        <div class="frs-form-group">
+            <label>When are you planning to purchase?</label>
+            <div class="frs-button-group frs-button-grid">
+                <label class="frs-button-option">
+                    <input type="radio" name="purchase_timeline" value="Immediately">
+                    <span class="frs-button-content">
+                        <svg class="frs-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                        <span>Immediately</span>
+                    </span>
+                </label>
+                <label class="frs-button-option">
+                    <input type="radio" name="purchase_timeline" value="Within 30 Days">
+                    <span class="frs-button-content">
+                        <svg class="frs-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                        <span>30 Days</span>
+                    </span>
+                </label>
+                <label class="frs-button-option">
+                    <input type="radio" name="purchase_timeline" value="2-3 Months">
+                    <span class="frs-button-content">
+                        <svg class="frs-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        <span>2-3 Months</span>
+                    </span>
+                </label>
+                <label class="frs-button-option">
+                    <input type="radio" name="purchase_timeline" value="6+ Months">
+                    <span class="frs-button-content">
+                        <svg class="frs-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                        <span>6+ Months</span>
+                    </span>
+                </label>
+            </div>
+        </div>
+        <div class="frs-form-group" style="margin-top: 24px;">
+            <label>Have you or your spouse served in the US military?</label>
+            <div class="frs-button-group">
+                <label class="frs-button-option">
+                    <input type="radio" name="military_service" value="Yes">
+                    <span class="frs-button-content">
+                        <svg class="frs-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></svg>
+                        <span>Yes</span>
+                    </span>
+                </label>
+                <label class="frs-button-option">
+                    <input type="radio" name="military_service" value="No">
+                    <span class="frs-button-content">
+                        <svg class="frs-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                        <span>No</span>
+                    </span>
+                </label>
+            </div>
+        </div>
+        <div class="frs-form-group" style="margin-top: 24px;">
+            <label>Down payment amount?</label>
+            <div class="frs-button-group frs-button-grid">
+                <label class="frs-button-option">
+                    <input type="radio" name="down_payment" value="0%">
+                    <span class="frs-button-content"><span>0%</span></span>
+                </label>
+                <label class="frs-button-option">
+                    <input type="radio" name="down_payment" value="3.5%">
+                    <span class="frs-button-content"><span>3.5%</span></span>
+                </label>
+                <label class="frs-button-option">
+                    <input type="radio" name="down_payment" value="5-10%">
+                    <span class="frs-button-content"><span>5-10%</span></span>
+                </label>
+                <label class="frs-button-option">
+                    <input type="radio" name="down_payment" value="20%+">
+                    <span class="frs-button-content"><span>20%+</span></span>
+                </label>
+            </div>
+        </div>
+        <div class="frs-form-actions">
+            <button type="button" class="frs-btn frs-btn-prev">Previous</button>
+            <button type="button" class="frs-btn frs-btn-next">Next</button>
+        </div>
     </div>
-    <div class="frs-form-group">
-        <select name="credit_score">
-            <option value="">Estimated credit score</option>
-            <option value="excellent">Excellent (740+)</option>
-            <option value="good">Good (700-739)</option>
-            <option value="fair">Fair (660-699)</option>
-            <option value="below">Below 660</option>
-            <option value="unknown">Not sure</option>
-        </select>
+
+    <!-- Step 4: Employment + Bankruptcy + Credit -->
+    <div class="frs-form-step" data-step="4" style="display: none;">
+        <div class="frs-form-group">
+            <label>Employment status?</label>
+            <div class="frs-button-group frs-button-grid">
+                <label class="frs-button-option">
+                    <input type="radio" name="employment_status" value="Employed">
+                    <span class="frs-button-content">
+                        <svg class="frs-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                        <span>Employed</span>
+                    </span>
+                </label>
+                <label class="frs-button-option">
+                    <input type="radio" name="employment_status" value="Self-Employed">
+                    <span class="frs-button-content">
+                        <svg class="frs-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        <span>Self-Employed</span>
+                    </span>
+                </label>
+                <label class="frs-button-option">
+                    <input type="radio" name="employment_status" value="Retired">
+                    <span class="frs-button-content">
+                        <svg class="frs-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+                        <span>Retired</span>
+                    </span>
+                </label>
+                <label class="frs-button-option">
+                    <input type="radio" name="employment_status" value="Other">
+                    <span class="frs-button-content">
+                        <svg class="frs-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                        <span>Other</span>
+                    </span>
+                </label>
+            </div>
+        </div>
+        <div class="frs-form-group" style="margin-top: 24px;">
+            <label>Bankruptcy, short sale, or foreclosure in last 3 years?</label>
+            <div class="frs-button-group">
+                <label class="frs-button-option">
+                    <input type="radio" name="bankruptcy_foreclosure" value="Yes">
+                    <span class="frs-button-content"><span>Yes</span></span>
+                </label>
+                <label class="frs-button-option">
+                    <input type="radio" name="bankruptcy_foreclosure" value="No">
+                    <span class="frs-button-content"><span>No</span></span>
+                </label>
+            </div>
+        </div>
+        <div class="frs-form-group" style="margin-top: 24px;">
+            <label>Credit score range?</label>
+            <div class="frs-button-group frs-button-grid">
+                <label class="frs-button-option">
+                    <input type="radio" name="credit_score" value="Excellent (720+)">
+                    <span class="frs-button-content"><span>Excellent (720+)</span></span>
+                </label>
+                <label class="frs-button-option">
+                    <input type="radio" name="credit_score" value="Good (680-719)">
+                    <span class="frs-button-content"><span>Good (680-719)</span></span>
+                </label>
+                <label class="frs-button-option">
+                    <input type="radio" name="credit_score" value="Fair (640-679)">
+                    <span class="frs-button-content"><span>Fair (640-679)</span></span>
+                </label>
+                <label class="frs-button-option">
+                    <input type="radio" name="credit_score" value="Below 640">
+                    <span class="frs-button-content"><span>Below 640</span></span>
+                </label>
+            </div>
+        </div>
+        <div class="frs-form-actions">
+            <button type="button" class="frs-btn frs-btn-prev">Previous</button>
+            <button type="button" class="frs-btn frs-btn-next">Next</button>
+        </div>
     </div>
-    <button type="submit">Get My Rate Quote</button>
+
+    <!-- Step 5: Location -->
+    <div class="frs-form-step" data-step="5" style="display: none;">
+        <div class="frs-form-group">
+            <label for="state">What state are you looking to buy in? <span class="required">*</span></label>
+            <input type="text" id="state" name="state" placeholder="State" required>
+        </div>
+        <div class="frs-form-group">
+            <label for="zip">Your current zip code <span class="required">*</span></label>
+            <input type="text" id="zip" name="zip" placeholder="Zip Code" required>
+        </div>
+        <div class="frs-form-actions">
+            <button type="button" class="frs-btn frs-btn-prev">Previous</button>
+            <button type="button" class="frs-btn frs-btn-next">Next</button>
+        </div>
+    </div>
+
+    <!-- Step 6: Contact Info -->
+    <div class="frs-form-step" data-step="6" style="display: none;">
+        <div class="frs-form-row">
+            <div class="frs-form-group frs-form-half">
+                <label for="first_name">First Name <span class="required">*</span></label>
+                <input type="text" id="first_name" name="first_name" placeholder="First Name" required>
+            </div>
+            <div class="frs-form-group frs-form-half">
+                <label for="last_name">Last Name <span class="required">*</span></label>
+                <input type="text" id="last_name" name="last_name" placeholder="Last Name" required>
+            </div>
+        </div>
+        <div class="frs-form-group">
+            <label for="email">Email <span class="required">*</span></label>
+            <input type="email" id="email" name="email" placeholder="Email Address" required>
+        </div>
+        <div class="frs-form-group">
+            <label for="phone">Phone <span class="required">*</span></label>
+            <input type="tel" id="phone" name="phone" placeholder="Phone Number" required>
+        </div>
+        <div class="frs-form-actions">
+            <button type="button" class="frs-btn frs-btn-prev">Previous</button>
+            <button type="submit" class="frs-btn frs-btn-submit">Get My Rate</button>
+        </div>
+    </div>
 </form>

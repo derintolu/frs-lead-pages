@@ -1,24 +1,85 @@
-<form class="frs-lead-form" data-page-type="special-event">
-    <div class="frs-form-group">
-        <input type="text" name="name" placeholder="Full Name" required>
+<form class="frs-lead-form frs-multistep-form" data-page-type="special_event" data-steps="3">
+    <!-- Progress Bar -->
+    <div class="frs-form-progress">
+        <div class="frs-form-progress-bar" style="width: 33%"></div>
+        <span class="frs-form-progress-text">Step 1 of 3</span>
     </div>
-    <div class="frs-form-group">
-        <input type="email" name="email" placeholder="Email Address" required>
+
+    <!-- Step 1: Contact Info -->
+    <div class="frs-form-step" data-step="1">
+        <div class="frs-form-row">
+            <div class="frs-form-group frs-form-half">
+                <label for="first_name">First Name <span class="required">*</span></label>
+                <input type="text" id="first_name" name="first_name" placeholder="First Name" required>
+            </div>
+            <div class="frs-form-group frs-form-half">
+                <label for="last_name">Last Name <span class="required">*</span></label>
+                <input type="text" id="last_name" name="last_name" placeholder="Last Name" required>
+            </div>
+        </div>
+        <div class="frs-form-group">
+            <label for="email">Email <span class="required">*</span></label>
+            <input type="email" id="email" name="email" placeholder="Email Address" required>
+        </div>
+        <div class="frs-form-group">
+            <label for="phone">Phone <span class="required">*</span></label>
+            <input type="tel" id="phone" name="phone" placeholder="Phone Number" required>
+        </div>
+        <div class="frs-form-actions">
+            <button type="button" class="frs-btn frs-btn-next">Next</button>
+        </div>
     </div>
-    <div class="frs-form-group">
-        <input type="tel" name="phone" placeholder="Phone Number">
+
+    <!-- Step 2: Attendees -->
+    <div class="frs-form-step" data-step="2" style="display: none;">
+        <div class="frs-form-group">
+            <label>How many people will be attending?</label>
+            <div class="frs-button-group frs-button-grid">
+                <label class="frs-button-option">
+                    <input type="radio" name="attendees" value="1">
+                    <span class="frs-button-content">
+                        <svg class="frs-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        <span>Just me</span>
+                    </span>
+                </label>
+                <label class="frs-button-option">
+                    <input type="radio" name="attendees" value="2">
+                    <span class="frs-button-content">
+                        <svg class="frs-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        <span>2 people</span>
+                    </span>
+                </label>
+                <label class="frs-button-option">
+                    <input type="radio" name="attendees" value="3">
+                    <span class="frs-button-content">
+                        <svg class="frs-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        <span>3 people</span>
+                    </span>
+                </label>
+                <label class="frs-button-option">
+                    <input type="radio" name="attendees" value="4+">
+                    <span class="frs-button-content">
+                        <svg class="frs-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 21a8 8 0 0 0-16 0"/><circle cx="10" cy="8" r="5"/><path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3"/></svg>
+                        <span>4 or more</span>
+                    </span>
+                </label>
+            </div>
+        </div>
+        <div class="frs-form-actions">
+            <button type="button" class="frs-btn frs-btn-prev">Previous</button>
+            <button type="button" class="frs-btn frs-btn-next">Next</button>
+        </div>
     </div>
-    <div class="frs-form-group">
-        <select name="attendees">
-            <option value="">Number of attendees</option>
-            <option value="1">Just me</option>
-            <option value="2">2 people</option>
-            <option value="3">3 people</option>
-            <option value="4+">4 or more</option>
-        </select>
+
+    <!-- Step 3: Questions -->
+    <div class="frs-form-step" data-step="3" style="display: none;">
+        <div class="frs-form-group">
+            <label for="questions">Any questions for the presenter? (optional)</label>
+            <textarea id="questions" name="questions" rows="4" placeholder="What topics would you like covered?"></textarea>
+        </div>
+        <div class="frs-form-actions">
+            <button type="button" class="frs-btn frs-btn-prev">Previous</button>
+            <button type="submit" class="frs-btn frs-btn-submit">Register</button>
+        </div>
     </div>
-    <div class="frs-form-group">
-        <textarea name="questions" placeholder="Any questions for the presenter? (optional)" rows="3"></textarea>
-    </div>
-    <button type="submit">Register for Event</button>
 </form>

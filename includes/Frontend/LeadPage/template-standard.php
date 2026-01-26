@@ -287,7 +287,6 @@ $calendar_urls = Template::get_calendar_urls( $data );
                 'customer_spotlight' => 'customer-spotlight.html',
                 'special_event'      => 'special-event.html',
                 'rate_quote'         => 'rate-quote.html',
-                'apply_now'          => 'apply-now.html',
             ];
 
             $form_file = $form_files[ $page_type ] ?? 'open-house.html';

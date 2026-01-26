@@ -1,15 +1,123 @@
 /**
  * FRS Lead Pages - Form Handler
- * Handles submission for all lead capture forms
+ * Handles multi-step navigation and submission for all lead capture forms
  */
 (function() {
     'use strict';
 
-    const API_ENDPOINT = '/wp-json/frs-lead-pages/v1/submit';
+    const API_BASE = '/wp-json/frs-lead-pages/v1';
 
-    document.querySelectorAll('.frs-lead-form').forEach(form => {
+    // Initialize all forms
+    document.querySelectorAll('.frs-lead-form').forEach(initForm);
+
+    function initForm(form) {
+        // Handle multi-step navigation
+        if (form.classList.contains('frs-multistep-form')) {
+            initMultiStep(form);
+        }
+
+        // Handle form submission
         form.addEventListener('submit', handleSubmit);
-    });
+    }
+
+    function initMultiStep(form) {
+        const totalSteps = parseInt(form.dataset.steps, 10);
+        let currentStep = 1;
+
+        // Next button handlers
+        form.querySelectorAll('.frs-btn-next').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (validateStep(form, currentStep)) {
+                    currentStep++;
+                    showStep(form, currentStep, totalSteps);
+                }
+            });
+        });
+
+        // Previous button handlers
+        form.querySelectorAll('.frs-btn-prev').forEach(btn => {
+            btn.addEventListener('click', () => {
+                currentStep--;
+                showStep(form, currentStep, totalSteps);
+            });
+        });
+
+        // Auto-advance on button option selection (for radio/checkbox steps)
+        form.querySelectorAll('.frs-button-option input[type="radio"]').forEach(input => {
+            input.addEventListener('change', () => {
+                // Add selected state
+                const group = input.closest('.frs-button-group');
+                group.querySelectorAll('.frs-button-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                input.closest('.frs-button-option').classList.add('selected');
+
+                // Auto-advance after short delay
+                setTimeout(() => {
+                    const step = input.closest('.frs-form-step');
+                    const nextBtn = step.querySelector('.frs-btn-next');
+                    if (nextBtn) {
+                        currentStep++;
+                        showStep(form, currentStep, totalSteps);
+                    }
+                }, 300);
+            });
+        });
+    }
+
+    function showStep(form, step, totalSteps) {
+        // Hide all steps
+        form.querySelectorAll('.frs-form-step').forEach(s => {
+            s.style.display = 'none';
+        });
+
+        // Show current step
+        const currentStepEl = form.querySelector(`[data-step="${step}"]`);
+        if (currentStepEl) {
+            currentStepEl.style.display = 'block';
+        }
+
+        // Update progress bar
+        const progressBar = form.querySelector('.frs-form-progress-bar');
+        const progressText = form.querySelector('.frs-form-progress-text');
+
+        if (progressBar) {
+            const progress = (step / totalSteps) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        if (progressText) {
+            progressText.textContent = `Step ${step} of ${totalSteps}`;
+        }
+
+        // Scroll to top of form
+        form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function validateStep(form, step) {
+        const stepEl = form.querySelector(`[data-step="${step}"]`);
+        const requiredInputs = stepEl.querySelectorAll('[required]');
+        let valid = true;
+
+        requiredInputs.forEach(input => {
+            if (!input.value.trim()) {
+                input.classList.add('frs-input-error');
+                valid = false;
+            } else {
+                input.classList.remove('frs-input-error');
+            }
+        });
+
+        if (!valid) {
+            // Show validation message
+            const firstInvalid = stepEl.querySelector('.frs-input-error');
+            if (firstInvalid) {
+                firstInvalid.focus();
+            }
+        }
+
+        return valid;
+    }
 
     async function handleSubmit(e) {
         e.preventDefault();
@@ -27,14 +135,26 @@
         const formData = new FormData(form);
         const data = Object.fromEntries(formData);
 
+        // Get page_id from hidden field or data attribute
+        const pageIdInput = form.querySelector('input[name="page_id"]');
+        const pageId = pageIdInput ? pageIdInput.value : (form.dataset.pageId || '');
+
+        // Build full name from first/last if separate
+        if (data.first_name && data.last_name && !data.fullName) {
+            data.fullName = data.first_name + ' ' + data.last_name;
+        }
+
         // Add metadata
-        data.page_type = form.dataset.pageType || '';
-        data.page_id = form.dataset.pageId || '';
         data.page_url = window.location.href;
         data.timestamp = new Date().toISOString();
 
+        // Build API endpoint with page_id
+        const endpoint = pageId
+            ? `${API_BASE}/pages/${pageId}/submit`
+            : `${API_BASE}/submit`;
+
         try {
-            const response = await fetch(API_ENDPOINT, {
+            const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -58,7 +178,7 @@
     function showSuccess(form) {
         form.innerHTML = `
             <div class="frs-form-success">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="12" r="10"/>
                     <path d="M9 12l2 2 4-4"/>
                 </svg>

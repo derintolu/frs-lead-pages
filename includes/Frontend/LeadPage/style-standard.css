@@ -16,7 +16,6 @@ html, body {
     background: #f8fafc;
     margin: 0;
     padding: 0;
-    overflow: hidden;
 }
 
 #wpadminbar { display: none !important; }
@@ -27,14 +26,14 @@ html { margin-top: 0 !important; }
     display: grid;
     grid-template-columns: 55% 45%;
     height: 100dvh;
+    overflow: hidden;
 }
 
-/* Hero Section */
+/* Hero Section - Static Left Column */
 .lead-page__hero {
     position: relative;
     background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
     height: 100dvh;
-    max-height: 100dvh;
     overflow: hidden;
 }
 
@@ -365,7 +364,7 @@ html { margin-top: 0 !important; }
     height: 14px;
 }
 
-/* Form Section */
+/* Form Section - Scrollable Right Column */
 .lead-page__form {
     background: rgba(255, 255, 255, 0.92);
     backdrop-filter: blur(20px);
@@ -374,9 +373,10 @@ html { margin-top: 0 !important; }
     display: flex;
     flex-direction: column;
     height: 100dvh;
-    max-height: 100dvh;
     overflow-y: auto;
+    overflow-x: hidden;
     border-left: 1px solid rgba(255, 255, 255, 0.3);
+    -webkit-overflow-scrolling: touch;
 }
 
 /* Agents Row */
@@ -450,6 +450,8 @@ html { margin-top: 0 !important; }
 
 .lead-page__form-container {
     flex: 1;
+    min-height: 0;
+    overflow-y: auto;
 }
 
 /* Lead Capture Forms */
@@ -572,6 +574,183 @@ html { margin-top: 0 !important; }
     border-radius: 8px;
     font-size: 14px;
     margin-bottom: 8px;
+}
+
+/* Multi-step Form Progress */
+.frs-form-progress {
+    margin-bottom: 32px;
+}
+
+.frs-form-progress-bar {
+    height: 4px;
+    background: var(--frs-primary);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+.frs-form-progress-text {
+    display: block;
+    margin-top: 8px;
+    font-size: 13px;
+    color: #64748b;
+    font-weight: 500;
+}
+
+/* Form Steps */
+.frs-form-step {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Form Row Layout */
+.frs-form-row {
+    display: flex;
+    gap: 16px;
+}
+
+.frs-form-half {
+    flex: 1;
+}
+
+/* Form Actions */
+.frs-form-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid #e2e8f0;
+}
+
+/* Base Button Styles */
+.frs-btn {
+    padding: 14px 28px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    font-family: inherit;
+}
+
+.frs-btn-prev {
+    background: transparent;
+    color: #64748b;
+}
+
+.frs-btn-prev:hover {
+    color: #1e293b;
+    background: #f1f5f9;
+}
+
+.frs-btn-next,
+.frs-btn-submit {
+    background: var(--frs-primary);
+    color: #fff;
+    margin-left: auto;
+}
+
+.frs-btn-next:hover,
+.frs-btn-submit:hover {
+    background: var(--frs-primary-hover);
+}
+
+/* Required Asterisk */
+.required {
+    color: #dc2626;
+}
+
+/* Input Error State */
+.frs-input-error {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1) !important;
+}
+
+/* Button Group (Radio Options as Buttons) */
+.frs-button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.frs-button-group.frs-button-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.frs-button-option {
+    position: relative;
+    cursor: pointer;
+}
+
+.frs-button-option input[type="radio"],
+.frs-button-option input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.frs-button-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 20px 16px;
+    background: #fff;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+    text-align: center;
+    min-height: 90px;
+}
+
+.frs-button-option:hover .frs-button-content {
+    border-color: #cbd5e1;
+    background: #f8fafc;
+}
+
+.frs-button-option.selected .frs-button-content,
+.frs-button-option input:checked + .frs-button-content {
+    background: var(--frs-primary);
+    border-color: var(--frs-primary);
+    color: #fff;
+}
+
+.frs-button-option.selected .frs-button-content .frs-icon,
+.frs-button-option input:checked + .frs-button-content .frs-icon {
+    color: #fff;
+}
+
+/* Icon Styling */
+.frs-icon {
+    width: 28px;
+    height: 28px;
+    color: var(--frs-primary);
+    transition: color 0.2s ease;
+}
+
+.frs-button-content span:last-child {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+/* Responsive adjustments for button grid */
+@media (max-width: 480px) {
+    .frs-button-group.frs-button-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .frs-form-row {
+        flex-direction: column;
+    }
 }
 
 /* FluentForms Overrides */
@@ -757,31 +936,35 @@ html { margin-top: 0 !important; }
     color: #fff;
 }
 
-/* Responsive */
+/* Responsive - Mobile: stacked layout with normal page scroll */
 @media (max-width: 1024px) {
     html, body {
-        height: 100dvh;
-        overflow: hidden;
+        height: auto;
+        overflow: auto;
     }
 
     .lead-page {
         display: flex;
         flex-direction: column;
-        height: 100dvh;
+        height: auto;
+        min-height: 100dvh;
+        overflow: visible;
     }
 
     .lead-page__hero {
-        height: 40dvh;
-        max-height: 40dvh;
-        min-height: 40dvh;
-        overflow: hidden;
+        height: auto;
+        min-height: 35dvh;
+        max-height: none;
+        overflow: visible;
     }
 
     .lead-page__form {
-        height: 60dvh;
-        max-height: 60dvh;
-        min-height: 60dvh;
-        overflow-y: auto;
+        height: auto;
+        min-height: auto;
+        max-height: none;
+        overflow: visible;
+        padding: 32px 24px;
+        padding-bottom: 48px;
     }
 
     .lead-page__hero-content {
@@ -828,8 +1011,12 @@ html { margin-top: 0 !important; }
         min-width: auto;
     }
 
-    .lead-page__form {
-        padding: 32px 24px;
-        min-height: auto;
+    /* Hide some hero elements on mobile to save space */
+    .lead-page__value-props {
+        display: none;
+    }
+
+    .lead-page__info-badge {
+        max-width: 100%;
     }
 }

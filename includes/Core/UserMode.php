@@ -45,7 +45,7 @@ class UserMode {
         }
 
         // Check for realtor/agent role first (specific roles only)
-        if ( array_intersect( [ 'realtor', 'realtor_partner', 'agent' ], $user->roles ) ) {
+        if ( array_intersect( [ 'realtor_partner', 'agent' ], $user->roles ) ) {
             return self::MODE_REALTOR;
         }
 

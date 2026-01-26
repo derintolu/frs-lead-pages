@@ -37,14 +37,14 @@ class UserMode {
             $mode = sanitize_text_field( $_GET['mode'] ?? '' );
             if ( $mode === 'lo' || $mode === 'loan_officer' ) {
                 return self::MODE_LOAN_OFFICER;
-            } elseif ( $mode === 'realtor' ) {
+            } elseif ( $mode === 'partner' ) {
                 return self::MODE_REALTOR;
             }
             // Default admin to LO mode
             return self::MODE_LOAN_OFFICER;
         }
 
-        // Check for realtor/agent role first (specific roles only)
+        // Check for partner/agent roles
         if ( array_intersect( [ 'realtor_partner', 'agent' ], $user->roles ) ) {
             return self::MODE_REALTOR;
         }

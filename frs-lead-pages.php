@@ -120,7 +120,6 @@ function init() {
     // Initialize blocks
     Blocks\LeadStats::init();
     Blocks\LeadStatsTable::init();
-    Blocks\LeadPagesDashboard::init();
 
     // Initialize integrations
     Integrations\FluentForms::init();

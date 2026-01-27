@@ -116,7 +116,7 @@
     background: #fff;
     border-radius: 12px;
     box-shadow: 0 10px 40px rgba(0,0,0,0.15);
-    z-index: 1000;
+    z-index: 50;
     overflow: hidden;
     animation: frs-dropdown-in 0.15s ease;
 }

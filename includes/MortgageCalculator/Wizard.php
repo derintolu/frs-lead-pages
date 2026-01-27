@@ -73,6 +73,7 @@ class Wizard {
             return;
         }
 
+        // Scripts are enqueued in Dashboard::enqueue_wizard_scripts()
         echo self::render_modal();
     }
 
@@ -822,18 +823,18 @@ class Wizard {
             color: var(--mc-text-light);
         }
         .mc-dropdown__item--preferred {
-            background: #fef3c7;
-            border-left: 3px solid #f59e0b;
+            background: #cffafe;
+            border-left: 3px solid #2DD4DA;
         }
         .mc-dropdown__item--preferred:hover {
-            background: #fde68a;
+            background: #a5f3fc;
         }
         .mc-dropdown__preferred-badge {
             margin-left: auto;
             font-size: 11px;
             font-weight: 600;
-            color: #b45309;
-            background: #fef3c7;
+            color: #0891b2;
+            background: #cffafe;
             padding: 2px 8px;
             border-radius: 10px;
         }
@@ -1397,7 +1398,7 @@ class Wizard {
             font-size: 14px;
         }
         .mc-message--warning {
-            background: #fef3c7;
+            background: #cffafe;
             color: #92400e;
         }
         .mc-message--error {

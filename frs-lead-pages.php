@@ -25,7 +25,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Plugin constants
-define( 'FRS_LEAD_PAGES_VERSION', '1.3.0' );
+define( 'FRS_LEAD_PAGES_VERSION', '1.4.0' );
 define( 'FRS_LEAD_PAGES_PLUGIN_FILE', __FILE__ );
 define( 'FRS_LEAD_PAGES_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'FRS_LEAD_PAGES_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
@@ -120,6 +120,7 @@ function init() {
     // Initialize blocks
     Blocks\LeadStats::init();
     Blocks\LeadStatsTable::init();
+    Blocks\LeadPagesDashboard::init();
 
     // Initialize integrations
     Integrations\FluentForms::init();

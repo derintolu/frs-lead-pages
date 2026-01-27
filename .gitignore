@@ -5,3 +5,8 @@ node_modules/
 
 # Auto Claude data directory
 .auto-claude/
+
+# Debug/temp files
+source.html
+*.html.bak
+*.orig

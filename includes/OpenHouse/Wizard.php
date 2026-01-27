@@ -120,6 +120,7 @@ class Wizard {
             return;
         }
 
+        // Scripts are enqueued in Dashboard::enqueue_wizard_scripts()
         echo self::render_modal();
     }
 
@@ -423,11 +424,11 @@ class Wizard {
                             <!-- Populated by JS -->
                         </div>
                         <div class="oh-stock-search" style="margin-top: 16px; text-align: center;">
-                            <?php echo InstantImages::render_search_button( 'oh', '#0ea5e9' ); ?>
+                            <?php echo InstantImages::render_search_button( 'oh', '#1e293b' ); ?>
                         </div>
                         <div id="oh-no-images" class="oh-upload-fallback" style="display:none;">
                             <p>No listing photos found. Search stock photos or upload your own:</p>
-                            <?php echo InstantImages::render_search_button( 'oh', '#0ea5e9' ); ?>
+                            <?php echo InstantImages::render_search_button( 'oh', '#1e293b' ); ?>
                             <p style="margin: 16px 0 12px; color: #94a3b8;">or</p>
                             <input type="file" id="oh-image-upload" accept="image/*" class="oh-file-input">
                             <label for="oh-image-upload" class="oh-btn oh-btn--secondary">Upload Image</label>
@@ -676,12 +677,12 @@ class Wizard {
         <style>
             .oh-wizard {
                 display: flex;
-                min-height: 100vh;
+                min-height: 100dvh;
                 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             }
             .oh-wizard__hero {
-                width: 50%;
-                height: 100vh;
+                width: 60%;
+                height: 100dvh;
                 background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
                 display: flex;
                 flex-direction: column;
@@ -720,9 +721,12 @@ class Wizard {
                 max-width: 400px;
             }
             .oh-wizard__form {
-                width: 50%;
-                margin-left: 50%;
-                height: 100vh;
+                position: fixed;
+                left: 60%;
+                right: 0;
+                top: 0;
+                bottom: 0;
+                height: 100dvh;
                 overflow-y: auto;
                 background: #fff;
                 padding: 24px 32px;
@@ -735,7 +739,7 @@ class Wizard {
             }
             .oh-wizard__progress-bar {
                 height: 100%;
-                background: #0ea5e9;
+                background: #1e293b;
                 transition: width 0.3s ease;
             }
             .oh-wizard__header {
@@ -744,7 +748,7 @@ class Wizard {
             .oh-wizard__title {
                 font-size: 12px;
                 font-weight: 600;
-                color: #0ea5e9;
+                color: #1e293b;
                 margin: 0 0 4px;
                 text-transform: uppercase;
                 letter-spacing: 0.1em;
@@ -830,7 +834,7 @@ class Wizard {
                 border-color: #9ca3af;
             }
             .oh-dropdown.open .oh-dropdown__trigger {
-                border-color: #0ea5e9;
+                border-color: #1e293b;
                 box-shadow: 0 0 0 4px rgba(14,165,233,0.1);
             }
             .oh-dropdown__value {
@@ -848,14 +852,18 @@ class Wizard {
                 transform: rotate(180deg);
             }
             .oh-dropdown__menu {
-                position: fixed;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                margin-top: 4px;
                 background: #fff;
                 border: 2px solid #e5e7eb;
                 border-radius: 8px;
                 box-shadow: 0 10px 40px rgba(0,0,0,0.15);
                 max-height: 300px;
                 overflow-y: auto;
-                z-index: 99999;
+                z-index: 100;
                 display: none;
             }
             .oh-dropdown.open .oh-dropdown__menu {
@@ -897,18 +905,18 @@ class Wizard {
                 color: #6b7280;
             }
             .oh-dropdown__item--preferred {
-                background: #fef3c7;
-                border-left: 3px solid #f59e0b;
+                background: #cffafe;
+                border-left: 3px solid #2DD4DA;
             }
             .oh-dropdown__item--preferred:hover {
-                background: #fde68a;
+                background: #a5f3fc;
             }
             .oh-dropdown__preferred-badge {
                 margin-left: auto;
                 font-size: 11px;
                 font-weight: 600;
-                color: #b45309;
-                background: #fef3c7;
+                color: #0891b2;
+                background: #cffafe;
                 padding: 2px 8px;
                 border-radius: 10px;
             }
@@ -929,12 +937,12 @@ class Wizard {
                 background: #fff;
             }
             .oh-page-type-card:hover {
-                border-color: #0ea5e9;
-                background: #f0f9ff;
+                border-color: #1e293b;
+                background: #f8fafc;
             }
             .oh-page-type-card.selected {
-                border-color: #0ea5e9;
-                background: #f0f9ff;
+                border-color: #1e293b;
+                background: #f8fafc;
                 box-shadow: 0 0 0 4px rgba(14,165,233,0.15);
             }
             .oh-page-type-card__icon {
@@ -942,7 +950,7 @@ class Wizard {
                 color: #64748b;
             }
             .oh-page-type-card.selected .oh-page-type-card__icon {
-                color: #0ea5e9;
+                color: #1e293b;
             }
             .oh-page-type-card h3 {
                 font-size: 16px;
@@ -972,16 +980,20 @@ class Wizard {
             .oh-checkbox input[type="checkbox"] {
                 width: 18px;
                 height: 18px;
-                accent-color: #0ea5e9;
+                accent-color: #1e293b;
                 cursor: pointer;
             }
             .oh-checkbox__label {
                 font-size: 14px;
                 color: #6b7280;
             }
-            .oh-input:focus, .oh-select:focus {
+            .oh-input:focus, .oh-select:focus,
+            #oh-wizard input:focus,
+            #oh-wizard select:focus,
+            #oh-wizard textarea:focus {
                 outline: none;
-                border-color: #0ea5e9;
+                border: 1px solid #1e293b !important;
+                border-bottom: 1px solid #1e293b !important;
                 box-shadow: 0 0 0 4px rgba(14,165,233,0.1);
             }
             .oh-input::placeholder {
@@ -1015,11 +1027,11 @@ class Wizard {
                 transition: all 0.2s;
             }
             .oh-btn--primary {
-                background: #0ea5e9;
+                background: #1e293b;
                 color: #fff;
             }
             .oh-btn--primary:hover {
-                background: #0284c7;
+                background: #0f172a;
             }
             .oh-btn--secondary {
                 background: #f1f5f9;
@@ -1040,7 +1052,7 @@ class Wizard {
                 justify-content: space-between;
                 padding: 24px 0;
                 margin-top: auto;
-                border-top: 1px solid #e5e7eb;
+                border-top: 0;
                 flex-shrink: 0;
                 background: #fff;
             }
@@ -1064,8 +1076,8 @@ class Wizard {
                 border-color: #cbd5e1;
             }
             .oh-tab--active {
-                background: #0ea5e9;
-                border-color: #0ea5e9;
+                background: #1e293b;
+                border-color: #1e293b;
                 color: #fff;
             }
             .oh-error {
@@ -1118,8 +1130,8 @@ class Wizard {
                 background: #f8fafc;
             }
             .oh-radio-btn input:checked + .oh-radio-btn__label {
-                background: #0ea5e9;
-                border-color: #0ea5e9;
+                background: #1e293b;
+                border-color: #1e293b;
                 color: #fff;
                 box-shadow: 0 2px 8px rgba(14,165,233,0.3);
             }
@@ -1149,7 +1161,7 @@ class Wizard {
                 object-fit: cover;
             }
             .oh-image-option--selected {
-                border-color: #0ea5e9;
+                border-color: #1e293b;
                 box-shadow: 0 0 0 4px rgba(14,165,233,0.2);
             }
             .oh-toggle-list {
@@ -1175,7 +1187,7 @@ class Wizard {
             .oh-toggle input {
                 width: 20px;
                 height: 20px;
-                accent-color: #0ea5e9;
+                accent-color: #1e293b;
             }
             .oh-toggle__required {
                 font-size: 11px;
@@ -1281,7 +1293,7 @@ class Wizard {
                 text-decoration: none;
             }
             .oh-link:hover {
-                color: #0ea5e9;
+                color: #1e293b;
             }
             .oh-upload-fallback {
                 text-align: center;
@@ -1297,10 +1309,12 @@ class Wizard {
                 .oh-wizard {
                     flex-direction: column;
                     height: auto;
-                    min-height: 100vh;
+                    min-height: 100dvh;
                 }
                 .oh-wizard__hero {
+                    position: relative;
                     width: 100%;
+                    height: auto;
                     flex: none;
                     padding: 48px 32px;
                     min-height: auto;
@@ -1309,6 +1323,11 @@ class Wizard {
                     font-size: 32px;
                 }
                 .oh-wizard__form {
+                    position: relative;
+                    left: 0;
+                    right: 0;
+                    top: auto;
+                    bottom: auto;
                     width: 100%;
                     height: auto;
                     flex: 1;
@@ -1326,7 +1345,7 @@ class Wizard {
                     grid-template-columns: repeat(2, 1fr);
                 }
             }
-        </style>' . InstantImages::render_search_styles( 'oh', '#0ea5e9' );
+        </style>' . InstantImages::render_search_styles( 'oh', '#1e293b' );
     }
 
     /**

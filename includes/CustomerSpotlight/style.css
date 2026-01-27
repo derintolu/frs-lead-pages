@@ -24,7 +24,7 @@
 
 .cs-modal__container {
     width: 100vw;
-    height: 100vh;
+    height: 100dvh;
     overflow-y: auto;
 }
 

@@ -6,12 +6,12 @@
 
 /* Mortgage Calculator Wizard - 21st Century Lending Brand */
 :root {
-    --mc-primary: #2563EB;
-    --mc-primary-dark: #1d4ed8;
-    --mc-primary-light: #3b82f6;
-    --mc-primary-bg: #eff6ff;
+    --mc-primary: #1e293b;
+    --mc-primary-dark: #0f172a;
+    --mc-primary-light: #334155;
+    --mc-primary-bg: #f1f5f9;
     --mc-accent: #2DD4DA;
-    --mc-navy: #263042;
+    --mc-navy: #1e293b;
     --mc-text: #1e293b;
     --mc-text-light: #64748b;
     --mc-border: #e5e7eb;
@@ -43,7 +43,7 @@
     position: relative;
     z-index: 2;
     width: 100vw;
-    height: 100vh;
+    height: 100dvh;
     overflow-y: auto;
 }
 .mc-modal__close {
@@ -74,14 +74,14 @@
 /* Wizard Layout */
 .mc-wizard {
     display: flex;
-    min-height: 100vh;
+    min-height: 100dvh;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 /* Hero Section */
 .mc-wizard__hero {
-    width: 50%;
-    height: 100vh;
+    width: 60%;
+    height: 100dvh;
     background: linear-gradient(135deg, var(--mc-primary) 0%, var(--mc-primary-dark) 100%);
     display: flex;
     flex-direction: column;
@@ -121,11 +121,15 @@
 
 /* Form Section */
 .mc-wizard__form {
-    width: 50%;
-    margin-left: 50%;
-    min-height: 100vh;
+    position: fixed;
+    left: 60%;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    height: 100dvh;
+    overflow-y: auto;
     background: var(--mc-white);
-    padding: 48px 56px;
+    padding: 48px 56px 120px;
     box-sizing: border-box;
 }
 
@@ -216,9 +220,13 @@
     box-sizing: border-box;
 }
 .mc-input:focus,
-.mc-textarea:focus {
+.mc-textarea:focus,
+#mc-wizard input:focus,
+#mc-wizard select:focus,
+#mc-wizard textarea:focus {
     outline: none;
-    border-color: var(--mc-primary);
+    border: 2px solid var(--mc-primary) !important;
+    border-bottom: 2px solid var(--mc-primary) !important;
     box-shadow: 0 0 0 3px var(--mc-primary-bg);
 }
 .mc-textarea {
@@ -316,18 +324,18 @@
     color: var(--mc-text-light);
 }
 .mc-dropdown__item--preferred {
-    background: #fef3c7;
-    border-left: 3px solid #f59e0b;
+    background: #cffafe;
+    border-left: 3px solid #2DD4DA;
 }
 .mc-dropdown__item--preferred:hover {
-    background: #fde68a;
+    background: #a5f3fc;
 }
 .mc-dropdown__preferred-badge {
     margin-left: auto;
     font-size: 11px;
     font-weight: 600;
-    color: #b45309;
-    background: #fef3c7;
+    color: #0891b2;
+    background: #cffafe;
     padding: 2px 8px;
     border-radius: 10px;
 }
@@ -824,7 +832,7 @@
 .mc-wizard__footer {
     margin-top: 32px;
     padding-top: 24px;
-    border-top: 1px solid var(--mc-border);
+    border-top: 0;
     display: flex;
     justify-content: space-between;
     gap: 12px;
@@ -891,7 +899,7 @@
     font-size: 14px;
 }
 .mc-message--warning {
-    background: #fef3c7;
+    background: #cffafe;
     color: #92400e;
 }
 .mc-message--error {
@@ -984,7 +992,7 @@
     .mc-wizard {
         flex-direction: column;
         height: auto;
-        min-height: 100vh;
+        min-height: 100dvh;
     }
     .mc-wizard__hero {
         width: 100%;
@@ -996,10 +1004,14 @@
         font-size: 32px;
     }
     .mc-wizard__form {
+        position: relative;
+        left: auto;
+        right: auto;
+        top: auto;
+        bottom: auto;
         width: 100%;
-        margin-left: 0;
         height: auto;
-        padding: 32px;
+        padding: 32px 32px 100px;
     }
 }
 @media (max-width: 640px) {

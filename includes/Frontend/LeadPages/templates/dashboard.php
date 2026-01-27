@@ -594,3 +594,12 @@ if ( ! defined( 'ABSPATH' ) ) {
         </div>
     </div>
 </div>
+<?php
+// Render wizard modals
+\FRSLeadPages\OpenHouse\Wizard::render_modal_container();
+\FRSLeadPages\CustomerSpotlight\Wizard::render_modal_container();
+\FRSLeadPages\SpecialEvent\Wizard::render_modal_container();
+\FRSLeadPages\MortgageCalculator\Wizard::render_modal_container();
+\FRSLeadPages\RateQuote\Wizard::render_modal_container();
+\FRSLeadPages\ApplyNow\Wizard::render_modal_container();
+?>

@@ -234,6 +234,137 @@ class Dashboard {
             '1.6.0',
             true
         );
+
+        // Enqueue wizard scripts for all wizard types
+        self::enqueue_wizard_scripts();
+    }
+
+    /**
+     * Enqueue wizard modal scripts
+     *
+     * Must be done during enqueue_assets(), not during template render,
+     * otherwise scripts won't be added to the page.
+     */
+    private static function enqueue_wizard_scripts(): void {
+        $user = wp_get_current_user();
+        $allowed_roles = [ 'administrator', 'editor', 'author', 'contributor', 'loan_officer', 'realtor_partner' ];
+
+        if ( ! array_intersect( $allowed_roles, $user->roles ) ) {
+            return;
+        }
+
+        $plugin_url = plugins_url( 'includes/', FRS_LEAD_PAGES_PLUGIN_FILE );
+        $assets_url = plugins_url( 'assets/', FRS_LEAD_PAGES_PLUGIN_FILE );
+        $version = defined( 'FRS_LEAD_PAGES_VERSION' ) ? FRS_LEAD_PAGES_VERSION : '1.0.0';
+
+        // Consolidated wizard bundle (CSS + JS)
+        wp_enqueue_style(
+            'frs-wizard-bundle',
+            $assets_url . 'css/wizard-bundle.css',
+            [],
+            $version
+        );
+
+        wp_enqueue_script(
+            'frs-wizard-bundle',
+            $assets_url . 'js/wizard-bundle.js',
+            [],
+            $version,
+            true
+        );
+
+        // Pass common wizard configuration to JS
+        wp_localize_script( 'frs-wizard-bundle', 'frsWizardConfig', [
+            'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+            'nonce'   => wp_create_nonce( 'frs_lead_pages' ),
+            'siteUrl' => site_url(),
+        ] );
+        $version = defined( 'FRS_LEAD_PAGES_VERSION' ) ? FRS_LEAD_PAGES_VERSION : '1.0.0';
+
+        // Open House wizard
+        wp_enqueue_script(
+            'frs-oh-wizard',
+            $plugin_url . 'OpenHouse/script.js',
+            [],
+            $version,
+            true
+        );
+        wp_localize_script( 'frs-oh-wizard', 'frsOpenHouseWizard', [
+            'triggerClass' => 'oh-wizard-trigger',
+            'triggerHash'  => 'open-house-wizard',
+        ] );
+
+        // Customer Spotlight wizard
+        wp_enqueue_script(
+            'frs-cs-wizard',
+            $plugin_url . 'CustomerSpotlight/script.js',
+            [],
+            $version,
+            true
+        );
+        wp_localize_script( 'frs-cs-wizard', 'frsCustomerSpotlightWizard', [
+            'triggerClass' => 'cs-wizard-trigger',
+            'triggerHash'  => 'customer-spotlight-wizard',
+        ] );
+
+        // Special Event wizard
+        wp_enqueue_script(
+            'frs-se-wizard',
+            $plugin_url . 'SpecialEvent/script.js',
+            [],
+            $version,
+            true
+        );
+        wp_localize_script( 'frs-se-wizard', 'frsSpecialEventWizard', [
+            'triggerClass' => 'se-wizard-trigger',
+            'triggerHash'  => 'special-event-wizard',
+        ] );
+
+        // Mortgage Calculator wizard
+        wp_enqueue_script(
+            'frs-mc-wizard',
+            $plugin_url . 'MortgageCalculator/script.js',
+            [],
+            $version,
+            true
+        );
+        wp_localize_script( 'frs-mc-wizard', 'frsMortgageCalculatorWizard', [
+            'triggerClass' => 'mc-wizard-trigger',
+            'triggerHash'  => 'mortgage-calculator-wizard',
+            'siteUrl'      => site_url(),
+            'ajaxUrl'      => admin_url( 'admin-ajax.php' ),
+            'nonce'        => wp_create_nonce( 'frs_create_calculator' ),
+        ] );
+
+        // Rate Quote wizard
+        wp_enqueue_script(
+            'frs-rq-wizard',
+            $plugin_url . 'RateQuote/script.js',
+            [],
+            $version,
+            true
+        );
+        wp_localize_script( 'frs-rq-wizard', 'frsRateQuoteWizard', [
+            'triggerClass' => 'rq-wizard-trigger',
+            'triggerHash'  => 'rate-quote-wizard',
+            'ajaxUrl'      => admin_url( 'admin-ajax.php' ),
+            'nonce'        => wp_create_nonce( 'frs_create_rate_quote' ),
+        ] );
+
+        // Apply Now wizard
+        wp_enqueue_script(
+            'frs-an-wizard',
+            $plugin_url . 'ApplyNow/script.js',
+            [],
+            $version,
+            true
+        );
+        wp_localize_script( 'frs-an-wizard', 'frsApplyNowWizard', [
+            'triggerClass' => 'an-wizard-trigger',
+            'triggerHash'  => 'apply-now-wizard',
+            'ajaxUrl'      => admin_url( 'admin-ajax.php' ),
+            'nonce'        => wp_create_nonce( 'frs_create_apply_now' ),
+        ] );
     }
 
     /**

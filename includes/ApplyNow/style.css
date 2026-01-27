@@ -8,12 +8,12 @@
 
 /* CSS Variables - 21st Century Lending Brand */
 :root {
-    --an-primary: #2563EB;
-    --an-primary-dark: #1d4ed8;
-    --an-primary-light: #3b82f6;
-    --an-primary-bg: #eff6ff;
+    --an-primary: #1e293b;
+    --an-primary-dark: #0f172a;
+    --an-primary-light: #334155;
+    --an-primary-bg: #f1f5f9;
     --an-accent: #2DD4DA;
-    --an-navy: #263042;
+    --an-navy: #1e293b;
     --an-text: #1e293b;
     --an-text-light: #64748b;
     --an-border: #e5e7eb;
@@ -48,7 +48,7 @@
     position: relative;
     z-index: 2;
     width: 100vw;
-    height: 100vh;
+    height: 100dvh;
     overflow-y: auto;
 }
 
@@ -82,14 +82,14 @@
 /* Wizard Layout */
 .an-wizard {
     display: flex;
-    min-height: 100vh;
+    min-height: 100dvh;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 /* Hero Section */
 .an-wizard__hero {
-    width: 50%;
-    height: 100vh;
+    width: 60%;
+    height: 100dvh;
     background: linear-gradient(135deg, var(--an-primary) 0%, var(--an-primary-dark) 100%);
     display: flex;
     flex-direction: column;
@@ -132,11 +132,15 @@
 
 /* Form Section */
 .an-wizard__form {
-    width: 50%;
-    margin-left: 50%;
-    min-height: 100vh;
+    position: fixed;
+    left: 60%;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    height: 100dvh;
+    overflow-y: auto;
     background: var(--an-white);
-    padding: 48px 56px;
+    padding: 48px 56px 120px;
     box-sizing: border-box;
 }
 
@@ -236,9 +240,13 @@
 
 .an-input:focus,
 .an-select:focus,
-.an-textarea:focus {
+.an-textarea:focus,
+#an-wizard input:focus,
+#an-wizard select:focus,
+#an-wizard textarea:focus {
     outline: none;
-    border-color: var(--an-primary);
+    border: 2px solid var(--an-primary) !important;
+    border-bottom: 2px solid var(--an-primary) !important;
     box-shadow: 0 0 0 3px var(--an-primary-bg);
 }
 
@@ -349,20 +357,20 @@
 }
 
 .an-dropdown__item--preferred {
-    background: #fef3c7;
-    border-left: 3px solid #f59e0b;
+    background: #cffafe;
+    border-left: 3px solid #2DD4DA;
 }
 
 .an-dropdown__item--preferred:hover {
-    background: #fde68a;
+    background: #a5f3fc;
 }
 
 .an-dropdown__preferred-badge {
     margin-left: auto;
     font-size: 11px;
     font-weight: 600;
-    color: #b45309;
-    background: #fef3c7;
+    color: #0891b2;
+    background: #cffafe;
     padding: 2px 8px;
     border-radius: 10px;
 }
@@ -612,7 +620,7 @@
 .an-wizard__footer {
     margin-top: 32px;
     padding-top: 24px;
-    border-top: 1px solid var(--an-border);
+    border-top: 0;
     display: flex;
     justify-content: space-between;
     gap: 12px;
@@ -699,7 +707,7 @@
 }
 
 .an-message--warning {
-    background: #fef3c7;
+    background: #cffafe;
     color: #92400e;
 }
 
@@ -713,7 +721,7 @@
     .an-wizard {
         flex-direction: column;
         height: auto;
-        min-height: 100vh;
+        min-height: 100dvh;
     }
 
     .an-wizard__hero {
@@ -728,9 +736,14 @@
     }
 
     .an-wizard__form {
+        position: relative;
+        left: auto;
+        right: auto;
+        top: auto;
+        bottom: auto;
         width: 100%;
-        margin-left: 0;
-        padding: 32px;
+        height: auto;
+        padding: 32px 32px 100px;
     }
 }
 

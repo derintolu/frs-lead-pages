@@ -74,6 +74,7 @@ class Wizard {
             return;
         }
 
+        // Scripts are enqueued in Dashboard::enqueue_wizard_scripts()
         echo self::render_modal();
     }
 

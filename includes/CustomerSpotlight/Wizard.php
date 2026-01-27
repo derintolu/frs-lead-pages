@@ -74,6 +74,7 @@ class Wizard {
             return;
         }
 
+        // Scripts are enqueued in Dashboard::enqueue_wizard_scripts()
         echo self::render_modal();
     }
 
@@ -396,7 +397,7 @@ Smooth closing process"></textarea>
                         </div>
                         <div class="cs-upload-section">
                             <p>Or find the perfect stock photo:</p>
-                            <?php echo InstantImages::render_search_button( 'cs', '#10b981' ); ?>
+                            <?php echo InstantImages::render_search_button( 'cs', '#1e293b' ); ?>
                             <p style="margin-top: 16px;">Or upload your own image:</p>
                             <input type="file" id="cs-image-upload" accept="image/*" class="cs-file-input">
                             <label for="cs-image-upload" class="cs-btn cs-btn--secondary">Upload Image</label>
@@ -582,13 +583,13 @@ Smooth closing process"></textarea>
         <style>
             .cs-wizard {
                 display: flex;
-                min-height: 100vh;
+                min-height: 100dvh;
                 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             }
             .cs-wizard__hero {
-                width: 50%;
-                height: 100vh;
-                background: linear-gradient(135deg, #059669 0%, #047857 100%);
+                width: 60%;
+                height: 100dvh;
+                background: linear-gradient(135deg, #0f172a 0%, #0f172a 100%);
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
@@ -626,9 +627,13 @@ Smooth closing process"></textarea>
                 max-width: 400px;
             }
             .cs-wizard__form {
-                width: 50%;
-                margin-left: 50%;
-                min-height: 100vh;
+                position: fixed;
+                left: 60%;
+                right: 0;
+                top: 0;
+                bottom: 0;
+                height: 100dvh;
+                overflow-y: auto;
                 background: #fff;
                 padding: 48px 56px;
                 box-sizing: border-box;
@@ -640,7 +645,7 @@ Smooth closing process"></textarea>
             }
             .cs-wizard__progress-bar {
                 height: 100%;
-                background: #10b981;
+                background: #1e293b;
                 transition: width 0.3s ease;
             }
             .cs-wizard__header {
@@ -649,7 +654,7 @@ Smooth closing process"></textarea>
             .cs-wizard__title {
                 font-size: 12px;
                 font-weight: 600;
-                color: #10b981;
+                color: #1e293b;
                 margin: 0 0 4px;
                 text-transform: uppercase;
                 letter-spacing: 0.1em;
@@ -718,9 +723,13 @@ Smooth closing process"></textarea>
                 min-height: 600px;
                 resize: vertical;
             }
-            .cs-input:focus, .cs-textarea:focus {
+            .cs-input:focus, .cs-textarea:focus,
+            #cs-wizard input:focus,
+            #cs-wizard select:focus,
+            #cs-wizard textarea:focus {
                 outline: none;
-                border-color: #10b981;
+                border: 1px solid #1e293b !important;
+                border-bottom: 1px solid #1e293b !important;
             }
             .cs-dropdown {
                 position: relative;
@@ -742,18 +751,22 @@ Smooth closing process"></textarea>
                 color: #374151;
             }
             .cs-dropdown.open .cs-dropdown__trigger {
-                border-color: #10b981;
+                border-color: #1e293b;
                 box-shadow: 0 0 0 4px rgba(16,185,129,0.1);
             }
             .cs-dropdown__menu {
-                position: fixed;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                margin-top: 4px;
                 background: #fff;
                 border: 2px solid #e5e7eb;
                 border-radius: 8px;
                 box-shadow: 0 10px 40px rgba(0,0,0,0.15);
                 max-height: 300px;
                 overflow-y: auto;
-                z-index: 99999;
+                z-index: 100;
                 display: none;
             }
             .cs-dropdown.open .cs-dropdown__menu {
@@ -771,7 +784,7 @@ Smooth closing process"></textarea>
                 background: #f3f4f6;
             }
             .cs-dropdown__item.selected {
-                background: #ecfdf5;
+                background: #f8fafc;
             }
             .cs-dropdown__photo {
                 width: 40px;
@@ -790,18 +803,18 @@ Smooth closing process"></textarea>
                 color: #6b7280;
             }
             .cs-dropdown__item--preferred {
-                background: #fef3c7;
-                border-left: 3px solid #f59e0b;
+                background: #cffafe;
+                border-left: 3px solid #2DD4DA;
             }
             .cs-dropdown__item--preferred:hover {
-                background: #fde68a;
+                background: #a5f3fc;
             }
             .cs-dropdown__preferred-badge {
                 margin-left: auto;
                 font-size: 11px;
                 font-weight: 600;
-                color: #b45309;
-                background: #fef3c7;
+                color: #0891b2;
+                background: #cffafe;
                 padding: 2px 8px;
                 border-radius: 10px;
             }
@@ -814,7 +827,7 @@ Smooth closing process"></textarea>
             .cs-checkbox input[type="checkbox"] {
                 width: 18px;
                 height: 18px;
-                accent-color: #10b981;
+                accent-color: #1e293b;
                 cursor: pointer;
             }
             .cs-checkbox__label {
@@ -838,11 +851,11 @@ Smooth closing process"></textarea>
                 background: #fff;
             }
             .cs-page-type-card:hover {
-                border-color: #10b981;
+                border-color: #1e293b;
                 background: #f0fdf4;
             }
             .cs-page-type-card.selected {
-                border-color: #10b981;
+                border-color: #1e293b;
                 background: #f0fdf4;
                 box-shadow: 0 0 0 4px rgba(16,185,129,0.15);
             }
@@ -851,7 +864,7 @@ Smooth closing process"></textarea>
                 color: #64748b;
             }
             .cs-page-type-card.selected .cs-page-type-card__icon {
-                color: #10b981;
+                color: #1e293b;
             }
             .cs-page-type-card h3 {
                 font-size: 16px;
@@ -894,12 +907,12 @@ Smooth closing process"></textarea>
                 transition: all 0.2s;
             }
             .cs-type-card:hover .cs-type-card__content {
-                border-color: #10b981;
+                border-color: #1e293b;
                 background: #f0fdf4;
             }
             .cs-type-card input:checked + .cs-type-card__content {
-                border-color: #10b981;
-                background: #ecfdf5;
+                border-color: #1e293b;
+                background: #f8fafc;
                 box-shadow: 0 0 0 4px rgba(16,185,129,0.15);
             }
             .cs-type-card__icon {
@@ -915,10 +928,10 @@ Smooth closing process"></textarea>
             .cs-type-card__icon svg {
                 width: 24px;
                 height: 24px;
-                stroke: #059669;
+                stroke: #0f172a;
             }
             .cs-type-card input:checked + .cs-type-card__content .cs-type-card__icon {
-                background: #10b981;
+                background: #1e293b;
             }
             .cs-type-card input:checked + .cs-type-card__content .cs-type-card__icon svg {
                 stroke: #fff;
@@ -963,8 +976,8 @@ Smooth closing process"></textarea>
                 cursor: pointer;
             }
             .cs-radio-btn input:checked + .cs-radio-btn__label {
-                background: #10b981;
-                border-color: #10b981;
+                background: #1e293b;
+                border-color: #1e293b;
                 color: #fff;
             }
             .cs-images-grid {
@@ -987,7 +1000,7 @@ Smooth closing process"></textarea>
                 object-fit: cover;
             }
             .cs-image-option--selected {
-                border-color: #10b981;
+                border-color: #1e293b;
                 box-shadow: 0 0 0 4px rgba(16,185,129,0.2);
             }
             .cs-upload-section {
@@ -1023,7 +1036,7 @@ Smooth closing process"></textarea>
             .cs-toggle input {
                 width: 20px;
                 height: 20px;
-                accent-color: #10b981;
+                accent-color: #1e293b;
             }
             .cs-toggle__required {
                 font-size: 11px;
@@ -1116,11 +1129,11 @@ Smooth closing process"></textarea>
                 transition: all 0.2s;
             }
             .cs-btn--primary {
-                background: #10b981;
+                background: #1e293b;
                 color: #fff;
             }
             .cs-btn--primary:hover {
-                background: #059669;
+                background: #0f172a;
             }
             .cs-btn--secondary {
                 background: #f1f5f9;
@@ -1135,7 +1148,7 @@ Smooth closing process"></textarea>
                 justify-content: space-between;
                 padding: 24px 0;
                 margin-top: auto;
-                border-top: 1px solid #e5e7eb;
+                border-top: 0;
                 flex-shrink: 0;
                 background: #fff;
             }
@@ -1146,7 +1159,7 @@ Smooth closing process"></textarea>
             .cs-success__icon {
                 width: 88px;
                 height: 88px;
-                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
                 color: #fff;
                 border-radius: 50%;
                 display: flex;
@@ -1181,16 +1194,23 @@ Smooth closing process"></textarea>
                 .cs-wizard {
                     flex-direction: column;
                     height: auto;
-                    min-height: 100vh;
+                    min-height: 100dvh;
                 }
                 .cs-wizard__hero {
+                    position: relative;
                     width: 100%;
+                    height: auto;
                     padding: 48px 32px;
                 }
                 .cs-wizard__hero h1 {
                     font-size: 32px;
                 }
                 .cs-wizard__form {
+                    position: relative;
+                    left: auto;
+                    right: auto;
+                    top: auto;
+                    bottom: auto;
                     width: 100%;
                     height: auto;
                     flex: 1;
@@ -1208,7 +1228,7 @@ Smooth closing process"></textarea>
                     grid-template-columns: repeat(2, 1fr);
                 }
             }
-        </style>' . InstantImages::render_search_styles( 'cs', '#10b981' );
+        </style>' . InstantImages::render_search_styles( 'cs', '#1e293b' );
     }
 
     /**

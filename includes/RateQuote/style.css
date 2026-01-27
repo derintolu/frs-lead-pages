@@ -6,12 +6,12 @@
 
 /* Rate Quote Wizard - 21st Century Lending Brand */
 :root {
-    --rq-primary: #2563EB;
-    --rq-primary-dark: #1d4ed8;
-    --rq-primary-light: #3b82f6;
-    --rq-primary-bg: #eff6ff;
+    --rq-primary: #1e293b;
+    --rq-primary-dark: #0f172a;
+    --rq-primary-light: #334155;
+    --rq-primary-bg: #f1f5f9;
     --rq-accent: #2DD4DA;
-    --rq-navy: #263042;
+    --rq-navy: #1e293b;
     --rq-text: #1e293b;
     --rq-text-light: #64748b;
     --rq-border: #e5e7eb;
@@ -43,7 +43,7 @@
     position: relative;
     z-index: 2;
     width: 100vw;
-    height: 100vh;
+    height: 100dvh;
     overflow-y: auto;
 }
 .rq-modal__close {
@@ -74,14 +74,14 @@
 /* Wizard Layout */
 .rq-wizard {
     display: flex;
-    min-height: 100vh;
+    min-height: 100dvh;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 /* Hero Section */
 .rq-wizard__hero {
-    width: 50%;
-    height: 100vh;
+    width: 60%;
+    height: 100dvh;
     background: linear-gradient(135deg, var(--rq-primary) 0%, var(--rq-primary-dark) 100%);
     display: flex;
     flex-direction: column;
@@ -121,11 +121,15 @@
 
 /* Form Section */
 .rq-wizard__form {
-    width: 50%;
-    margin-left: 50%;
-    min-height: 100vh;
+    position: fixed;
+    left: 60%;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    height: 100dvh;
+    overflow-y: auto;
     background: var(--rq-white);
-    padding: 48px 56px;
+    padding: 48px 56px 120px;
     box-sizing: border-box;
 }
 
@@ -215,9 +219,13 @@
 }
 .rq-input:focus,
 .rq-select:focus,
-.rq-textarea:focus {
+.rq-textarea:focus,
+#rq-wizard input:focus,
+#rq-wizard select:focus,
+#rq-wizard textarea:focus {
     outline: none;
-    border-color: var(--rq-primary);
+    border: 2px solid var(--rq-primary) !important;
+    border-bottom: 2px solid var(--rq-primary) !important;
     box-shadow: 0 0 0 3px var(--rq-primary-bg);
 }
 .rq-helper {
@@ -311,18 +319,18 @@
     color: var(--rq-text-light);
 }
 .rq-dropdown__item--preferred {
-    background: #fef3c7;
-    border-left: 3px solid #f59e0b;
+    background: #cffafe;
+    border-left: 3px solid #2DD4DA;
 }
 .rq-dropdown__item--preferred:hover {
-    background: #fde68a;
+    background: #a5f3fc;
 }
 .rq-dropdown__preferred-badge {
     margin-left: auto;
     font-size: 11px;
     font-weight: 600;
-    color: #b45309;
-    background: #fef3c7;
+    color: #0891b2;
+    background: #cffafe;
     padding: 2px 8px;
     border-radius: 10px;
 }
@@ -450,7 +458,7 @@
 .rq-wizard__footer {
     margin-top: 32px;
     padding-top: 24px;
-    border-top: 1px solid var(--rq-border);
+    border-top: 0;
     display: flex;
     justify-content: space-between;
     gap: 12px;
@@ -525,7 +533,7 @@
     font-size: 14px;
 }
 .rq-message--warning {
-    background: #fef3c7;
+    background: #cffafe;
     color: #92400e;
 }
 .rq-message--error {
@@ -538,7 +546,7 @@
     .rq-wizard {
         flex-direction: column;
         height: auto;
-        min-height: 100vh;
+        min-height: 100dvh;
     }
     .rq-wizard__hero {
         width: 100%;
@@ -550,9 +558,14 @@
         font-size: 32px;
     }
     .rq-wizard__form {
+        position: relative;
+        left: auto;
+        right: auto;
+        top: auto;
+        bottom: auto;
         width: 100%;
-        margin-left: 0;
-        padding: 32px;
+        height: auto;
+        padding: 32px 32px 100px;
     }
 }
 @media (max-width: 640px) {

@@ -1,0 +1,15 @@
+/**
+ * Wizard Bundle CSS
+ *
+ * Imports all wizard modal styles to ensure modals are hidden by default.
+ * This bundle is enqueued by Frontend/LeadPages/Dashboard.php
+ *
+ * @package FRSLeadPages
+ */
+
+@import url('../../includes/OpenHouse/style.css');
+@import url('../../includes/CustomerSpotlight/style.css');
+@import url('../../includes/SpecialEvent/style.css');
+@import url('../../includes/MortgageCalculator/style.css');
+@import url('../../includes/RateQuote/style.css');
+@import url('../../includes/ApplyNow/style.css');

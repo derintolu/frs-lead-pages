@@ -1,3 +1,5 @@
+> **See also:** [Site-level plugin instructions](../CLAUDE.md) for git workflow and shared guidelines.
+
 # CLAUDE.md - FRS Lead Pages
 
 ## Quick Reference

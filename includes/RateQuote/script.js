@@ -325,7 +325,6 @@
             headline: document.getElementById('rq-headline') ? document.getElementById('rq-headline').value : '',
             subheadline: document.getElementById('rq-subheadline') ? document.getElementById('rq-subheadline').value : '',
             schedule_type: selectedScheduleType,
-            form_id: document.getElementById('rq-form-id') ? document.getElementById('rq-form-id').value : '',
             calendar_id: document.getElementById('rq-calendar-id') ? document.getElementById('rq-calendar-id').value : ''
         };
 

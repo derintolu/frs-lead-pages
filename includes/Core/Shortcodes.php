@@ -144,8 +144,6 @@ class Shortcodes {
     /**
      * Render lead submissions table/dashboard
      *
-     * Uses FluentForms submissions for data
-     *
      * Usage: [lead_page_submissions]
      */
     public static function render_submissions( array $atts = [] ): string {
@@ -174,25 +172,23 @@ class Shortcodes {
 
         $page_ids = get_posts( $args );
 
-        // Get submissions from FluentForms
+        // Get submissions from custom table
         $submissions = [];
-        if ( \FRSLeadPages\Integrations\FluentForms::is_active() ) {
-            $ff_submissions = \FRSLeadPages\Integrations\FluentForms::get_submissions_for_user( $current_user_id );
+        $frs_submissions = \FRSLeadPages\Core\Submissions::get_submissions_for_user( $current_user_id );
 
-            foreach ( $ff_submissions as $submission ) {
-                $submissions[] = [
-                    'id'              => $submission['id'],
-                    'first_name'      => $submission['first_name'],
-                    'last_name'       => $submission['last_name'],
-                    'email'           => $submission['email'],
-                    'phone'           => $submission['phone'],
-                    'lead_page_id'    => $submission['lead_page_id'] ?? '',
-                    'lead_page_title' => $submission['lead_page_title'] ?? 'Unknown',
-                    'property_address' => '',
-                    'status'          => $submission['status'],
-                    'created_at'      => $submission['created_at'],
-                ];
-            }
+        foreach ( $frs_submissions as $submission ) {
+            $submissions[] = [
+                'id'              => $submission['id'],
+                'first_name'      => $submission['first_name'],
+                'last_name'       => $submission['last_name'],
+                'email'           => $submission['email'],
+                'phone'           => $submission['phone'],
+                'lead_page_id'    => $submission['lead_page_id'] ?? '',
+                'lead_page_title' => $submission['lead_page_title'] ?? 'Unknown',
+                'property_address' => '',
+                'status'          => $submission['status'],
+                'created_at'      => $submission['created_at'],
+            ];
         }
 
         // Also get leads from wp_lead_submissions table (if available)

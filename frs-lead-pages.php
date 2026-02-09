@@ -94,16 +94,6 @@ spl_autoload_register( function ( $class ) {
  * Initialize the plugin
  */
 function init() {
-    // FluentForms is required
-    if ( ! defined( 'FLUENTFORM' ) ) {
-        add_action( 'admin_notices', function() {
-            echo '<div class="notice notice-error"><p>';
-            esc_html_e( 'FRS Lead Pages requires Fluent Forms to be installed and active.', 'frs-lead-pages' );
-            echo '</p></div>';
-        });
-        return;
-    }
-
     // Initialize capabilities (map_meta_cap filter)
     Core\Capabilities::init();
 
@@ -122,7 +112,7 @@ function init() {
     Blocks\LeadStatsTable::init();
 
     // Initialize integrations
-    Integrations\FluentForms::init();
+    Core\Submissions::init();
     Integrations\FollowUpBoss::init();
 
     // Initialize Partner Portal (multisite support)
@@ -187,24 +177,24 @@ function ajax_delete_lead() {
 
     global $wpdb;
 
-    // Handle different lead sources (lrg_ prefix = wp_lead_submissions, ff_ prefix = FluentForms)
+    // Handle different lead sources (lrg_ prefix = wp_lead_submissions, frs_ prefix = frs_lead_submissions)
     if ( strpos( $lead_id, 'lrg_' ) === 0 ) {
         // Delete from wp_lead_submissions table
         $real_id = absint( str_replace( 'lrg_', '', $lead_id ) );
         $table = $wpdb->prefix . 'lead_submissions';
         $deleted = $wpdb->delete( $table, [ 'id' => $real_id ], [ '%d' ] );
-    } elseif ( strpos( $lead_id, 'ff_' ) === 0 ) {
-        // Delete from FluentForms
-        $real_id = absint( str_replace( 'ff_', '', $lead_id ) );
-        if ( function_exists( 'wpFluent' ) ) {
-            wpFluent()->table( 'fluentform_submissions' )->where( 'id', $real_id )->delete();
-            wpFluent()->table( 'fluentform_entry_details' )->where( 'submission_id', $real_id )->delete();
-            $deleted = true;
-        } else {
-            $deleted = false;
-        }
+    } elseif ( strpos( $lead_id, 'frs_' ) === 0 ) {
+        // Delete from frs_lead_submissions table
+        $real_id = absint( str_replace( 'frs_', '', $lead_id ) );
+        $deleted = Core\Submissions::delete( $real_id );
     } else {
-        wp_send_json_error( 'Unknown lead type' );
+        // Try as a bare numeric ID (frs_lead_submissions)
+        $real_id = absint( $lead_id );
+        if ( $real_id ) {
+            $deleted = Core\Submissions::delete( $real_id );
+        } else {
+            wp_send_json_error( 'Unknown lead type' );
+        }
     }
 
     if ( $deleted ) {
@@ -285,6 +275,9 @@ function maybe_generate_qr( $post_id, $post ) {
 function activate() {
     // Register capabilities for roles
     Core\Capabilities::register();
+
+    // Create submissions table
+    Core\Submissions::create_table();
 
     // Create analytics table
     Core\Analytics::create_table();

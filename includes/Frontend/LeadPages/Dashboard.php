@@ -102,23 +102,21 @@ class Dashboard {
     private static function get_user_leads( int $user_id, bool $is_loan_officer ): array {
         $leads = [];
 
-        // Get leads from FluentForms submissions
-        if ( \FRSLeadPages\Integrations\FluentForms::is_active() ) {
-            $submissions = \FRSLeadPages\Integrations\FluentForms::get_submissions_for_user( $user_id );
+        // Get leads from frs_lead_submissions table
+        $submissions = \FRSLeadPages\Core\Submissions::get_submissions_for_user( $user_id );
 
-            foreach ( $submissions as $submission ) {
-                $leads[] = [
-                    'id'         => $submission['id'],
-                    'first_name' => $submission['first_name'],
-                    'last_name'  => $submission['last_name'],
-                    'email'      => $submission['email'],
-                    'phone'      => $submission['phone'],
-                    'source'     => $submission['lead_page_title'] ?? 'Unknown',
-                    'property'   => '',
-                    'status'     => $submission['status'],
-                    'created_at' => $submission['created_at'],
-                ];
-            }
+        foreach ( $submissions as $submission ) {
+            $leads[] = [
+                'id'         => 'frs_' . $submission['id'],
+                'first_name' => $submission['first_name'],
+                'last_name'  => $submission['last_name'],
+                'email'      => $submission['email'],
+                'phone'      => $submission['phone'],
+                'source'     => $submission['lead_page_title'] ?? 'Unknown',
+                'property'   => '',
+                'status'     => $submission['status'],
+                'created_at' => $submission['created_at'],
+            ];
         }
 
         // Also get leads from wp_lead_submissions table (if available)

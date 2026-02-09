@@ -7,7 +7,7 @@
 
 namespace FRSLeadPages\Admin;
 
-use FRSLeadPages\Integrations\FluentForms;
+use FRSLeadPages\Core\Submissions;
 
 if ( ! class_exists( 'WP_List_Table' ) ) {
 	require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
@@ -296,15 +296,7 @@ class Dashboard_List_Table extends \WP_List_Table {
 	 * Column: Leads
 	 */
 	public function column_leads( $item ) {
-		$leads = (int) get_post_meta( $item->ID, '_frs_page_submissions', true );
-
-		// Also get direct count from FluentForms if available
-		if ( FluentForms::is_active() ) {
-			$submissions = FluentForms::get_submissions_for_page( $item->ID, [ 'per_page' => 1 ] );
-			if ( ! empty( $submissions['total'] ) ) {
-				$leads = $submissions['total'];
-			}
-		}
+		$leads = Submissions::count_for_page( $item->ID );
 
 		return number_format_i18n( $leads );
 	}

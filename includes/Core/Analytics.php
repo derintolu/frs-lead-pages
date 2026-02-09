@@ -35,8 +35,8 @@ class Analytics {
         // Track views on page load
         add_action( 'template_redirect', [ __CLASS__, 'track_page_view' ], 5 );
 
-        // Track submissions via FluentForms
-        add_action( 'fluentform/submission_inserted', [ __CLASS__, 'track_submission' ], 20, 3 );
+        // Track submissions
+        add_action( 'frs_lead_pages/submission_inserted', [ __CLASS__, 'track_submission' ], 20, 3 );
     }
 
     /**
@@ -200,19 +200,17 @@ class Analytics {
 
     /**
      * Track form submission
+     *
+     * @param int   $submission_id Submission row ID.
+     * @param array $form_data     Form data array.
+     * @param int   $page_id       Lead page post ID.
      */
-    public static function track_submission( $entry_id, $form_data, $form ) {
-        // Get the page ID from the submission
-        $page_id = 0;
+    public static function track_submission( $submission_id, $form_data, $page_id ) {
+        $page_id = absint( $page_id );
 
-        // Check form response for page_id field
-        if ( isset( $form_data['page_id'] ) ) {
-            $page_id = absint( $form_data['page_id'] );
-        }
-
-        // Fallback: check referrer
-        if ( ! $page_id && isset( $_SERVER['HTTP_REFERER'] ) ) {
-            $page_id = url_to_postid( $_SERVER['HTTP_REFERER'] );
+        // Fallback: try form_data
+        if ( ! $page_id && isset( $form_data['lead_page_id'] ) ) {
+            $page_id = absint( $form_data['lead_page_id'] );
         }
 
         if ( $page_id && get_post_type( $page_id ) === 'frs_lead_page' ) {

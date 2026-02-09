@@ -7,7 +7,7 @@
 
 namespace FRSLeadPages\Admin;
 
-use FRSLeadPages\Integrations\FluentForms;
+use FRSLeadPages\Core\Submissions as SubmissionsService;
 
 if ( ! class_exists( 'WP_List_Table' ) ) {
 	require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
@@ -46,11 +46,8 @@ class Submissions {
 			wp_die( __( 'Insufficient permissions', 'frs-lead-pages' ) );
 		}
 
-		// Delete from FluentForms
-		if ( function_exists( 'wpFluent' ) ) {
-			wpFluent()->table( 'fluentform_submissions' )->where( 'id', $submission_id )->delete();
-			wpFluent()->table( 'fluentform_entry_details' )->where( 'submission_id', $submission_id )->delete();
-		}
+		// Delete submission
+		SubmissionsService::delete( $submission_id );
 
 		$redirect_url = admin_url( 'edit.php?post_type=frs_lead_page&page=frs-lead-pages-submissions&deleted=1' );
 		if ( isset( $_GET['lead_page_id'] ) ) {
@@ -80,19 +77,6 @@ class Submissions {
 	 */
 	public static function render_submissions_page() {
 		if ( ! current_user_can( 'edit_posts' ) ) {
-			return;
-		}
-
-		// Check if FluentForms is active
-		if ( ! FluentForms::is_active() ) {
-			?>
-			<div class="wrap">
-				<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
-				<div class="notice notice-error">
-					<p><?php _e( 'FluentForms is required to view submissions. Please install and activate FluentForms.', 'frs-lead-pages' ); ?></p>
-				</div>
-			</div>
-			<?php
 			return;
 		}
 
@@ -183,10 +167,6 @@ class Submissions {
 			wp_die( __( 'Insufficient permissions', 'frs-lead-pages' ) );
 		}
 
-		if ( ! FluentForms::is_active() ) {
-			wp_die( __( 'FluentForms is not active', 'frs-lead-pages' ) );
-		}
-
 		$lead_page_id = isset( $_POST['lead_page_id'] ) ? absint( $_POST['lead_page_id'] ) : 0;
 
 		// Get submissions
@@ -195,7 +175,7 @@ class Submissions {
 			$filters['page_id'] = $lead_page_id;
 		}
 
-		$submissions = FluentForms::get_submissions( $filters );
+		$submissions = SubmissionsService::get_submissions( $filters );
 
 		// Generate CSV
 		$filename = 'lead-submissions-' . date( 'Y-m-d-H-i-s' ) . '.csv';
@@ -225,21 +205,8 @@ class Submissions {
 
 		// CSV rows
 		foreach ( $submissions as $submission ) {
-			// Get full response data for additional fields
-			$form_id = FluentForms::get_form_id();
-			if ( $form_id && function_exists( 'wpFluent' ) ) {
-				$full_submission = wpFluent()->table( 'fluentform_submissions' )
-					->where( 'id', $submission['submission_id'] )
-					->first();
-
-				if ( $full_submission ) {
-					$response = json_decode( $full_submission->response, true );
-				} else {
-					$response = [];
-				}
-			} else {
-				$response = [];
-			}
+			// Get full row from custom table for additional fields
+			$full = SubmissionsService::get( (int) $submission['submission_id'] );
 
 			fputcsv( $output, [
 				$submission['id'],
@@ -249,11 +216,11 @@ class Submissions {
 				$submission['phone'],
 				$submission['lead_page_title'],
 				ucwords( str_replace( '_', ' ', $submission['page_type'] ) ),
-				$response['working_with_agent'] ?? '',
-				$response['pre_approved'] ?? '',
-				$response['interested_in_preapproval'] ?? '',
-				$response['timeframe'] ?? '',
-				$response['comments'] ?? '',
+				$full->working_with_agent ?? '',
+				$full->pre_approved ?? '',
+				$full->interested_in_preapproval ?? '',
+				$full->timeframe ?? '',
+				$full->comments ?? '',
 				$submission['created_at'],
 				$submission['status'],
 			] );
@@ -317,13 +284,12 @@ class Submissions_List_Table extends \WP_List_Table {
 		// Get filter
 		$lead_page_id = isset( $_GET['lead_page_id'] ) ? absint( $_GET['lead_page_id'] ) : 0;
 
-		// Get submissions from FluentForms
 		$filters = [];
 		if ( $lead_page_id > 0 ) {
 			$filters['page_id'] = $lead_page_id;
 		}
 
-		$submissions = FluentForms::get_submissions( $filters );
+		$submissions = SubmissionsService::get_submissions( $filters );
 
 		// Handle sorting
 		$orderby = isset( $_GET['orderby'] ) ? sanitize_text_field( $_GET['orderby'] ) : 'date';
@@ -364,16 +330,6 @@ class Submissions_List_Table extends \WP_List_Table {
 		$name = trim( $item['first_name'] . ' ' . $item['last_name'] );
 
 		$actions = [];
-
-		// Link to FluentForms submission if available
-		if ( ! empty( $item['form_id'] ) && ! empty( $item['submission_id'] ) ) {
-			$ff_url = admin_url( 'admin.php?page=fluent_forms&route=entries&form_id=' . $item['form_id'] . '#/entries/' . $item['submission_id'] );
-			$actions['view_in_fluent'] = sprintf(
-				'<a href="%s">%s</a>',
-				esc_url( $ff_url ),
-				__( 'View in FluentForms', 'frs-lead-pages' )
-			);
-		}
 
 		// Link to lead page
 		if ( ! empty( $item['lead_page_id'] ) ) {

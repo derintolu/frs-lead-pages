@@ -485,7 +485,7 @@ class Settings {
             wp_send_json_error( 'Permission denied' );
         }
 
-        $result = \FRSLeadPages\Integrations\FluentForms::retry_failed_webhooks();
+        $result = \FRSLeadPages\Core\Submissions::retry_failed_webhooks();
         $remaining = count( get_option( 'frs_lead_pages_failed_webhooks', [] ) );
 
         wp_send_json_success( array_merge( $result, [ 'remaining' => $remaining ] ) );

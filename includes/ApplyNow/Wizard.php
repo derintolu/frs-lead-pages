@@ -3,7 +3,7 @@
  * Apply Now Wizard
  *
  * Multi-step wizard for creating Apply Now landing pages.
- * Integrates FluentForms for application and Fluent Booking for scheduling.
+ * Integrates Fluent Booking for scheduling.
  *
  * @package FRSLeadPages
  */
@@ -161,8 +161,7 @@ class Wizard {
         // Get partners based on user mode
         $partners = $partner_config['partners'];
 
-        // Get available forms and calendars
-        $forms = self::get_fluent_forms();
+        // Get available calendars
         $calendars = self::get_user_calendars();
 
         // Get stock copy options
@@ -434,26 +433,6 @@ class Wizard {
                             <?php endif; ?>
                         </div>
 
-                        <!-- Form Selection with Custom Dropdown -->
-                        <div id="an-form-selection" class="an-form-selection">
-                            <label class="an-label" style="margin-top: 24px;">Select Form</label>
-                            <input type="hidden" id="an-form-id" value="">
-                            <div class="an-dropdown" id="an-form-dropdown">
-                                <button type="button" class="an-dropdown__trigger">
-                                    <span class="an-dropdown__value">Choose a form...</span>
-                                    <svg class="an-dropdown__arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
-                                </button>
-                                <div class="an-dropdown__menu">
-                                    <?php foreach ( $forms as $form ) : ?>
-                                        <div class="an-dropdown__item an-dropdown__item--simple" data-value="<?php echo esc_attr( $form['id'] ); ?>">
-                                            <span class="an-dropdown__name"><?php echo esc_html( $form['title'] ); ?></span>
-                                        </div>
-                                    <?php endforeach; ?>
-                                </div>
-                            </div>
-                            <p class="an-helper">Choose a Fluent Form for your application</p>
-                        </div>
-
                         <!-- Calendar Selection with Custom Dropdown -->
                         <div id="an-calendar-selection" class="an-calendar-selection" style="display: none;">
                             <label class="an-label" style="margin-top: 24px;">Select Calendar</label>
@@ -629,31 +608,6 @@ class Wizard {
     }
 
     /**
-     * Get available Fluent Forms
-     */
-    private static function get_fluent_forms(): array {
-        $forms = [];
-
-        if ( ! defined( 'FLUENTFORM_VERSION' ) || ! class_exists( '\FluentForm\App\Models\Form' ) ) {
-            return $forms;
-        }
-
-        $all_forms = \FluentForm\App\Models\Form::select( ['id', 'title'] )
-            ->where( 'status', 'published' )
-            ->orderBy( 'title', 'asc' )
-            ->get();
-
-        foreach ( $all_forms as $form ) {
-            $forms[] = [
-                'id'    => $form->id,
-                'title' => $form->title,
-            ];
-        }
-
-        return $forms;
-    }
-
-    /**
      * Render login required message
      */
     private static function render_login_required(): string {
@@ -733,7 +687,6 @@ class Wizard {
         $headline = sanitize_text_field( $_POST['headline'] ?? 'Ready to Own Your Dream Home?' );
         $subheadline = sanitize_text_field( $_POST['subheadline'] ?? '' );
         $schedule_type = sanitize_text_field( $_POST['schedule_type'] ?? 'form' );
-        $form_id = absint( $_POST['form_id'] ?? 0 );
         $calendar_id = absint( $_POST['calendar_id'] ?? 0 );
         $hero_image = esc_url_raw( $_POST['hero_image'] ?? '' );
         $arrive_link = esc_url_raw( $_POST['arrive_link'] ?? '' );
@@ -757,7 +710,6 @@ class Wizard {
         update_post_meta( $post_id, '_frs_headline', $headline );
         update_post_meta( $post_id, '_frs_subheadline', $subheadline );
         update_post_meta( $post_id, '_frs_schedule_type', $schedule_type );
-        update_post_meta( $post_id, '_frs_form_id', $form_id );
         update_post_meta( $post_id, '_frs_calendar_id', $calendar_id );
         update_post_meta( $post_id, '_frs_hero_image_url', $hero_image );
         update_post_meta( $post_id, '_frs_arrive_link', $arrive_link );

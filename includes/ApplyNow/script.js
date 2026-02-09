@@ -486,7 +486,6 @@
             subheadline: (document.getElementById('an-subheadline') || {}).value || '',
             hero_image: (document.getElementById('an-hero-image') || {}).value || '',
             schedule_type: selectedScheduleType,
-            form_id: (document.getElementById('an-form-id') || {}).value || '',
             calendar_id: (document.getElementById('an-calendar-id') || {}).value || '',
             arrive_link: (document.getElementById('an-arrive-link') || {}).value || ''
         };

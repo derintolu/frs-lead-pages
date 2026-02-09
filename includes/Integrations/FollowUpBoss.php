@@ -50,8 +50,8 @@ class FollowUpBoss {
      * Initialize the integration
      */
     public static function init(): void {
-        // Hook into FluentForms submission to send leads
-        add_action( 'fluentform/submission_inserted', [ __CLASS__, 'on_form_submission' ], 20, 3 );
+        // Hook into lead submission to send leads
+        add_action( 'frs_lead_pages/submission_inserted', [ __CLASS__, 'on_form_submission' ], 20, 3 );
 
         // AJAX handlers for frontend settings (legacy - kept for backwards compatibility)
         add_action( 'wp_ajax_frs_fub_save_api_key', [ __CLASS__, 'ajax_save_api_key' ] );
@@ -412,13 +412,13 @@ class FollowUpBoss {
     }
 
     /**
-     * Hook into FluentForms submission
+     * Hook into lead page submission
      *
-     * @param int   $submission_id Submission ID
-     * @param array $form_data Form data
-     * @param mixed $form Form object
+     * @param int   $submission_id Submission ID.
+     * @param array $form_data     Form data array.
+     * @param int   $page_id       Lead page post ID.
      */
-    public static function on_form_submission( int $submission_id, array $form_data, $form ): void {
+    public static function on_form_submission( int $submission_id, array $form_data, $page_id ): void {
         // Only process lead page forms
         if ( empty( $form_data['lead_page_id'] ) && empty( $form_data['loan_officer_id'] ) ) {
             return;

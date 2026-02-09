@@ -3,7 +3,7 @@
  * Rate Quote Wizard
  *
  * Multi-step wizard for creating Rate Quote landing pages.
- * Integrates FluentForms for lead capture and Fluent Booking for scheduling.
+ * Integrates Fluent Booking for scheduling.
  *
  * @package FRSLeadPages
  */
@@ -136,9 +136,6 @@ class Wizard {
 
         // Get partners based on user mode
         $partners = $partner_config['partners'];
-
-        // Get available forms
-        $forms = self::get_fluent_forms();
 
         // Get Fluent Booking calendars for current user
         $calendars = self::get_user_calendars();
@@ -346,18 +343,6 @@ class Wizard {
                             <?php endif; ?>
                         </div>
 
-                        <!-- Form Selection (shown when form is selected) -->
-                        <div id="rq-form-selection" class="rq-form-selection">
-                            <label class="rq-label" style="margin-top: 24px;">Select Form</label>
-                            <select id="rq-form-id" class="rq-select">
-                                <option value="">-- Select a form --</option>
-                                <?php foreach ( $forms as $form ) : ?>
-                                    <option value="<?php echo esc_attr( $form['id'] ); ?>"><?php echo esc_html( $form['title'] ); ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                            <p class="rq-helper">Choose a Fluent Form for lead capture</p>
-                        </div>
-
                         <!-- Calendar Selection (shown when booking is selected) -->
                         <div id="rq-calendar-selection" class="rq-calendar-selection" style="display: none;">
                             <label class="rq-label" style="margin-top: 24px;">Select Calendar</label>
@@ -490,31 +475,6 @@ class Wizard {
         }
 
         return $calendars;
-    }
-
-    /**
-     * Get available Fluent Forms
-     */
-    private static function get_fluent_forms(): array {
-        $forms = [];
-
-        if ( ! defined( 'FLUENTFORM_VERSION' ) || ! class_exists( '\FluentForm\App\Models\Form' ) ) {
-            return $forms;
-        }
-
-        $all_forms = \FluentForm\App\Models\Form::select( ['id', 'title'] )
-            ->where( 'status', 'published' )
-            ->orderBy( 'title', 'asc' )
-            ->get();
-
-        foreach ( $all_forms as $form ) {
-            $forms[] = [
-                'id'    => $form->id,
-                'title' => $form->title,
-            ];
-        }
-
-        return $forms;
     }
 
     /**
@@ -1448,7 +1408,6 @@ UNUSED;
                     headline: document.getElementById('rq-headline')?.value || '',
                     subheadline: document.getElementById('rq-subheadline')?.value || '',
                     schedule_type: selectedScheduleType,
-                    form_id: document.getElementById('rq-form-id')?.value || '',
                     calendar_id: document.getElementById('rq-calendar-id')?.value || ''
                 };
 
@@ -1534,7 +1493,6 @@ UNUSED;
         $headline = sanitize_text_field( $_POST['headline'] ?? 'Get Your Personalized Rate Quote' );
         $subheadline = sanitize_text_field( $_POST['subheadline'] ?? '' );
         $schedule_type = sanitize_text_field( $_POST['schedule_type'] ?? 'form' );
-        $form_id = absint( $_POST['form_id'] ?? 0 );
         $calendar_id = absint( $_POST['calendar_id'] ?? 0 );
 
         // Create post
@@ -1556,7 +1514,6 @@ UNUSED;
         update_post_meta( $post_id, '_frs_headline', $headline );
         update_post_meta( $post_id, '_frs_subheadline', $subheadline );
         update_post_meta( $post_id, '_frs_schedule_type', $schedule_type );
-        update_post_meta( $post_id, '_frs_form_id', $form_id );
         update_post_meta( $post_id, '_frs_calendar_id', $calendar_id );
 
         // Save creator info and partner info based on user mode

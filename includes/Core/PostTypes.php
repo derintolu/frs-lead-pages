@@ -227,13 +227,6 @@ class PostTypes {
                 'single'      => true,
                 'default'     => 0,
             ],
-            // FluentForm integration
-            '_frs_fluent_form_id' => [
-                'type'        => 'integer',
-                'description' => 'Associated FluentForm ID',
-                'single'      => true,
-                'default'     => 0,
-            ],
         ];
 
         foreach ( $meta_fields as $key => $args ) {
@@ -434,17 +427,15 @@ class PostTypes {
             return null;
         }
 
-        // Get submissions from FluentForms integration
-        if ( class_exists( '\FRSLeadPages\Integrations\FluentForms' ) ) {
-            $result = \FRSLeadPages\Integrations\FluentForms::get_submissions_for_page( $post_id, [
-                'per_page' => 100,
-                'page'     => 1,
-                'status'   => 'all',
-            ]);
+        // Get submissions from custom table
+        $result = \FRSLeadPages\Core\Submissions::get_submissions_for_page( $post_id, [
+            'per_page' => 100,
+            'page'     => 1,
+            'status'   => 'all',
+        ]);
 
-            if ( ! empty( $result['submissions'] ) ) {
-                return $result;
-            }
+        if ( ! empty( $result['submissions'] ) ) {
+            return $result;
         }
 
         // Fallback: Check post meta for backup leads

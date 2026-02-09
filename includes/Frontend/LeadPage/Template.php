@@ -120,12 +120,6 @@ class Template {
             $hero_image_url = wp_get_attachment_image_url( $hero_image_id, 'full' );
         }
 
-        // Get FluentForm ID
-        $form_id = get_post_meta( $page_id, '_frs_fluent_form_id', true );
-        if ( ! $form_id && class_exists( 'FRSLeadPages\Integrations\FluentForms' ) ) {
-            $form_id = \FRSLeadPages\Integrations\FluentForms::get_form_id_for_type( $page_type );
-        }
-
         // Property details (for open house)
         $property_address = get_post_meta( $page_id, '_frs_property_address', true );
         $property_price   = get_post_meta( $page_id, '_frs_property_price', true );

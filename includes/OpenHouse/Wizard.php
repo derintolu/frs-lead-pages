@@ -11,7 +11,6 @@
 namespace FRSLeadPages\OpenHouse;
 
 use FRSLeadPages\Integrations\Firecrawl;
-use FRSLeadPages\Integrations\FluentForms;
 use FRSLeadPages\Integrations\InstantImages;
 use FRSLeadPages\Core\LoanOfficers;
 use FRSLeadPages\Core\Realtors;

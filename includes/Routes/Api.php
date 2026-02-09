@@ -584,30 +584,8 @@ class Api {
         $lo_id = (int) get_post_meta( $page_id, '_frs_loan_officer_id', true );
         $realtor_id = (int) get_post_meta( $page_id, '_frs_realtor_id', true );
 
-        // Submit to FluentForms (our integration handles everything)
-        $result = \FRSLeadPages\Integrations\FluentForms::submit_lead( $data, $page_id );
-
-        if ( ! $result['success'] ) {
-            // Fallback: store locally if FluentForms fails
-            $submissions = (int) get_post_meta( $page_id, '_frs_page_submissions', true );
-            update_post_meta( $page_id, '_frs_page_submissions', $submissions + 1 );
-
-            // Store in post meta as backup
-            $leads = get_post_meta( $page_id, '_frs_leads', true ) ?: [];
-            $leads[] = [
-                'name'       => $name,
-                'email'      => $email,
-                'phone'      => $phone,
-                'data'       => $data,
-                'created_at' => current_time( 'mysql' ),
-            ];
-            update_post_meta( $page_id, '_frs_leads', $leads );
-        }
-
-        // Add to FluentCRM if available (backup - FluentForms integration handles this too)
-        if ( function_exists( 'FluentCrmApi' ) && ! $result['success'] ) {
-            self::add_to_fluent_crm( $data, $page_type, $lo_id, $realtor_id, $page_id );
-        }
+        // Submit to custom submissions table
+        $result = \FRSLeadPages\Core\Submissions::submit_lead( $data, $page_id );
 
         // Fire action for other integrations
         do_action( 'frs_lead_pages_submission', $data, $page_id, $page_type, $lo_id, $realtor_id );
@@ -791,87 +769,7 @@ class Api {
     }
 
     /**
-     * Submit to FluentForm
-     */
-    private static function submit_to_fluent_form( int $form_id, array $data, int $page_id ) {
-        // Map data to FluentForm fields
-        $form_data = [
-            'names' => [
-                'first_name' => $data['firstName'] ?? '',
-                'last_name'  => $data['lastName'] ?? '',
-            ],
-            'email'  => $data['email'] ?? '',
-            'phone'  => $data['phone'] ?? '',
-            'source' => 'Lead Page #' . $page_id,
-        ];
-
-        // Submit via FluentForm API
-        try {
-            $api = fluentFormApi( 'forms' )->entryInstance( $form_id );
-            $api->createEntry( $form_data );
-        } catch ( \Exception $e ) {
-            error_log( 'FRS Lead Pages - FluentForm submission failed: ' . $e->getMessage() );
-        }
-    }
-
-    /**
-     * Add contact to FluentCRM
-     */
-    private static function add_to_fluent_crm( array $data, string $page_type, int $lo_id, int $realtor_id, int $page_id ) {
-        try {
-            $contact_api = FluentCrmApi( 'contacts' );
-
-            // Split name
-            $name_parts = explode( ' ', $data['fullName'] ?? '', 2 );
-            $first_name = $name_parts[0] ?? '';
-            $last_name  = $name_parts[1] ?? '';
-
-            // Determine tags based on page type
-            $tags = [ 'generation-station' ];
-            switch ( $page_type ) {
-                case 'open_house':
-                    $tags[] = 'open-house-lead';
-                    break;
-                case 'customer_spotlight':
-                    $tags[] = 'spotlight-lead';
-                    break;
-                case 'special_event':
-                    $tags[] = 'event-lead';
-                    break;
-            }
-
-            // Add qualifying question tags
-            if ( ! empty( $data['preApproved'] ) && $data['preApproved'] === false ) {
-                $tags[] = 'not-pre-approved';
-            }
-            if ( ! empty( $data['workingWithAgent'] ) && $data['workingWithAgent'] === false ) {
-                $tags[] = 'no-agent';
-            }
-
-            $contact_data = [
-                'first_name' => $first_name,
-                'last_name'  => $last_name,
-                'email'      => $data['email'] ?? '',
-                'phone'      => $data['phone'] ?? '',
-                'status'     => 'subscribed',
-                'tags'       => $tags,
-                'custom_fields' => [
-                    'source_page_id'  => $page_id,
-                    'source_page_url' => get_permalink( $page_id ),
-                    'loan_officer_id' => $lo_id,
-                    'realtor_id'      => $realtor_id,
-                ],
-            ];
-
-            $contact_api->createOrUpdate( $contact_data );
-
-        } catch ( \Exception $e ) {
-            error_log( 'FRS Lead Pages - FluentCRM add failed: ' . $e->getMessage() );
-        }
-    }
-
-    /**
-     * GET /submissions - Get lead submissions from FluentForms
+     * GET /submissions - Get lead submissions
      *
      * Query params:
      * - loan_officer_id: Filter by loan officer ID
@@ -885,8 +783,7 @@ class Api {
         $page_id = $request->get_param( 'page_id' );
         $status = $request->get_param( 'status' );
 
-        // Get submissions from FluentForms integration
-        $submissions = \FRSLeadPages\Integrations\FluentForms::get_submissions([
+        $submissions = \FRSLeadPages\Core\Submissions::get_submissions([
             'loan_officer_id' => $loan_officer_id ? absint( $loan_officer_id ) : null,
             'realtor_id'      => $realtor_id ? absint( $realtor_id ) : null,
             'page_id'         => $page_id ? absint( $page_id ) : null,

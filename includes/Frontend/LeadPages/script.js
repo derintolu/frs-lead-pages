@@ -12,6 +12,7 @@
 
     function init() {
         initTabs();
+        initAnalyticsFilter();
         initQRModal();
         initConfirmModal();
         initCopyButtons();
@@ -337,6 +338,4 @@
         }
     }
 
-    // Initialize analytics filter
-    initAnalyticsFilter();
 })();

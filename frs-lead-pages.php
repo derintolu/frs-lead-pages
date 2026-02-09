@@ -115,6 +115,19 @@ function init() {
     Core\Submissions::init();
     Integrations\FollowUpBoss::init();
 
+    // Auto-create/update tables on version change (covers deploys without reactivation)
+    $db_version = get_option( 'frs_lead_pages_db_version', '0' );
+    if ( version_compare( $db_version, FRS_LEAD_PAGES_VERSION, '<' ) ) {
+        Core\Submissions::create_table();
+        Core\Analytics::create_table();
+        update_option( 'frs_lead_pages_db_version', FRS_LEAD_PAGES_VERSION );
+    }
+
+    // WP-CLI commands
+    if ( defined( 'WP_CLI' ) && WP_CLI ) {
+        Core\CLI::init();
+    }
+
     // Initialize Partner Portal (multisite support)
     Core\PartnerPortal::init();
 

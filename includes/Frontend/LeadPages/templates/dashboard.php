@@ -238,7 +238,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                 </div>
                 <div class="frs-analytics-card-content">
-                    <div class="frs-analytics-card-value"><?php echo number_format( $analytics_summary['views'] ); ?></div>
+                    <div class="frs-analytics-card-value" id="frs-stat-views"><?php echo number_format( $analytics_summary['views'] ); ?></div>
                     <div class="frs-analytics-card-label">Page Views</div>
                 </div>
             </div>
@@ -247,7 +247,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/><rect x="18" y="14" width="3" height="3"/><rect x="14" y="18" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/></svg>
                 </div>
                 <div class="frs-analytics-card-content">
-                    <div class="frs-analytics-card-value"><?php echo number_format( $analytics_summary['qr_scans'] ); ?></div>
+                    <div class="frs-analytics-card-value" id="frs-stat-qr"><?php echo number_format( $analytics_summary['qr_scans'] ); ?></div>
                     <div class="frs-analytics-card-label">QR Scans</div>
                 </div>
             </div>
@@ -256,7 +256,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                 </div>
                 <div class="frs-analytics-card-content">
-                    <div class="frs-analytics-card-value"><?php echo number_format( $analytics_summary['submissions'] ); ?></div>
+                    <div class="frs-analytics-card-value" id="frs-stat-leads"><?php echo number_format( $analytics_summary['submissions'] ); ?></div>
                     <div class="frs-analytics-card-label">Leads</div>
                 </div>
             </div>
@@ -265,17 +265,17 @@ if ( ! defined( 'ABSPATH' ) ) {
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
                 </div>
                 <div class="frs-analytics-card-content">
-                    <div class="frs-analytics-card-value"><?php echo esc_html( $analytics_summary['conversion_rate'] ); ?>%</div>
+                    <div class="frs-analytics-card-value" id="frs-stat-conversion"><?php echo esc_html( $analytics_summary['conversion_rate'] ); ?>%</div>
                     <div class="frs-analytics-card-label">Conversion Rate</div>
                 </div>
             </div>
         </div>
 
         <!-- Per-Page Stats Table -->
-        <div class="frs-analytics-table-wrapper">
+        <div class="frs-analytics-table-wrapper" id="frs-analytics-table-wrapper">
             <h3 class="frs-analytics-table-title">Performance by Page</h3>
             <?php if ( ! empty( $analytics_pages ) ) : ?>
-                <table class="frs-analytics-table">
+                <table class="frs-analytics-table" id="frs-analytics-table">
                     <thead>
                         <tr>
                             <th>Page</th>

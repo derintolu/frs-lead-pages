@@ -311,27 +311,125 @@
     }
 
     /**
-     * Analytics Period Filter
+     * Analytics Period Filter (AJAX, no page reload)
      */
     function initAnalyticsFilter() {
-        document.querySelectorAll('.frs-filter-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const period = btn.dataset.period;
+        var config = window.frsLeadPages || {};
+        var ajaxUrl = config.ajaxUrl || '/wp-admin/admin-ajax.php';
+        var nonce = config.analyticsNonce || '';
+        var filterBtns = document.querySelectorAll('.frs-filter-btn');
+
+        filterBtns.forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var period = btn.dataset.period;
                 if (!period) return;
 
-                // Update URL and reload
-                const url = new URL(window.location.href);
-                url.searchParams.set('analytics_period', period);
-                url.searchParams.set('tab', 'analytics');
-                
-                window.location.href = url.toString();
+                // Update active button
+                filterBtns.forEach(function(b) { b.classList.remove('active'); });
+                btn.classList.add('active');
+
+                // Show loading state on summary cards
+                var statIds = ['frs-stat-views', 'frs-stat-qr', 'frs-stat-leads', 'frs-stat-conversion'];
+                statIds.forEach(function(id) {
+                    var el = document.getElementById(id);
+                    if (el) el.style.opacity = '0.4';
+                });
+
+                // Fetch analytics data
+                fetch(ajaxUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'action=frs_get_analytics&nonce=' + nonce + '&period=' + period
+                })
+                .then(function(res) { return res.json(); })
+                .then(function(data) {
+                    if (!data.success) return;
+
+                    var s = data.data.summary;
+
+                    // Update summary cards
+                    var viewsEl = document.getElementById('frs-stat-views');
+                    var qrEl = document.getElementById('frs-stat-qr');
+                    var leadsEl = document.getElementById('frs-stat-leads');
+                    var convEl = document.getElementById('frs-stat-conversion');
+
+                    if (viewsEl) viewsEl.textContent = s.views;
+                    if (qrEl) qrEl.textContent = s.qr_scans;
+                    if (leadsEl) leadsEl.textContent = s.submissions;
+                    if (convEl) convEl.textContent = s.conversion_rate;
+
+                    // Update per-page table
+                    var table = document.getElementById('frs-analytics-table');
+                    var wrapper = document.getElementById('frs-analytics-table-wrapper');
+                    var pages = data.data.pages;
+
+                    if (pages.length > 0) {
+                        var tbody = '';
+                        var typeClasses = {
+                            'open_house': 'open_house',
+                            'customer_spotlight': 'customer_spotlight',
+                            'special_event': 'special_event',
+                            'mortgage_calculator': 'mortgage_calculator',
+                            'rate_quote': 'rate_quote',
+                            'apply_now': 'apply_now'
+                        };
+
+                        pages.forEach(function(page) {
+                            tbody += '<tr>' +
+                                '<td><a href="' + page.url + '" target="_blank" class="frs-analytics-page-link">' +
+                                    page.title +
+                                    ' <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>' +
+                                '</a></td>' +
+                                '<td><span class="frs-page-badge ' + (typeClasses[page.page_type] || '') + '">' + page.type_label + '</span></td>' +
+                                '<td>' + page.views_fmt + '</td>' +
+                                '<td>' + page.qr_scans_fmt + '</td>' +
+                                '<td>' + page.submissions_fmt + '</td>' +
+                                '<td>' + page.conversion_rate_fmt + '</td>' +
+                            '</tr>';
+                        });
+
+                        if (table) {
+                            var tbodyEl = table.querySelector('tbody');
+                            if (tbodyEl) tbodyEl.innerHTML = tbody;
+                        } else if (wrapper) {
+                            // Table didn't exist yet (was showing empty state), create it
+                            var emptyEl = wrapper.querySelector('.frs-empty');
+                            if (emptyEl) emptyEl.remove();
+                            wrapper.insertAdjacentHTML('beforeend',
+                                '<table class="frs-analytics-table" id="frs-analytics-table">' +
+                                '<thead><tr><th>Page</th><th>Type</th><th>Views</th><th>QR Scans</th><th>Leads</th><th>Conversion</th></tr></thead>' +
+                                '<tbody>' + tbody + '</tbody></table>'
+                            );
+                        }
+                    } else if (table) {
+                        table.remove();
+                        if (wrapper) {
+                            wrapper.insertAdjacentHTML('beforeend',
+                                '<div class="frs-empty frs-empty-small"><p>No analytics data for this period.</p></div>'
+                            );
+                        }
+                    }
+
+                    // Restore opacity
+                    statIds.forEach(function(id) {
+                        var el = document.getElementById(id);
+                        if (el) el.style.opacity = '1';
+                    });
+                })
+                .catch(function() {
+                    // Restore opacity on error
+                    statIds.forEach(function(id) {
+                        var el = document.getElementById(id);
+                        if (el) el.style.opacity = '1';
+                    });
+                });
             });
         });
 
         // Check if we should switch to analytics tab on page load
-        const urlParams = new URLSearchParams(window.location.search);
+        var urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('tab') === 'analytics') {
-            const analyticsTab = document.querySelector('[data-tab="analytics"]');
+            var analyticsTab = document.querySelector('[data-tab="analytics"]');
             if (analyticsTab) {
                 analyticsTab.click();
             }

@@ -222,6 +222,7 @@ class Dashboard {
             'ajaxUrl'          => admin_url( 'admin-ajax.php' ),
             'deleteLeadNonce'  => wp_create_nonce( 'frs_delete_lead' ),
             'deletePageNonce'  => wp_create_nonce( 'frs_delete_lead_page' ),
+            'analyticsNonce'   => wp_create_nonce( 'frs_analytics' ),
         ]);
 
         // QR Code library

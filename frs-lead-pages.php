@@ -163,6 +163,7 @@ function init() {
     // AJAX handlers for deleting from frontend
     add_action( 'wp_ajax_frs_delete_lead', __NAMESPACE__ . '\\ajax_delete_lead' );
     add_action( 'wp_ajax_frs_delete_lead_page', __NAMESPACE__ . '\\ajax_delete_lead_page' );
+    add_action( 'wp_ajax_frs_get_analytics', __NAMESPACE__ . '\\ajax_get_analytics' );
 
     // Generate QR code on page publish (Open House only)
     add_action( 'save_post_frs_lead_page', __NAMESPACE__ . '\\maybe_generate_qr', 10, 2 );
@@ -260,6 +261,57 @@ function ajax_delete_lead_page() {
     } else {
         wp_send_json_error( 'Failed to delete lead page' );
     }
+}
+
+/**
+ * AJAX handler for analytics period switching
+ */
+function ajax_get_analytics() {
+    if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'frs_analytics' ) ) {
+        wp_send_json_error( 'Security check failed' );
+    }
+
+    if ( ! is_user_logged_in() ) {
+        wp_send_json_error( 'Not logged in' );
+    }
+
+    $period  = sanitize_text_field( $_POST['period'] ?? '30days' );
+    $allowed = [ '30days', 'week', 'all' ];
+    if ( ! in_array( $period, $allowed, true ) ) {
+        $period = '30days';
+    }
+
+    $user_id = get_current_user_id();
+    $summary = Core\Analytics::get_user_stats( $user_id, $period );
+    $pages   = Core\Analytics::get_user_pages_stats( $user_id, $period );
+
+    $type_labels = [
+        'open_house'          => 'Open House',
+        'customer_spotlight'  => 'Spotlight',
+        'special_event'       => 'Event',
+        'mortgage_calculator' => 'Calculator',
+        'rate_quote'          => 'Rate Quote',
+        'apply_now'           => 'Apply Now',
+    ];
+
+    foreach ( $pages as &$page ) {
+        $page['type_label'] = $type_labels[ $page['page_type'] ] ?? 'Page';
+        $page['views_fmt']           = number_format( $page['views'] );
+        $page['qr_scans_fmt']        = number_format( $page['qr_scans'] );
+        $page['submissions_fmt']     = number_format( $page['submissions'] );
+        $page['conversion_rate_fmt'] = $page['conversion_rate'] . '%';
+    }
+    unset( $page );
+
+    wp_send_json_success( [
+        'summary' => [
+            'views'           => number_format( $summary['views'] ),
+            'qr_scans'        => number_format( $summary['qr_scans'] ),
+            'submissions'     => number_format( $summary['submissions'] ),
+            'conversion_rate' => $summary['conversion_rate'] . '%',
+        ],
+        'pages' => $pages,
+    ] );
 }
 
 add_action( 'plugins_loaded', __NAMESPACE__ . '\\init' );

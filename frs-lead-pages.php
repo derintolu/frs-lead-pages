@@ -577,6 +577,60 @@ function esc_vcard( $string ) {
 }
 
 /**
+ * Multisite-aware wp_get_attachment_url.
+ *
+ * On multisite with centralized media, attachment records may only exist on
+ * the main site. This tries the current site first, then the main site.
+ *
+ * @param int $attachment_id Attachment post ID.
+ * @return string URL or empty string.
+ */
+function frs_get_attachment_url( int $attachment_id ): string {
+    if ( ! $attachment_id ) {
+        return '';
+    }
+
+    $url = wp_get_attachment_url( $attachment_id );
+    if ( $url ) {
+        return $url;
+    }
+
+    if ( is_multisite() && get_current_blog_id() !== get_main_site_id() ) {
+        switch_to_blog( get_main_site_id() );
+        $url = wp_get_attachment_url( $attachment_id );
+        restore_current_blog();
+    }
+
+    return $url ?: '';
+}
+
+/**
+ * Multisite-aware wp_get_attachment_image_url.
+ *
+ * @param int    $attachment_id Attachment post ID.
+ * @param string $size          Image size. Default 'full'.
+ * @return string URL or empty string.
+ */
+function frs_get_attachment_image_url( int $attachment_id, string $size = 'full' ): string {
+    if ( ! $attachment_id ) {
+        return '';
+    }
+
+    $url = wp_get_attachment_image_url( $attachment_id, $size );
+    if ( $url ) {
+        return $url;
+    }
+
+    if ( is_multisite() && get_current_blog_id() !== get_main_site_id() ) {
+        switch_to_blog( get_main_site_id() );
+        $url = wp_get_attachment_image_url( $attachment_id, $size );
+        restore_current_blog();
+    }
+
+    return $url ?: '';
+}
+
+/**
  * Get user photo from multiple sources
  */
 function get_user_photo( $user_id ) {
@@ -588,7 +642,7 @@ function get_user_photo( $user_id ) {
     if ( class_exists( 'FRSUsers\Models\Profile' ) ) {
         $profile = \FRSUsers\Models\Profile::get_by_user_id( $user_id );
         if ( $profile && ! empty( $profile->headshot_id ) ) {
-            $url = wp_get_attachment_url( $profile->headshot_id );
+            $url = frs_get_attachment_url( (int) $profile->headshot_id );
             if ( $url ) {
                 return $url;
             }

@@ -639,7 +639,7 @@ class Api {
         return new WP_REST_Response([
             'success' => true,
             'id'      => $attachment_id,
-            'url'     => wp_get_attachment_image_url( $attachment_id, 'full' ),
+            'url'     => \FRSLeadPages\frs_get_attachment_image_url( (int) $attachment_id, 'full' ),
         ], 200 );
     }
 
@@ -687,7 +687,7 @@ class Api {
     private static function get_hero_image_url( array $meta ): string {
         $image_id = (int) ( $meta['_frs_hero_image_id'][0] ?? 0 );
         if ( $image_id ) {
-            $url = wp_get_attachment_image_url( $image_id, 'full' );
+            $url = \FRSLeadPages\frs_get_attachment_image_url( (int) $image_id, 'full' );
             if ( $url ) {
                 return $url;
             }

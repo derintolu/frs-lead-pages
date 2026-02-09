@@ -117,7 +117,7 @@ class Template {
 
         // Get hero image from attachment if ID is set
         if ( $hero_image_id ) {
-            $hero_image_url = wp_get_attachment_image_url( $hero_image_id, 'full' );
+            $hero_image_url = \FRSLeadPages\frs_get_attachment_image_url( (int) $hero_image_id, 'full' );
         }
 
         // Property details (for open house)
@@ -293,7 +293,7 @@ class Template {
         if ( class_exists( 'FRSUsers\Models\Profile' ) ) {
             $profile = \FRSUsers\Models\Profile::get_by_user_id( $user_id );
             if ( $profile && ! empty( $profile->headshot_id ) ) {
-                $url = wp_get_attachment_url( $profile->headshot_id );
+                $url = \FRSLeadPages\frs_get_attachment_url( (int) $profile->headshot_id );
                 if ( $url ) {
                     return $url;
                 }

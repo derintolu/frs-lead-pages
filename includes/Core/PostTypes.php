@@ -339,7 +339,7 @@ class PostTypes {
             'get_callback' => function( $post ) {
                 $image_id = (int) get_post_meta( $post['id'], '_frs_hero_image_id', true );
                 if ( $image_id ) {
-                    $url = wp_get_attachment_image_url( $image_id, 'full' );
+                    $url = \FRSLeadPages\frs_get_attachment_image_url( (int) $image_id, 'full' );
                     if ( $url ) {
                         return [
                             'id'  => $image_id,

@@ -434,7 +434,7 @@ class SyncService {
             $local_image = self::sideload_image( $data['meta']['hero_image_url'], $page_id );
             if ( $local_image ) {
                 update_post_meta( $page_id, '_frs_hero_image_id', $local_image );
-                update_post_meta( $page_id, '_frs_hero_image_url', wp_get_attachment_url( $local_image ) );
+                update_post_meta( $page_id, '_frs_hero_image_url', \FRSLeadPages\frs_get_attachment_url( (int) $local_image ) );
             }
         }
     }

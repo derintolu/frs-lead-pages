@@ -94,7 +94,7 @@ $calendar_urls = Template::get_calendar_urls( $data );
                         </div>
                     <?php endif; ?>
                     <div class="lead-page__company-logo lead-page__company-logo--dark">
-                        <img src="<?php echo esc_url( home_url( '/wp-content/uploads/2025/09/21C-Wordmark-White.svg' ) ); ?>" alt="21st Century Lending">
+                        <img src="<?php echo esc_url( content_url( '/uploads/2025/09/21C-Wordmark-White.svg' ) ); ?>" alt="21st Century Lending">
                     </div>
                 </div>
             </div>

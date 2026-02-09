@@ -132,7 +132,7 @@ class Wizard {
         $user = wp_get_current_user();
         $user_data = UserMode::get_current_user_data();
         $user_data['mode'] = $user_mode;
-        $user_data['photo'] = get_avatar_url( $user->ID, [ 'size' => 200 ] );
+        $user_data['photo'] = \FRSLeadPages\frs_normalize_upload_url( get_avatar_url( $user->ID, [ 'size' => 200 ] ) );
 
         // Get partners based on user mode
         $partners = $partner_config['partners'];

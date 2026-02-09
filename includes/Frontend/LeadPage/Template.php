@@ -118,6 +118,8 @@ class Template {
         // Get hero image from attachment if ID is set
         if ( $hero_image_id ) {
             $hero_image_url = \FRSLeadPages\frs_get_attachment_image_url( (int) $hero_image_id, 'full' );
+        } elseif ( $hero_image_url ) {
+            $hero_image_url = \FRSLeadPages\frs_normalize_upload_url( $hero_image_url );
         }
 
         // Property details (for open house)
@@ -303,29 +305,29 @@ class Template {
         // 2. Check user_profile_photo meta (SureDash)
         $suredash_photo = get_user_meta( $user_id, 'user_profile_photo', true );
         if ( ! empty( $suredash_photo ) ) {
-            return $suredash_photo;
+            return \FRSLeadPages\frs_normalize_upload_url( $suredash_photo );
         }
 
         // 3. Check Simple Local Avatars
         $simple_avatar = get_user_meta( $user_id, 'simple_local_avatar', true );
         if ( ! empty( $simple_avatar ) && ! empty( $simple_avatar['full'] ) ) {
-            return $simple_avatar['full'];
+            return \FRSLeadPages\frs_normalize_upload_url( $simple_avatar['full'] );
         }
 
         // 4. Check custom_avatar_url meta
         $custom_avatar = get_user_meta( $user_id, 'custom_avatar_url', true );
         if ( ! empty( $custom_avatar ) ) {
-            return $custom_avatar;
+            return \FRSLeadPages\frs_normalize_upload_url( $custom_avatar );
         }
 
         // 5. Check profile_photo meta
         $profile_photo = get_user_meta( $user_id, 'profile_photo', true );
         if ( ! empty( $profile_photo ) ) {
-            return $profile_photo;
+            return \FRSLeadPages\frs_normalize_upload_url( $profile_photo );
         }
 
         // 6. Fallback to Gravatar
-        return get_avatar_url( $user_id, [ 'size' => 200 ] );
+        return \FRSLeadPages\frs_normalize_upload_url( get_avatar_url( $user_id, [ 'size' => 200 ] ) );
     }
 
     /**

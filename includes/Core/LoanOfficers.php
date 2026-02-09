@@ -135,7 +135,7 @@ class LoanOfficers {
                 'phone'     => get_user_meta( $user->ID, 'phone', true ) ?: get_user_meta( $user->ID, 'billing_phone', true ),
                 'nmls'      => $nmls,
                 'title'     => get_user_meta( $user->ID, 'title', true ) ?: get_user_meta( $user->ID, 'job_title', true ) ?: 'Loan Officer',
-                'photo_url' => get_avatar_url( $user->ID, [ 'size' => 200 ] ),
+                'photo_url' => \FRSLeadPages\frs_normalize_upload_url( get_avatar_url( $user->ID, [ 'size' => 200 ] ) ),
                 'arrive'    => $arrive,
                 'active'    => true,
             ];
@@ -239,7 +239,7 @@ class LoanOfficers {
             'phone'     => get_user_meta( $id, 'phone', true ) ?: get_user_meta( $id, 'billing_phone', true ),
             'nmls'      => $nmls,
             'title'     => get_user_meta( $id, 'title', true ) ?: get_user_meta( $id, 'job_title', true ) ?: 'Loan Officer',
-            'photo_url' => get_avatar_url( $id, [ 'size' => 200 ] ),
+            'photo_url' => \FRSLeadPages\frs_normalize_upload_url( get_avatar_url( $id, [ 'size' => 200 ] ) ),
             'arrive'    => $arrive,
             'active'    => true,
         ];

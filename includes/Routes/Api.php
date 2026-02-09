@@ -338,7 +338,7 @@ class Api {
             'nmls'  => \FRSLeadPages\frs_get_user_nmls( $user->ID ),
             'phone' => get_user_meta( $user->ID, 'phone', true ) ?: get_user_meta( $user->ID, 'billing_phone', true ),
             'email' => $user->user_email,
-            'photo' => get_avatar_url( $user->ID, [ 'size' => 200 ] ),
+            'photo' => \FRSLeadPages\frs_normalize_upload_url( get_avatar_url( $user->ID, [ 'size' => 200 ] ) ),
         ];
     }
 
@@ -692,7 +692,8 @@ class Api {
                 return $url;
             }
         }
-        return $meta['_frs_hero_image_url'][0] ?? '';
+        $fallback = $meta['_frs_hero_image_url'][0] ?? '';
+        return $fallback ? \FRSLeadPages\frs_normalize_upload_url( $fallback ) : '';
     }
 
     /**

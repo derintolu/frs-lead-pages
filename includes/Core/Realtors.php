@@ -129,7 +129,7 @@ class Realtors {
                 'license'   => get_user_meta( $user->ID, 'license_number', true ) ?: get_user_meta( $user->ID, 'dre_license', true ),
                 'company'   => get_user_meta( $user->ID, 'company', true ) ?: get_user_meta( $user->ID, 'brokerage', true ),
                 'title'     => get_user_meta( $user->ID, 'title', true ) ?: get_user_meta( $user->ID, 'job_title', true ) ?: 'Sales Associate',
-                'photo_url' => \FRSLeadPages\get_user_photo( $user->ID ) ?: get_avatar_url( $user->ID, [ 'size' => 200 ] ),
+                'photo_url' => \FRSLeadPages\get_user_photo( $user->ID ) ?: \FRSLeadPages\frs_normalize_upload_url( get_avatar_url( $user->ID, [ 'size' => 200 ] ) ),
                 'active'    => true,
             ];
         }, $users );
@@ -200,7 +200,7 @@ class Realtors {
             'license'   => get_user_meta( $id, 'license_number', true ) ?: get_user_meta( $id, 'dre_license', true ),
             'company'   => get_user_meta( $id, 'company', true ) ?: get_user_meta( $id, 'brokerage', true ),
             'title'     => get_user_meta( $id, 'title', true ) ?: get_user_meta( $id, 'job_title', true ) ?: 'Sales Associate',
-            'photo_url' => \FRSLeadPages\get_user_photo( $id ) ?: get_avatar_url( $id, [ 'size' => 200 ] ),
+            'photo_url' => \FRSLeadPages\get_user_photo( $id ) ?: \FRSLeadPages\frs_normalize_upload_url( get_avatar_url( $id, [ 'size' => 200 ] ) ),
             'active'    => true,
         ];
     }

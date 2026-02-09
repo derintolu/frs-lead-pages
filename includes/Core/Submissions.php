@@ -710,7 +710,7 @@ class Submissions {
             'email' => $user->user_email,
             'phone' => get_user_meta( $lo_id, 'phone', true ) ?: get_user_meta( $lo_id, 'billing_phone', true ),
             'nmls'  => \FRSLeadPages\frs_get_user_nmls( $lo_id ),
-            'photo' => get_avatar_url( $lo_id, [ 'size' => 200 ] ),
+            'photo' => \FRSLeadPages\frs_normalize_upload_url( get_avatar_url( $lo_id, [ 'size' => 200 ] ) ),
         ];
     }
 

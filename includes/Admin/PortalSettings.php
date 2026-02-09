@@ -235,7 +235,7 @@ class PortalSettings {
                                             <?php foreach ( $all_los as $lo ) : ?>
                                                 <label class="frs-lo-item">
                                                     <input type="checkbox" name="frs_assigned_loan_officers[]" value="<?php echo esc_attr( $lo['id'] ); ?>" <?php checked( in_array( $lo['id'], $assigned_los ) ); ?>>
-                                                    <img src="<?php echo esc_url( $lo['photo_url'] ?? get_avatar_url( $lo['id'] ) ); ?>" alt="" class="frs-lo-photo">
+                                                    <img src="<?php echo esc_url( $lo['photo_url'] ?? \FRSLeadPages\frs_normalize_upload_url( get_avatar_url( $lo['id'] ) ) ); ?>" alt="" class="frs-lo-photo">
                                                     <span class="frs-lo-info">
                                                         <strong><?php echo esc_html( $lo['name'] ); ?></strong>
                                                         <?php if ( ! empty( $lo['nmls'] ) ) : ?>

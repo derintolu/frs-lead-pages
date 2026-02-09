@@ -631,8 +631,9 @@ function esc_vcard( $string ) {
 /**
  * Multisite-aware wp_get_attachment_url.
  *
- * On multisite with centralized media, attachment records may only exist on
- * the main site. This tries the current site first, then the main site.
+ * On multisite with centralized media, WordPress may insert /sites/N/ in
+ * upload URLs even though all files live in a shared /uploads/ directory.
+ * This strips that segment so URLs resolve to the actual file location.
  *
  * @param int $attachment_id Attachment post ID.
  * @return string URL or empty string.
@@ -643,17 +644,14 @@ function frs_get_attachment_url( int $attachment_id ): string {
     }
 
     $url = wp_get_attachment_url( $attachment_id );
-    if ( $url ) {
-        return $url;
-    }
 
-    if ( is_multisite() && get_current_blog_id() !== get_main_site_id() ) {
+    if ( ! $url && is_multisite() && get_current_blog_id() !== get_main_site_id() ) {
         switch_to_blog( get_main_site_id() );
         $url = wp_get_attachment_url( $attachment_id );
         restore_current_blog();
     }
 
-    return $url ?: '';
+    return $url ? frs_normalize_upload_url( $url ) : '';
 }
 
 /**
@@ -669,17 +667,31 @@ function frs_get_attachment_image_url( int $attachment_id, string $size = 'full'
     }
 
     $url = wp_get_attachment_image_url( $attachment_id, $size );
-    if ( $url ) {
-        return $url;
-    }
 
-    if ( is_multisite() && get_current_blog_id() !== get_main_site_id() ) {
+    if ( ! $url && is_multisite() && get_current_blog_id() !== get_main_site_id() ) {
         switch_to_blog( get_main_site_id() );
         $url = wp_get_attachment_image_url( $attachment_id, $size );
         restore_current_blog();
     }
 
-    return $url ?: '';
+    return $url ? frs_normalize_upload_url( $url ) : '';
+}
+
+/**
+ * Strip /sites/N/ from multisite upload URLs.
+ *
+ * Centralized media libraries store all files in /uploads/ without
+ * per-site subdirectories, but WordPress still generates URLs with
+ * /sites/N/. This normalizes them.
+ *
+ * @param string $url The URL to normalize.
+ * @return string Normalized URL.
+ */
+function frs_normalize_upload_url( string $url ): string {
+    if ( is_multisite() ) {
+        $url = preg_replace( '#/uploads/sites/\d+/#', '/uploads/', $url );
+    }
+    return $url;
 }
 
 /**
@@ -704,25 +716,25 @@ function get_user_photo( $user_id ) {
     // Check user_profile_photo meta (SureDash)
     $suredash_photo = get_user_meta( $user_id, 'user_profile_photo', true );
     if ( ! empty( $suredash_photo ) ) {
-        return $suredash_photo;
+        return frs_normalize_upload_url( $suredash_photo );
     }
 
     // Check Simple Local Avatars
     $simple_avatar = get_user_meta( $user_id, 'simple_local_avatar', true );
     if ( ! empty( $simple_avatar ) && ! empty( $simple_avatar['full'] ) ) {
-        return $simple_avatar['full'];
+        return frs_normalize_upload_url( $simple_avatar['full'] );
     }
 
     // Check custom_avatar_url meta
     $custom_avatar = get_user_meta( $user_id, 'custom_avatar_url', true );
     if ( ! empty( $custom_avatar ) ) {
-        return $custom_avatar;
+        return frs_normalize_upload_url( $custom_avatar );
     }
 
     // Check profile_photo meta
     $profile_photo = get_user_meta( $user_id, 'profile_photo', true );
     if ( ! empty( $profile_photo ) ) {
-        return $profile_photo;
+        return frs_normalize_upload_url( $profile_photo );
     }
 
     return '';

@@ -89,7 +89,7 @@ class UserMode {
             'name'  => $user->display_name,
             'email' => $user->user_email,
             'phone' => get_user_meta( $user->ID, 'phone', true ) ?: get_user_meta( $user->ID, 'mobile_phone', true ) ?: get_user_meta( $user->ID, 'billing_phone', true ),
-            'photo' => \FRSLeadPages\get_user_photo( $user->ID ) ?: get_avatar_url( $user->ID, [ 'size' => 200 ] ),
+            'photo' => \FRSLeadPages\get_user_photo( $user->ID ) ?: \FRSLeadPages\frs_normalize_upload_url( get_avatar_url( $user->ID, [ 'size' => 200 ] ) ),
             'mode'  => $mode,
         ];
 

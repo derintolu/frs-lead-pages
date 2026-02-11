@@ -5,7 +5,9 @@
 (function() {
     'use strict';
 
-    const API_BASE = '/wp-json/frs-lead-pages/v1';
+    const API_BASE = (typeof frsLeadPages !== 'undefined' && frsLeadPages.apiBase)
+        ? frsLeadPages.apiBase.replace(/\/$/, '')
+        : '/wp-json/frs-lead-pages/v1';
 
     // Initialize all forms
     document.querySelectorAll('.frs-lead-form').forEach(initForm);

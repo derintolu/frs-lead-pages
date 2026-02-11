@@ -78,6 +78,9 @@ class Template {
         // Enqueue form handler
         $forms_url = plugins_url( 'forms/', FRS_LEAD_PAGES_PLUGIN_FILE );
         wp_enqueue_script( 'frs-lead-form-handler', $forms_url . 'form-handler.js', [], $version, true );
+        wp_localize_script( 'frs-lead-form-handler', 'frsLeadPages', [
+            'apiBase' => esc_url_raw( rest_url( 'frs-lead-pages/v1' ) ),
+        ] );
     }
 
     /**

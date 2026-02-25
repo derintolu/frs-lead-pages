@@ -762,8 +762,8 @@ function get_21c_logo_url(): string {
         return $custom_logo_url;
     }
     
-    // Default: use plugin asset
-    return plugins_url( 'assets/images/21c-logo.svg', __FILE__ );
+    // Default: use uploads path
+    return content_url( '/uploads/2025/09/21C-Wordmark-White.svg' );
 }
 
 /**

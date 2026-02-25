@@ -147,7 +147,7 @@ class Template {
         $realtor_id = get_post_meta( $page_id, '_frs_realtor_id', true );
 
         // Get LO data
-        $lo_data = self::get_lo_data( $lo_id );
+        $lo_data = self::get_lo_data( $lo_id, $page_id );
 
         // Get Realtor data
         $realtor_data = self::get_realtor_data( $realtor_id, $page_id );
@@ -210,10 +210,11 @@ class Template {
     /**
      * Get LO data from user ID
      *
-     * @param int|string $lo_id User ID
+     * @param int|string $lo_id   User ID
+     * @param int        $page_id Page ID for page-specific photo override
      * @return array
      */
-    private static function get_lo_data( $lo_id ): array {
+    private static function get_lo_data( $lo_id, int $page_id = 0 ): array {
         if ( ! $lo_id ) {
             return [];
         }
@@ -221,6 +222,20 @@ class Template {
         $lo_user = get_user_by( 'ID', $lo_id );
         if ( ! $lo_user ) {
             return [];
+        }
+
+        // Check for page-specific LO photo first (from wizard upload in BUG #7 fix)
+        $photo = '';
+        if ( $page_id ) {
+            $page_photo = get_post_meta( $page_id, '_frs_lo_photo', true );
+            if ( $page_photo ) {
+                $photo = $page_photo;
+            }
+        }
+        
+        // Fall back to user's default photo if no page-specific override
+        if ( empty( $photo ) ) {
+            $photo = self::get_user_photo( $lo_id );
         }
 
         return [
@@ -233,7 +248,7 @@ class Template {
             'nmls'       => \FRSLeadPages\frs_get_user_nmls( $lo_id ),
             'title'      => get_user_meta( $lo_id, 'job_title', true ) ?: 'Loan Officer',
             'company'    => '21st Century Lending',
-            'photo'      => self::get_user_photo( $lo_id ),
+            'photo'      => $photo,
         ];
     }
 
@@ -248,6 +263,15 @@ class Template {
         if ( $realtor_id ) {
             $realtor_user = get_user_by( 'ID', $realtor_id );
             if ( $realtor_user ) {
+                // Check for page-specific realtor photo first (from wizard upload in BUG #7 fix)
+                $photo = '';
+                $page_photo = get_post_meta( $page_id, '_frs_realtor_photo', true );
+                if ( $page_photo ) {
+                    $photo = $page_photo;
+                } else {
+                    $photo = self::get_user_photo( $realtor_id );
+                }
+                
                 return [
                     'id'         => $realtor_id,
                     'name'       => $realtor_user->display_name,
@@ -258,7 +282,7 @@ class Template {
                     'title'      => get_user_meta( $realtor_id, 'job_title', true ) ?: 'Sales Associate',
                     'license'    => get_user_meta( $realtor_id, 'license_number', true ) ?: get_user_meta( $realtor_id, 'dre_license', true ),
                     'company'    => get_user_meta( $realtor_id, 'company', true ) ?: get_user_meta( $realtor_id, 'brokerage', true ) ?: '',
-                    'photo'      => self::get_user_photo( $realtor_id ),
+                    'photo'      => $photo,
                 ];
             }
         }

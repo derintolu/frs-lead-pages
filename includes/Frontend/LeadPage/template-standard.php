@@ -80,7 +80,10 @@ $calendar_urls = Template::get_calendar_urls( $data );
 ] ) ); ?>">
     <div class="lead-page__hero">
         <?php if ( $hero_image_url ) : ?>
-            <img src="<?php echo esc_url( $hero_image_url ); ?>" alt="" class="lead-page__hero-image">
+            <img src="<?php echo esc_url( $hero_image_url ); ?>" 
+                 alt="" 
+                 class="lead-page__hero-image"
+                 onerror="this.style.display='none';">
         <?php endif; ?>
         <div class="lead-page__hero-overlay"></div>
 
@@ -94,7 +97,7 @@ $calendar_urls = Template::get_calendar_urls( $data );
                         </div>
                     <?php endif; ?>
                     <div class="lead-page__company-logo lead-page__company-logo--dark">
-                        <img src="<?php echo esc_url( content_url( '/uploads/2025/09/21C-Wordmark-White.svg' ) ); ?>" alt="21st Century Lending">
+                        <img src="<?php echo esc_url( \FRSLeadPages\get_21c_logo_url() ); ?>" alt="21st Century Lending">
                     </div>
                 </div>
             </div>
@@ -227,7 +230,10 @@ $calendar_urls = Template::get_calendar_urls( $data );
                 ?>
                 <div class="lead-page__agent-card-light">
                     <?php if ( ! empty( $lo_data['photo'] ) ) : ?>
-                        <img src="<?php echo esc_url( $lo_data['photo'] ); ?>" alt="<?php echo esc_attr( $lo_data['name'] ); ?>" class="lead-page__agent-photo">
+                        <img src="<?php echo esc_url( $lo_data['photo'] ); ?>" 
+                             alt="<?php echo esc_attr( $lo_data['name'] ); ?>" 
+                             class="lead-page__agent-photo"
+                             onerror="this.style.display='none';">
                     <?php endif; ?>
                     <div class="lead-page__agent-info">
                         <h4><?php echo esc_html( $lo_data['name'] ); ?></h4>
@@ -255,7 +261,10 @@ $calendar_urls = Template::get_calendar_urls( $data );
                 ?>
                 <div class="lead-page__agent-card-light">
                     <?php if ( ! empty( $realtor_data['photo'] ) ) : ?>
-                        <img src="<?php echo esc_url( $realtor_data['photo'] ); ?>" alt="<?php echo esc_attr( $realtor_data['name'] ); ?>" class="lead-page__agent-photo">
+                        <img src="<?php echo esc_url( $realtor_data['photo'] ); ?>" 
+                             alt="<?php echo esc_attr( $realtor_data['name'] ); ?>" 
+                             class="lead-page__agent-photo"
+                             onerror="this.style.display='none';">
                     <?php endif; ?>
                     <div class="lead-page__agent-info">
                         <h4><?php echo esc_html( $realtor_data['name'] ); ?></h4>

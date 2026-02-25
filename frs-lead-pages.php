@@ -580,15 +580,61 @@ function handle_vcard_download() {
     }
 
     // Photo (base64 encoded if available)
+    // SECURITY: Only allow local WordPress uploads to prevent SSRF
     if ( ! empty( $contact['photo'] ) && filter_var( $contact['photo'], FILTER_VALIDATE_URL ) ) {
-        $photo_data = @file_get_contents( $contact['photo'] );
-        if ( $photo_data ) {
-            $photo_base64 = base64_encode( $photo_data );
-            $photo_type = 'JPEG';
-            if ( strpos( $contact['photo'], '.png' ) !== false ) {
-                $photo_type = 'PNG';
+        $upload_dir = wp_upload_dir();
+        $is_local = ( strpos( $contact['photo'], $upload_dir['baseurl'] ) === 0 );
+        
+        // Only process local WordPress uploads or known trusted attachment URLs
+        if ( $is_local || strpos( $contact['photo'], home_url() ) === 0 ) {
+            // Use wp_safe_remote_get with timeout and size limits
+            $response = wp_safe_remote_get( $contact['photo'], [
+                'timeout'    => 5,
+                'sslverify'  => true,
+                'stream'     => true,
+                'filename'   => wp_tempnam(),
+            ] );
+            
+            if ( ! is_wp_error( $response ) ) {
+                $status = wp_remote_retrieve_response_code( $response );
+                $content_type = wp_remote_retrieve_header( $response, 'content-type' );
+                
+                // Validate response
+                if ( $status === 200 && $content_type ) {
+                    // Only allow image MIME types
+                    $allowed_types = [ 'image/jpeg', 'image/png', 'image/gif', 'image/webp' ];
+                    $is_image = false;
+                    
+                    foreach ( $allowed_types as $type ) {
+                        if ( strpos( $content_type, $type ) === 0 ) {
+                            $is_image = true;
+                            break;
+                        }
+                    }
+                    
+                    if ( $is_image ) {
+                        $photo_data = wp_remote_retrieve_body( $response );
+                        $photo_size = strlen( $photo_data );
+                        
+                        // Max 5MB for photos
+                        if ( $photo_size > 0 && $photo_size < 5242880 ) {
+                            $photo_base64 = base64_encode( $photo_data );
+                            
+                            // Use actual MIME type from headers, not extension
+                            $photo_type = 'JPEG';
+                            if ( strpos( $content_type, 'png' ) !== false ) {
+                                $photo_type = 'PNG';
+                            } elseif ( strpos( $content_type, 'gif' ) !== false ) {
+                                $photo_type = 'GIF';
+                            } elseif ( strpos( $content_type, 'webp' ) !== false ) {
+                                $photo_type = 'WEBP';
+                            }
+                            
+                            $vcard .= "PHOTO;ENCODING=b;TYPE=" . $photo_type . ":" . $photo_base64 . "\r\n";
+                        }
+                    }
+                }
             }
-            $vcard .= "PHOTO;ENCODING=b;TYPE=" . $photo_type . ":" . $photo_base64 . "\r\n";
         }
     }
 
@@ -692,6 +738,32 @@ function frs_normalize_upload_url( string $url ): string {
         $url = preg_replace( '#/uploads/sites/\d+/#', '/uploads/', $url );
     }
     return $url;
+}
+
+/**
+ * Get 21st Century Lending logo URL
+ * Can be overridden via admin settings or defaults to plugin asset
+ *
+ * @return string Logo URL
+ */
+function get_21c_logo_url(): string {
+    // Check if admin has set a custom logo
+    $custom_logo_id = get_option( 'frs_lead_pages_21c_logo_id' );
+    if ( $custom_logo_id ) {
+        $url = wp_get_attachment_image_url( absint( $custom_logo_id ), 'full' );
+        if ( $url ) {
+            return $url;
+        }
+    }
+    
+    // Fall back to custom URL if set
+    $custom_logo_url = get_option( 'frs_lead_pages_21c_logo_url' );
+    if ( ! empty( $custom_logo_url ) ) {
+        return $custom_logo_url;
+    }
+    
+    // Default: use plugin asset
+    return plugins_url( 'assets/images/21c-logo.svg', __FILE__ );
 }
 
 /**

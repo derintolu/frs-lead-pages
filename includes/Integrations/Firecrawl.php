@@ -111,8 +111,15 @@ class Firecrawl {
             if ( stripos( $img, 'icon' ) !== false ) return false;
             if ( stripos( $img, 'avatar' ) !== false ) return false;
             if ( stripos( $img, 'profile' ) !== false ) return false;
+            if ( stripos( $img, 'badge' ) !== false ) return false;
+            if ( stripos( $img, 'watermark' ) !== false ) return false;
+            if ( stripos( $img, 'pixel' ) !== false ) return false;
+            if ( stripos( $img, 'tracking' ) !== false ) return false;
             return true;
         });
+
+        // Validate and filter images - ensure they're accessible
+        $validated_images = self::validate_images( array_values( $property_images ) );
 
         return [
             'address'    => $extract['address'] ?? '',
@@ -123,7 +130,7 @@ class Firecrawl {
             'year_built' => (int) ( $extract['year_built'] ?? 0 ),
             'lot_size'   => $extract['lot_size'] ?? '',
             'mls_number' => $extract['mls_number'] ?? '',
-            'images'     => array_values( array_slice( $property_images, 0, 3 ) ),
+            'images'     => array_slice( $validated_images, 0, 3 ),
             'source_url' => $url,
         ];
     }
@@ -197,5 +204,86 @@ class Firecrawl {
         }
 
         return new \WP_Error( 'not_found', 'Could not find property listing' );
+    }
+
+    /**
+     * Validate image URLs are accessible and are actual images
+     *
+     * @param array $urls Image URLs to validate
+     * @return array Validated URLs only
+     */
+    private static function validate_images( array $urls ): array {
+        $validated = [];
+        $real_estate_cdns = [
+            'zillowstatic.com',
+            'zillow.com',
+            'redfin.com',
+            'realtor.com',
+            'trulia.com',
+            'imgix.net',
+            'cloudinary.com',
+        ];
+
+        foreach ( $urls as $url ) {
+            // Basic URL validation
+            if ( ! filter_var( $url, FILTER_VALIDATE_URL ) ) {
+                continue;
+            }
+
+            // Check if URL is from known real estate CDNs (security check)
+            $is_known_source = false;
+            foreach ( $real_estate_cdns as $cdn ) {
+                if ( stripos( $url, $cdn ) !== false ) {
+                    $is_known_source = true;
+                    break;
+                }
+            }
+            if ( ! $is_known_source ) {
+                continue;  // Skip URLs from unknown sources
+            }
+
+            // Skip obvious non-image file types
+            $path_lower = strtolower( parse_url( $url, PHP_URL_PATH ) );
+            if ( preg_match( '/\.(gif|svg|webp)$/i', $path_lower ) ) {
+                continue;  // GIFs often tracking pixels, SVG often logos, WebP less reliable
+            }
+
+            // Verify image is accessible with HEAD request
+            $response = wp_remote_head( $url, [
+                'timeout'   => 5,
+                'sslverify' => true,
+                'redirection' => 2,
+            ] );
+
+            if ( is_wp_error( $response ) ) {
+                continue;  // URL not accessible
+            }
+
+            $status = wp_remote_retrieve_response_code( $response );
+            if ( $status !== 200 ) {
+                continue;  // Not found or redirected
+            }
+
+            // Check MIME type from headers
+            $content_type = wp_remote_retrieve_header( $response, 'content-type' );
+            if ( ! $content_type || ! in_array( $content_type, [
+                'image/jpeg',
+                'image/png',
+                'image/jpg',
+            ], true ) ) {
+                continue;  // Not a valid image type
+            }
+
+            // Check Content-Length to skip tracking pixels (typically < 100 bytes)
+            $content_length = wp_remote_retrieve_header( $response, 'content-length' );
+            if ( $content_length && absint( $content_length ) < 100 ) {
+                continue;  // Likely a tracking pixel
+            }
+
+            // If all checks pass, add to validated list
+            $validated[] = $url;
+        }
+
+        return $validated;
     }
 }

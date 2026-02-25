@@ -581,6 +581,26 @@ class Wizard {
                                 </div>
                             </div>
 
+                            <!-- Photo Upload -->
+                            <div class="oh-field" style="margin-top: 24px;">
+                                <label class="oh-label">Your Photo (Optional)</label>
+                                <div class="oh-photo-upload" id="oh-lo-photo-upload" style="border: 2px dashed #cbd5e1; padding: 20px; border-radius: 8px; text-align: center; cursor: pointer;">
+                                    <input type="file" id="oh-lo-photo-file" accept="image/*" style="display: none;">
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin: 0 auto 8px; opacity: 0.5;">
+                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                        <polyline points="21 15 16 10 5 21"></polyline>
+                                    </svg>
+                                    <p style="margin: 0; font-weight: 500;">Click to upload or drag and drop</p>
+                                    <p style="margin: 4px 0 0 0; font-size: 12px; color: #94a3b8;">PNG, JPG or GIF (max 5MB)</p>
+                                </div>
+                                <div id="oh-lo-photo-preview" style="margin-top: 12px; display: none;">
+                                    <img id="oh-lo-photo-preview-img" src="" alt="Preview" style="width: 100px; height: 100px; border-radius: 8px; object-fit: cover;">
+                                    <button type="button" id="oh-lo-photo-remove" class="oh-btn oh-btn--ghost oh-btn--sm" style="margin-left: 12px;">Remove</button>
+                                </div>
+                                <input type="hidden" id="oh-lo-photo-url" value="">
+                            </div>
+
                             <p class="oh-section-label" style="margin-top:24px;">Realtor Partner (from Step 1)</p>
                             <div id="oh-partner-preview" class="oh-lo-preview">
                                 <p style="color:#94a3b8;font-size:14px;margin:0;" id="oh-no-partner-msg">No realtor partner selected (solo page)</p>
@@ -606,6 +626,26 @@ class Wizard {
                                     <label class="oh-label">Email</label>
                                     <input type="email" id="oh-realtor-email" class="oh-input" value="<?php echo esc_attr( $user_data['email'] ); ?>">
                                 </div>
+                            </div>
+
+                            <!-- Photo Upload -->
+                            <div class="oh-field" style="margin-top: 24px;">
+                                <label class="oh-label">Your Photo (Optional)</label>
+                                <div class="oh-photo-upload" id="oh-realtor-photo-upload" style="border: 2px dashed #cbd5e1; padding: 20px; border-radius: 8px; text-align: center; cursor: pointer;">
+                                    <input type="file" id="oh-realtor-photo-file" accept="image/*" style="display: none;">
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin: 0 auto 8px; opacity: 0.5;">
+                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                        <polyline points="21 15 16 10 5 21"></polyline>
+                                    </svg>
+                                    <p style="margin: 0; font-weight: 500;">Click to upload or drag and drop</p>
+                                    <p style="margin: 4px 0 0 0; font-size: 12px; color: #94a3b8;">PNG, JPG or GIF (max 5MB)</p>
+                                </div>
+                                <div id="oh-realtor-photo-preview" style="margin-top: 12px; display: none;">
+                                    <img id="oh-realtor-photo-preview-img" src="" alt="Preview" style="width: 100px; height: 100px; border-radius: 8px; object-fit: cover;">
+                                    <button type="button" id="oh-realtor-photo-remove" class="oh-btn oh-btn--ghost oh-btn--sm" style="margin-left: 12px;">Remove</button>
+                                </div>
+                                <input type="hidden" id="oh-realtor-photo-url" value="">
                             </div>
 
                             <p class="oh-section-label" style="margin-top:24px;">Loan Officer (from Step 1)</p>
@@ -1675,7 +1715,8 @@ class Wizard {
                             loName: document.getElementById("oh-lo-name")?.value || "",
                             loNmls: document.getElementById("oh-lo-nmls")?.value || "",
                             loPhone: document.getElementById("oh-lo-phone")?.value || "",
-                            loEmail: document.getElementById("oh-lo-email")?.value || ""
+                            loEmail: document.getElementById("oh-lo-email")?.value || "",
+                            loPhoto: document.getElementById("oh-lo-photo-url")?.value || ""
                         };
                     } else {
                         // Realtor mode: capture realtor info
@@ -1683,7 +1724,8 @@ class Wizard {
                             realtorName: document.getElementById("oh-realtor-name")?.value || "",
                             realtorLicense: document.getElementById("oh-realtor-license")?.value || "",
                             realtorPhone: document.getElementById("oh-realtor-phone")?.value || "",
-                            realtorEmail: document.getElementById("oh-realtor-email")?.value || ""
+                            realtorEmail: document.getElementById("oh-realtor-email")?.value || "",
+                            realtorPhoto: document.getElementById("oh-realtor-photo-url")?.value || ""
                         };
                     }
                     console.log("OH Wizard: Branding data:", data.branding);
@@ -1947,6 +1989,87 @@ class Wizard {
                 }
             });
 
+            // Photo upload handlers
+            function setupPhotoUpload(photoType) {
+                // photoType: "lo" or "realtor"
+                const uploadDiv = document.getElementById("oh-" + photoType + "-photo-upload");
+                const fileInput = document.getElementById("oh-" + photoType + "-photo-file");
+                const preview = document.getElementById("oh-" + photoType + "-photo-preview");
+                const previewImg = document.getElementById("oh-" + photoType + "-photo-preview-img");
+                const removeBtn = document.getElementById("oh-" + photoType + "-photo-remove");
+                const photoUrlInput = document.getElementById("oh-" + photoType + "-photo-url");
+
+                if (!uploadDiv || !fileInput) return;
+
+                // Click to upload
+                uploadDiv.addEventListener("click", () => fileInput.click());
+
+                // Drag and drop
+                uploadDiv.addEventListener("dragover", (e) => {
+                    e.preventDefault();
+                    uploadDiv.style.borderColor = "#0ea5e9";
+                    uploadDiv.style.backgroundColor = "rgba(14, 165, 233, 0.05)";
+                });
+
+                uploadDiv.addEventListener("dragleave", () => {
+                    uploadDiv.style.borderColor = "#cbd5e1";
+                    uploadDiv.style.backgroundColor = "transparent";
+                });
+
+                uploadDiv.addEventListener("drop", (e) => {
+                    e.preventDefault();
+                    uploadDiv.style.borderColor = "#cbd5e1";
+                    uploadDiv.style.backgroundColor = "transparent";
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        fileInput.files = files;
+                        fileInput.dispatchEvent(new Event("change", { bubbles: true }));
+                    }
+                });
+
+                // File selection
+                fileInput.addEventListener("change", (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+
+                    // Validate file type
+                    if (!file.type.match(/image\/(jpeg|png|gif|webp)/)) {
+                        alert("Please upload an image file (PNG, JPG, GIF, or WebP)");
+                        return;
+                    }
+
+                    // Validate file size (5MB max)
+                    if (file.size > 5242880) {
+                        alert("File size must be less than 5MB");
+                        return;
+                    }
+
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        const dataUrl = ev.target.result;
+                        photoUrlInput.value = dataUrl;
+                        previewImg.src = dataUrl;
+                        preview.style.display = "flex";
+                        preview.style.alignItems = "center";
+                        uploadDiv.style.display = "none";
+                    };
+                    reader.readAsDataURL(file);
+                });
+
+                // Remove photo
+                if (removeBtn) {
+                    removeBtn.addEventListener("click", () => {
+                        fileInput.value = "";
+                        photoUrlInput.value = "";
+                        preview.style.display = "none";
+                        uploadDiv.style.display = "block";
+                    });
+                }
+            }
+
+            setupPhotoUpload("lo");
+            setupPhotoUpload("realtor");
+
             showStep(0);
             console.log("OH Wizard: Initialization complete");
         });
@@ -2030,6 +2153,11 @@ class Wizard {
             update_post_meta( $page_id, '_frs_lo_phone', $data['branding']['loPhone'] ?? '' );
             update_post_meta( $page_id, '_frs_lo_email', $data['branding']['loEmail'] ?? '' );
             update_post_meta( $page_id, '_frs_lo_nmls', $data['branding']['loNmls'] ?? '' );
+            
+            // LO Photo (new feature - custom photo upload)
+            if ( ! empty( $data['branding']['loPhoto'] ) ) {
+                update_post_meta( $page_id, '_frs_lo_photo', $data['branding']['loPhoto'] );
+            }
 
             // Optional Realtor partner
             if ( ! empty( $data['partner']['id'] ) ) {
@@ -2039,6 +2167,11 @@ class Wizard {
                 update_post_meta( $page_id, '_frs_realtor_email', $data['partner']['email'] ?? '' );
                 update_post_meta( $page_id, '_frs_realtor_license', $data['partner']['license'] ?? '' );
                 update_post_meta( $page_id, '_frs_realtor_company', $data['partner']['company'] ?? '' );
+                
+                // Realtor Photo (new feature - custom photo upload for partner)
+                if ( ! empty( $data['branding']['realtorPhoto'] ) ) {
+                    update_post_meta( $page_id, '_frs_realtor_photo', $data['branding']['realtorPhoto'] );
+                }
             }
         } else {
             // Realtor Mode: Current user is the Realtor, partner is required LO
@@ -2047,11 +2180,21 @@ class Wizard {
             update_post_meta( $page_id, '_frs_realtor_phone', $data['branding']['realtorPhone'] ?? '' );
             update_post_meta( $page_id, '_frs_realtor_email', $data['branding']['realtorEmail'] ?? '' );
             update_post_meta( $page_id, '_frs_realtor_license', $data['branding']['realtorLicense'] ?? '' );
+            
+            // Realtor Photo (new feature - custom photo upload)
+            if ( ! empty( $data['branding']['realtorPhoto'] ) ) {
+                update_post_meta( $page_id, '_frs_realtor_photo', $data['branding']['realtorPhoto'] );
+            }
 
             // LO partner (required for realtor mode, but might use legacy data structure)
             $lo_id = $data['partner']['id'] ?? $data['loanOfficer']['id'] ?? '';
             if ( ! empty( $lo_id ) ) {
                 update_post_meta( $page_id, '_frs_loan_officer_id', $lo_id );
+                
+                // LO Photo (new feature - custom photo upload for partner)
+                if ( ! empty( $data['branding']['loPhoto'] ) ) {
+                    update_post_meta( $page_id, '_frs_lo_photo', $data['branding']['loPhoto'] );
+                }
             }
         }
 

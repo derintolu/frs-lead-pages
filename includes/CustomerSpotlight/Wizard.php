@@ -489,6 +489,26 @@ Smooth closing process"></textarea>
                                 </div>
                             </div>
 
+                            <!-- Photo Upload -->
+                            <div class="cs-field" style="margin-top: 24px;">
+                                <label class="cs-label">Your Photo (Optional)</label>
+                                <div class="cs-photo-upload" id="cs-lo-photo-upload" style="border: 2px dashed #cbd5e1; padding: 20px; border-radius: 8px; text-align: center; cursor: pointer;">
+                                    <input type="file" id="cs-lo-photo-file" accept="image/*" style="display: none;">
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin: 0 auto 8px; opacity: 0.5;">
+                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                        <polyline points="21 15 16 10 5 21"></polyline>
+                                    </svg>
+                                    <p style="margin: 0; font-weight: 500;">Click to upload or drag and drop</p>
+                                    <p style="margin: 4px 0 0 0; font-size: 12px; color: #94a3b8;">PNG, JPG or GIF (max 5MB)</p>
+                                </div>
+                                <div id="cs-lo-photo-preview" style="margin-top: 12px; display: none;">
+                                    <img id="cs-lo-photo-preview-img" src="" alt="Preview" style="width: 100px; height: 100px; border-radius: 8px; object-fit: cover;">
+                                    <button type="button" id="cs-lo-photo-remove" class="cs-btn cs-btn--ghost cs-btn--sm" style="margin-left: 12px;">Remove</button>
+                                </div>
+                                <input type="hidden" id="cs-lo-photo-url" value="">
+                            </div>
+
                             <p class="cs-section-label" style="margin-top:24px;">Realtor Partner (from Step 1)</p>
                             <div id="cs-partner-preview" class="cs-lo-preview">
                                 <p style="color:#94a3b8;font-size:14px;margin:0;" id="cs-no-partner-msg">No realtor partner selected (solo page)</p>
@@ -514,6 +534,26 @@ Smooth closing process"></textarea>
                                     <label class="cs-label">Email</label>
                                     <input type="email" id="cs-realtor-email" class="cs-input" value="<?php echo esc_attr( $user_data['email'] ); ?>">
                                 </div>
+                            </div>
+
+                            <!-- Photo Upload -->
+                            <div class="cs-field" style="margin-top: 24px;">
+                                <label class="cs-label">Your Photo (Optional)</label>
+                                <div class="cs-photo-upload" id="cs-realtor-photo-upload" style="border: 2px dashed #cbd5e1; padding: 20px; border-radius: 8px; text-align: center; cursor: pointer;">
+                                    <input type="file" id="cs-realtor-photo-file" accept="image/*" style="display: none;">
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin: 0 auto 8px; opacity: 0.5;">
+                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                        <polyline points="21 15 16 10 5 21"></polyline>
+                                    </svg>
+                                    <p style="margin: 0; font-weight: 500;">Click to upload or drag and drop</p>
+                                    <p style="margin: 4px 0 0 0; font-size: 12px; color: #94a3b8;">PNG, JPG or GIF (max 5MB)</p>
+                                </div>
+                                <div id="cs-realtor-photo-preview" style="margin-top: 12px; display: none;">
+                                    <img id="cs-realtor-photo-preview-img" src="" alt="Preview" style="width: 100px; height: 100px; border-radius: 8px; object-fit: cover;">
+                                    <button type="button" id="cs-realtor-photo-remove" class="cs-btn cs-btn--ghost cs-btn--sm" style="margin-left: 12px;">Remove</button>
+                                </div>
+                                <input type="hidden" id="cs-realtor-photo-url" value="">
                             </div>
 
                             <p class="cs-section-label" style="margin-top:24px;">Loan Officer (from Step 1)</p>
@@ -1630,14 +1670,16 @@ Smooth closing process"></textarea>
                             loName: document.getElementById("cs-lo-name")?.value || "",
                             loNmls: document.getElementById("cs-lo-nmls")?.value || "",
                             loPhone: document.getElementById("cs-lo-phone")?.value || "",
-                            loEmail: document.getElementById("cs-lo-email")?.value || ""
+                            loEmail: document.getElementById("cs-lo-email")?.value || "",
+                            loPhoto: document.getElementById("cs-lo-photo-url")?.value || ""
                         };
                     } else {
                         data.branding = {
                             realtorName: document.getElementById("cs-realtor-name")?.value || "",
                             realtorLicense: document.getElementById("cs-realtor-license")?.value || "",
                             realtorPhone: document.getElementById("cs-realtor-phone")?.value || "",
-                            realtorEmail: document.getElementById("cs-realtor-email")?.value || ""
+                            realtorEmail: document.getElementById("cs-realtor-email")?.value || "",
+                            realtorPhoto: document.getElementById("cs-realtor-photo-url")?.value || ""
                         };
                     }
                 }
@@ -1768,6 +1810,87 @@ Smooth closing process"></textarea>
                 }
             });
 
+            // Photo upload handlers
+            function setupPhotoUpload(photoType) {
+                // photoType: "lo" or "realtor"
+                const uploadDiv = document.getElementById("cs-" + photoType + "-photo-upload");
+                const fileInput = document.getElementById("cs-" + photoType + "-photo-file");
+                const preview = document.getElementById("cs-" + photoType + "-photo-preview");
+                const previewImg = document.getElementById("cs-" + photoType + "-photo-preview-img");
+                const removeBtn = document.getElementById("cs-" + photoType + "-photo-remove");
+                const photoUrlInput = document.getElementById("cs-" + photoType + "-photo-url");
+
+                if (!uploadDiv || !fileInput) return;
+
+                // Click to upload
+                uploadDiv.addEventListener("click", () => fileInput.click());
+
+                // Drag and drop
+                uploadDiv.addEventListener("dragover", (e) => {
+                    e.preventDefault();
+                    uploadDiv.style.borderColor = "#10b981";
+                    uploadDiv.style.backgroundColor = "rgba(16, 185, 129, 0.05)";
+                });
+
+                uploadDiv.addEventListener("dragleave", () => {
+                    uploadDiv.style.borderColor = "#cbd5e1";
+                    uploadDiv.style.backgroundColor = "transparent";
+                });
+
+                uploadDiv.addEventListener("drop", (e) => {
+                    e.preventDefault();
+                    uploadDiv.style.borderColor = "#cbd5e1";
+                    uploadDiv.style.backgroundColor = "transparent";
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        fileInput.files = files;
+                        fileInput.dispatchEvent(new Event("change", { bubbles: true }));
+                    }
+                });
+
+                // File selection
+                fileInput.addEventListener("change", (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+
+                    // Validate file type
+                    if (!file.type.match(/image\/(jpeg|png|gif|webp)/)) {
+                        alert("Please upload an image file (PNG, JPG, GIF, or WebP)");
+                        return;
+                    }
+
+                    // Validate file size (5MB max)
+                    if (file.size > 5242880) {
+                        alert("File size must be less than 5MB");
+                        return;
+                    }
+
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        const dataUrl = ev.target.result;
+                        photoUrlInput.value = dataUrl;
+                        previewImg.src = dataUrl;
+                        preview.style.display = "flex";
+                        preview.style.alignItems = "center";
+                        uploadDiv.style.display = "none";
+                    };
+                    reader.readAsDataURL(file);
+                });
+
+                // Remove photo
+                if (removeBtn) {
+                    removeBtn.addEventListener("click", () => {
+                        fileInput.value = "";
+                        photoUrlInput.value = "";
+                        preview.style.display = "none";
+                        uploadDiv.style.display = "block";
+                    });
+                }
+            }
+
+            setupPhotoUpload("lo");
+            setupPhotoUpload("realtor");
+
             showStep(0);
         });
         </script>' . InstantImages::render_search_scripts( 'cs', 'cs-hero-image', 'cs-images-grid' );
@@ -1833,6 +1956,11 @@ Smooth closing process"></textarea>
             update_post_meta( $page_id, '_frs_lo_phone', $data['branding']['loPhone'] ?? '' );
             update_post_meta( $page_id, '_frs_lo_email', $data['branding']['loEmail'] ?? '' );
             update_post_meta( $page_id, '_frs_lo_nmls', $data['branding']['loNmls'] ?? '' );
+            
+            // LO Photo (new feature - custom photo upload)
+            if ( ! empty( $data['branding']['loPhoto'] ) ) {
+                update_post_meta( $page_id, '_frs_lo_photo', $data['branding']['loPhoto'] );
+            }
 
             // Optional Realtor partner
             if ( ! empty( $data['partner']['id'] ) ) {
@@ -1842,6 +1970,11 @@ Smooth closing process"></textarea>
                 update_post_meta( $page_id, '_frs_realtor_email', $data['partner']['email'] ?? '' );
                 update_post_meta( $page_id, '_frs_realtor_license', $data['partner']['license'] ?? '' );
                 update_post_meta( $page_id, '_frs_realtor_company', $data['partner']['company'] ?? '' );
+                
+                // Realtor Photo (new feature - custom photo upload for partner)
+                if ( ! empty( $data['branding']['realtorPhoto'] ) ) {
+                    update_post_meta( $page_id, '_frs_realtor_photo', $data['branding']['realtorPhoto'] );
+                }
             }
         } else {
             // Realtor Mode: Current user is the Realtor, partner is required LO
@@ -1850,11 +1983,21 @@ Smooth closing process"></textarea>
             update_post_meta( $page_id, '_frs_realtor_phone', $data['branding']['realtorPhone'] ?? '' );
             update_post_meta( $page_id, '_frs_realtor_email', $data['branding']['realtorEmail'] ?? '' );
             update_post_meta( $page_id, '_frs_realtor_license', $data['branding']['realtorLicense'] ?? '' );
+            
+            // Realtor Photo (new feature - custom photo upload)
+            if ( ! empty( $data['branding']['realtorPhoto'] ) ) {
+                update_post_meta( $page_id, '_frs_realtor_photo', $data['branding']['realtorPhoto'] );
+            }
 
             // LO partner (required for realtor mode)
             $lo_id = $data['partner']['id'] ?? '';
             if ( ! empty( $lo_id ) ) {
                 update_post_meta( $page_id, '_frs_loan_officer_id', $lo_id );
+                
+                // LO Photo (new feature - custom photo upload for partner)
+                if ( ! empty( $data['branding']['loPhoto'] ) ) {
+                    update_post_meta( $page_id, '_frs_lo_photo', $data['branding']['loPhoto'] );
+                }
             }
         }
 

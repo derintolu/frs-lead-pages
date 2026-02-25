@@ -26,6 +26,17 @@ class Settings {
         add_action( 'wp_ajax_frs_lead_pages_retry_webhooks', [ __CLASS__, 'ajax_retry_webhooks' ] );
         add_action( 'wp_ajax_frs_lead_pages_test_firecrawl', [ __CLASS__, 'ajax_test_firecrawl' ] );
         add_action( 'admin_notices', [ __CLASS__, 'firecrawl_admin_notices' ] );
+        add_action( 'admin_enqueue_scripts', [ __CLASS__, 'enqueue_media_uploader' ] );
+    }
+
+    /**
+     * Enqueue media uploader on settings page
+     */
+    public static function enqueue_media_uploader( $hook ) {
+        if ( $hook !== 'frs_lead_page_page_frs-lead-pages-settings' ) {
+            return;
+        }
+        wp_enqueue_media();
     }
 
     /**
@@ -98,6 +109,19 @@ class Settings {
             'default'           => '',
         ] );
 
+        // Logo Settings
+        register_setting( self::OPTION_GROUP, 'frs_lead_pages_21c_logo', [
+            'type'              => 'integer',
+            'sanitize_callback' => 'absint',
+            'default'           => 0,
+        ] );
+
+        register_setting( self::OPTION_GROUP, 'frs_lead_pages_realtor_logo', [
+            'type'              => 'integer',
+            'sanitize_callback' => 'absint',
+            'default'           => 0,
+        ] );
+
         // Branding Section
         add_settings_section(
             'frs_lead_pages_branding_section',
@@ -118,6 +142,22 @@ class Settings {
             'frs_lead_pages_primary_hover',
             __( 'Primary Hover Color', 'frs-lead-pages' ),
             [ __CLASS__, 'render_primary_hover_field' ],
+            'frs-lead-pages-settings',
+            'frs_lead_pages_branding_section'
+        );
+
+        add_settings_field(
+            'frs_lead_pages_21c_logo',
+            __( '21st Century Logo', 'frs-lead-pages' ),
+            [ __CLASS__, 'render_21c_logo_field' ],
+            'frs-lead-pages-settings',
+            'frs_lead_pages_branding_section'
+        );
+
+        add_settings_field(
+            'frs_lead_pages_realtor_logo',
+            __( 'Realtor Partner Logo', 'frs-lead-pages' ),
+            [ __CLASS__, 'render_realtor_logo_field' ],
             'frs-lead-pages-settings',
             'frs_lead_pages_branding_section'
         );
@@ -353,6 +393,40 @@ class Settings {
                     }
                 });
             });
+
+            // Logo upload handlers
+            $('.frs-upload-logo').on('click', function(e) {
+                e.preventDefault();
+                var $container = $(this).closest('.frs-logo-upload');
+                var $input = $container.find('input[type="hidden"]');
+                var $preview = $container.find('.frs-logo-preview');
+                var $removeBtn = $container.find('.frs-remove-logo');
+
+                var frame = wp.media({
+                    title: '<?php _e( 'Select Logo', 'frs-lead-pages' ); ?>',
+                    button: { text: '<?php _e( 'Use This Logo', 'frs-lead-pages' ); ?>' },
+                    multiple: false,
+                    library: { type: 'image' }
+                });
+
+                frame.on('select', function() {
+                    var attachment = frame.state().get('selection').first().toJSON();
+                    $input.val(attachment.id);
+                    $preview.find('img').attr('src', attachment.sizes.medium ? attachment.sizes.medium.url : attachment.url);
+                    $preview.show();
+                    $removeBtn.show();
+                });
+
+                frame.open();
+            });
+
+            $('.frs-remove-logo').on('click', function(e) {
+                e.preventDefault();
+                var $container = $(this).closest('.frs-logo-upload');
+                $container.find('input[type="hidden"]').val('');
+                $container.find('.frs-logo-preview').hide();
+                $(this).hide();
+            });
         });
         </script>
         <?php
@@ -392,6 +466,38 @@ class Settings {
         <input type="color" name="frs_lead_pages_primary_hover" value="<?php echo esc_attr( $value ); ?>" />
         <input type="text" value="<?php echo esc_attr( $value ); ?>" class="small-text" readonly style="margin-left: 8px;" />
         <p class="description"><?php _e( 'Hover state for buttons and interactive elements.', 'frs-lead-pages' ); ?></p>
+        <?php
+    }
+
+    public static function render_21c_logo_field() {
+        $logo_id = get_option( 'frs_lead_pages_21c_logo', 0 );
+        $logo_url = $logo_id ? wp_get_attachment_image_url( $logo_id, 'medium' ) : '';
+        ?>
+        <div class="frs-logo-upload" data-field="frs_lead_pages_21c_logo">
+            <input type="hidden" name="frs_lead_pages_21c_logo" id="frs_lead_pages_21c_logo" value="<?php echo esc_attr( $logo_id ); ?>" />
+            <div class="frs-logo-preview" style="margin-bottom: 10px; <?php echo $logo_url ? '' : 'display:none;'; ?>">
+                <img src="<?php echo esc_url( $logo_url ); ?>" style="max-width: 200px; max-height: 80px; background: #333; padding: 10px; border-radius: 4px;" />
+            </div>
+            <button type="button" class="button frs-upload-logo"><?php _e( 'Select Logo', 'frs-lead-pages' ); ?></button>
+            <button type="button" class="button frs-remove-logo" style="<?php echo $logo_url ? '' : 'display:none;'; ?>"><?php _e( 'Remove', 'frs-lead-pages' ); ?></button>
+            <p class="description"><?php _e( 'Logo displayed on all lead pages. Recommended: white/light logo on transparent background (SVG or PNG).', 'frs-lead-pages' ); ?></p>
+        </div>
+        <?php
+    }
+
+    public static function render_realtor_logo_field() {
+        $logo_id = get_option( 'frs_lead_pages_realtor_logo', 0 );
+        $logo_url = $logo_id ? wp_get_attachment_image_url( $logo_id, 'medium' ) : '';
+        ?>
+        <div class="frs-logo-upload" data-field="frs_lead_pages_realtor_logo">
+            <input type="hidden" name="frs_lead_pages_realtor_logo" id="frs_lead_pages_realtor_logo" value="<?php echo esc_attr( $logo_id ); ?>" />
+            <div class="frs-logo-preview" style="margin-bottom: 10px; <?php echo $logo_url ? '' : 'display:none;'; ?>">
+                <img src="<?php echo esc_url( $logo_url ); ?>" style="max-width: 200px; max-height: 80px; background: #333; padding: 10px; border-radius: 4px;" />
+            </div>
+            <button type="button" class="button frs-upload-logo"><?php _e( 'Select Logo', 'frs-lead-pages' ); ?></button>
+            <button type="button" class="button frs-remove-logo" style="<?php echo $logo_url ? '' : 'display:none;'; ?>"><?php _e( 'Remove', 'frs-lead-pages' ); ?></button>
+            <p class="description"><?php _e( 'Default realtor/partner logo for co-branded pages. Can be overridden per page.', 'frs-lead-pages' ); ?></p>
+        </div>
         <?php
     }
 

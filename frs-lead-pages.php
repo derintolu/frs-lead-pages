@@ -747,23 +747,33 @@ function frs_normalize_upload_url( string $url ): string {
  * @return string Logo URL
  */
 function get_21c_logo_url(): string {
-    // Check if admin has set a custom logo
-    $custom_logo_id = get_option( 'frs_lead_pages_21c_logo_id' );
-    if ( $custom_logo_id ) {
-        $url = wp_get_attachment_image_url( absint( $custom_logo_id ), 'full' );
+    // Check if admin has set a custom logo via settings
+    $logo_id = get_option( 'frs_lead_pages_21c_logo', 0 );
+    if ( $logo_id ) {
+        $url = wp_get_attachment_image_url( absint( $logo_id ), 'full' );
         if ( $url ) {
             return $url;
         }
     }
     
-    // Fall back to custom URL if set
-    $custom_logo_url = get_option( 'frs_lead_pages_21c_logo_url' );
-    if ( ! empty( $custom_logo_url ) ) {
-        return $custom_logo_url;
-    }
-    
     // Default: use uploads path
     return content_url( '/uploads/2025/09/21C-Wordmark-White.svg' );
+}
+
+/**
+ * Get the realtor/partner logo URL
+ *
+ * @return string Logo URL or empty string
+ */
+function get_realtor_logo_url(): string {
+    $logo_id = get_option( 'frs_lead_pages_realtor_logo', 0 );
+    if ( $logo_id ) {
+        $url = wp_get_attachment_image_url( absint( $logo_id ), 'full' );
+        if ( $url ) {
+            return $url;
+        }
+    }
+    return '';
 }
 
 /**

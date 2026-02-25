@@ -28,7 +28,7 @@ $value_props     = $data['value_props'];
 $lo_data         = $data['lo_data'];
 $realtor_data    = $data['realtor_data'];
 $accent_color    = $data['accent_color'];
-$brokerage_logo  = $data['brokerage_logo'];
+$brokerage_logo  = $data['brokerage_logo'] ?: \FRSLeadPages\get_realtor_logo_url();
 
 // Property details (open house)
 $property_address = $data['property_address'];

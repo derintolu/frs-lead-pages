@@ -121,17 +121,23 @@ class Firecrawl {
         // Validate and filter images - ensure they're accessible
         $validated_images = self::validate_images( array_values( $property_images ) );
 
+        // Extract credit usage from response
+        $credits_used = $body['creditsUsed'] ?? null;
+        $credits_remaining = $body['creditsRemaining'] ?? null;
+
         return [
-            'address'    => $extract['address'] ?? '',
-            'price'      => (int) ( $extract['price'] ?? 0 ),
-            'bedrooms'   => (int) ( $extract['bedrooms'] ?? 0 ),
-            'bathrooms'  => (float) ( $extract['bathrooms'] ?? 0 ),
-            'sqft'       => (int) ( $extract['sqft'] ?? 0 ),
-            'year_built' => (int) ( $extract['year_built'] ?? 0 ),
-            'lot_size'   => $extract['lot_size'] ?? '',
-            'mls_number' => $extract['mls_number'] ?? '',
-            'images'     => array_slice( $validated_images, 0, 3 ),
-            'source_url' => $url,
+            'address'           => $extract['address'] ?? '',
+            'price'             => (int) ( $extract['price'] ?? 0 ),
+            'bedrooms'          => (int) ( $extract['bedrooms'] ?? 0 ),
+            'bathrooms'         => (float) ( $extract['bathrooms'] ?? 0 ),
+            'sqft'              => (int) ( $extract['sqft'] ?? 0 ),
+            'year_built'        => (int) ( $extract['year_built'] ?? 0 ),
+            'lot_size'          => $extract['lot_size'] ?? '',
+            'mls_number'        => $extract['mls_number'] ?? '',
+            'images'            => array_slice( $validated_images, 0, 3 ),
+            'source_url'        => $url,
+            'credits_used'      => $credits_used,
+            'credits_remaining' => $credits_remaining,
         ];
     }
 

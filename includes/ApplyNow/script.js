@@ -151,14 +151,14 @@
         });
     }
 
-    // Partner (co-branded) logo upload
-    (function setupPartnerLogoUpload() {
-        var uploadDiv  = document.getElementById('an-partner-photo-upload');
-        var fileInput  = document.getElementById('an-partner-photo-file');
-        var preview    = document.getElementById('an-partner-photo-preview');
-        var previewImg = document.getElementById('an-partner-photo-preview-img');
-        var removeBtn  = document.getElementById('an-partner-photo-remove');
-        var urlInput   = document.getElementById('an-partner-photo-url');
+    // Partner headshot + company logo uploads (separate fields)
+    function setupAnPartnerUpload(suffix) {
+        var uploadDiv  = document.getElementById('an-partner-' + suffix + '-upload');
+        var fileInput  = document.getElementById('an-partner-' + suffix + '-file');
+        var preview    = document.getElementById('an-partner-' + suffix + '-preview');
+        var previewImg = document.getElementById('an-partner-' + suffix + '-preview-img');
+        var removeBtn  = document.getElementById('an-partner-' + suffix + '-remove');
+        var urlInput   = document.getElementById('an-partner-' + suffix + '-url');
         if (!uploadDiv || !fileInput) return;
 
         uploadDiv.addEventListener('click', function() { fileInput.click(); });
@@ -193,7 +193,9 @@
             preview.style.display = 'none';
             uploadDiv.style.display = 'block';
         });
-    })();
+    }
+    setupAnPartnerUpload('photo');
+    setupAnPartnerUpload('logo');
 
     // ===== Schedule Type Cards =====
     var scheduleCards = wizard.querySelectorAll('.an-schedule-card');
@@ -463,10 +465,11 @@
                     return false;
                 }
                 if (pageType && pageType.value === 'cobranded') {
-                    var partnerName  = (document.getElementById('an-partner-name-input')  || {}).value || '';
-                    var partnerEmail = (document.getElementById('an-partner-email-input') || {}).value || '';
-                    var partnerPhone = (document.getElementById('an-partner-phone-input') || {}).value || '';
-                    var partnerLogo  = (document.getElementById('an-partner-photo-url')   || {}).value || '';
+                    var partnerName     = (document.getElementById('an-partner-name-input')  || {}).value || '';
+                    var partnerEmail    = (document.getElementById('an-partner-email-input') || {}).value || '';
+                    var partnerPhone    = (document.getElementById('an-partner-phone-input') || {}).value || '';
+                    var partnerHeadshot = (document.getElementById('an-partner-photo-url')   || {}).value || '';
+                    var partnerLogo     = (document.getElementById('an-partner-logo-url')    || {}).value || '';
                     partnerName  = partnerName.trim();
                     partnerEmail = partnerEmail.trim();
                     partnerPhone = partnerPhone.trim();
@@ -480,7 +483,8 @@
                         name: partnerName,
                         email: partnerEmail,
                         phone: partnerPhone,
-                        photo: partnerLogo,
+                        photo: partnerHeadshot,
+                        logo: partnerLogo,
                         company: '',
                         license: '',
                         nmls: '',
@@ -570,6 +574,7 @@
                 data.partner_phone = selectedPartner.phone;
                 data.partner_email = selectedPartner.email;
                 data.partner_photo = selectedPartner.photo || '';
+                data.partner_logo = selectedPartner.logo || '';
             }
         } else {
             data.realtor_name = (document.getElementById('an-realtor-name') || {}).value || userData.name;

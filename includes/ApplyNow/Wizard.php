@@ -255,11 +255,30 @@ class Wizard {
                                     <input type="email" id="an-partner-email-input" class="an-input" placeholder="jane@realestate.com">
                                 </div>
 
-                                <!-- Company Logo Upload -->
+                                <!-- Partner Headshot Upload -->
                                 <div class="an-field" style="margin-top: 24px;">
-                                    <label class="an-label">Company Logo</label>
+                                    <label class="an-label">Partner Headshot (optional)</label>
                                     <div class="an-photo-upload" id="an-partner-photo-upload" style="border: 2px dashed #cbd5e1; padding: 20px; border-radius: 8px; text-align: center; cursor: pointer;">
                                         <input type="file" id="an-partner-photo-file" accept="image/*" style="display: none;">
+                                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin: 0 auto 8px; opacity: 0.5;">
+                                            <circle cx="12" cy="8" r="4"/>
+                                            <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
+                                        </svg>
+                                        <p style="margin: 0; font-weight: 500;">Click to upload or drag and drop</p>
+                                        <p style="margin: 4px 0 0 0; font-size: 12px; color: #94a3b8;">PNG, JPG or GIF (max 5MB)</p>
+                                    </div>
+                                    <div id="an-partner-photo-preview" style="margin-top: 12px; display: none;">
+                                        <img id="an-partner-photo-preview-img" src="" alt="Headshot preview" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover;">
+                                        <button type="button" id="an-partner-photo-remove" class="an-btn an-btn--ghost an-btn--sm" style="margin-left: 12px;">Remove</button>
+                                    </div>
+                                    <input type="hidden" id="an-partner-photo-url" value="">
+                                </div>
+
+                                <!-- Company Logo Upload -->
+                                <div class="an-field" style="margin-top: 16px;">
+                                    <label class="an-label">Company Logo (optional)</label>
+                                    <div class="an-photo-upload" id="an-partner-logo-upload" style="border: 2px dashed #cbd5e1; padding: 20px; border-radius: 8px; text-align: center; cursor: pointer;">
+                                        <input type="file" id="an-partner-logo-file" accept="image/*" style="display: none;">
                                         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin: 0 auto 8px; opacity: 0.5;">
                                             <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                                             <circle cx="8.5" cy="8.5" r="1.5"></circle>
@@ -268,13 +287,13 @@ class Wizard {
                                         <p style="margin: 0; font-weight: 500;">Click to upload or drag and drop</p>
                                         <p style="margin: 4px 0 0 0; font-size: 12px; color: #94a3b8;">PNG, JPG or GIF (max 5MB)</p>
                                     </div>
-                                    <div id="an-partner-photo-preview" style="margin-top: 12px; display: none;">
-                                        <img id="an-partner-photo-preview-img" src="" alt="Preview" style="width: 120px; height: 120px; border-radius: 8px; object-fit: contain; background: #f8fafc; padding: 8px; border: 1px solid #e2e8f0;">
-                                        <button type="button" id="an-partner-photo-remove" class="an-btn an-btn--ghost an-btn--sm" style="margin-left: 12px;">Remove</button>
+                                    <div id="an-partner-logo-preview" style="margin-top: 12px; display: none;">
+                                        <img id="an-partner-logo-preview-img" src="" alt="Logo preview" style="width: 120px; height: 120px; border-radius: 8px; object-fit: contain; background: #f8fafc; padding: 8px; border: 1px solid #e2e8f0;">
+                                        <button type="button" id="an-partner-logo-remove" class="an-btn an-btn--ghost an-btn--sm" style="margin-left: 12px;">Remove</button>
                                     </div>
-                                    <input type="hidden" id="an-partner-photo-url" value="">
+                                    <input type="hidden" id="an-partner-logo-url" value="">
                                 </div>
-                                <p class="an-helper">Enter your co-branding partner's contact information</p>
+                                <p class="an-helper">Both images are optional — add whichever you want on the landing page</p>
                             </div>
                         <?php else : ?>
                             <label class="an-label"><?php echo esc_html( $partner_config['label'] ); ?></label>
@@ -738,10 +757,16 @@ class Wizard {
                 update_post_meta( $post_id, '_frs_realtor_license', sanitize_text_field( $_POST['partner_license'] ?? '' ) );
                 update_post_meta( $post_id, '_frs_realtor_company', sanitize_text_field( $_POST['partner_company'] ?? '' ) );
 
-                // Partner company logo uploaded in Co-branded step (starts empty, LO uploads)
+                // Partner headshot (optional, starts empty)
                 $partner_photo = $_POST['partner_photo'] ?? '';
                 if ( ! empty( $partner_photo ) ) {
                     update_post_meta( $post_id, '_frs_realtor_photo', wp_check_invalid_utf8( $partner_photo ) );
+                }
+
+                // Partner company logo (optional, starts empty)
+                $partner_logo = $_POST['partner_logo'] ?? '';
+                if ( ! empty( $partner_logo ) ) {
+                    update_post_meta( $post_id, '_frs_brokerage_logo', wp_check_invalid_utf8( $partner_logo ) );
                 }
             }
         } else {

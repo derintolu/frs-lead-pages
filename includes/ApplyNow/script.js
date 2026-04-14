@@ -151,6 +151,50 @@
         });
     }
 
+    // Partner (co-branded) logo upload
+    (function setupPartnerLogoUpload() {
+        var uploadDiv  = document.getElementById('an-partner-photo-upload');
+        var fileInput  = document.getElementById('an-partner-photo-file');
+        var preview    = document.getElementById('an-partner-photo-preview');
+        var previewImg = document.getElementById('an-partner-photo-preview-img');
+        var removeBtn  = document.getElementById('an-partner-photo-remove');
+        var urlInput   = document.getElementById('an-partner-photo-url');
+        if (!uploadDiv || !fileInput) return;
+
+        uploadDiv.addEventListener('click', function() { fileInput.click(); });
+        uploadDiv.addEventListener('dragover', function(e) { e.preventDefault(); uploadDiv.style.borderColor = '#6366f1'; });
+        uploadDiv.addEventListener('dragleave', function() { uploadDiv.style.borderColor = '#cbd5e1'; });
+        uploadDiv.addEventListener('drop', function(e) {
+            e.preventDefault();
+            uploadDiv.style.borderColor = '#cbd5e1';
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        });
+        fileInput.addEventListener('change', function(e) {
+            var file = e.target.files[0];
+            if (!file) return;
+            if (!file.type.match(/image\/(jpeg|png|gif|webp)/)) { alert('Please upload an image (PNG, JPG, GIF, or WebP)'); return; }
+            if (file.size > 5242880) { alert('File size must be less than 5MB'); return; }
+            var reader = new FileReader();
+            reader.onload = function(ev) {
+                urlInput.value = ev.target.result;
+                previewImg.src = ev.target.result;
+                preview.style.display = 'flex';
+                preview.style.alignItems = 'center';
+                uploadDiv.style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        });
+        if (removeBtn) removeBtn.addEventListener('click', function() {
+            fileInput.value = '';
+            urlInput.value = '';
+            preview.style.display = 'none';
+            uploadDiv.style.display = 'block';
+        });
+    })();
+
     // ===== Schedule Type Cards =====
     var scheduleCards = wizard.querySelectorAll('.an-schedule-card');
     var scheduleTypeInput = document.getElementById('an-schedule-type');
@@ -418,9 +462,30 @@
                     alert('Please select Solo Page or Co-branded');
                     return false;
                 }
-                if (pageType && pageType.value === 'cobranded' && !selectedPartner) {
-                    alert('Please select a partner for co-branding');
-                    return false;
+                if (pageType && pageType.value === 'cobranded') {
+                    var partnerName  = (document.getElementById('an-partner-name-input')  || {}).value || '';
+                    var partnerEmail = (document.getElementById('an-partner-email-input') || {}).value || '';
+                    var partnerPhone = (document.getElementById('an-partner-phone-input') || {}).value || '';
+                    var partnerLogo  = (document.getElementById('an-partner-photo-url')   || {}).value || '';
+                    partnerName  = partnerName.trim();
+                    partnerEmail = partnerEmail.trim();
+                    partnerPhone = partnerPhone.trim();
+
+                    if (!partnerName)  { alert("Please enter the partner's name");         return false; }
+                    if (!partnerEmail) { alert("Please enter the partner's email");        return false; }
+                    if (!partnerPhone) { alert("Please enter the partner's phone number"); return false; }
+
+                    selectedPartner = {
+                        id: 0,
+                        name: partnerName,
+                        email: partnerEmail,
+                        phone: partnerPhone,
+                        photo: partnerLogo,
+                        company: '',
+                        license: '',
+                        nmls: '',
+                        arrive: ''
+                    };
                 }
             } else {
                 var partnerDropdown = document.getElementById('an-partner-dropdown');
@@ -504,6 +569,7 @@
                 data.partner_company = selectedPartner.company;
                 data.partner_phone = selectedPartner.phone;
                 data.partner_email = selectedPartner.email;
+                data.partner_photo = selectedPartner.photo || '';
             }
         } else {
             data.realtor_name = (document.getElementById('an-realtor-name') || {}).value || userData.name;

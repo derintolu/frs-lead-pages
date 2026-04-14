@@ -233,48 +233,44 @@ class Wizard {
                                 </div>
                             </div>
 
-                            <!-- Partner selection (shown when co-branded is selected) -->
+                            <!-- Partner info (shown when co-branded is selected) -->
                             <div id="cs-partner-selection" class="cs-partner-selection" style="display: none;">
-                                <label class="cs-label" style="margin-top: 24px;">Select Partner</label>
-                                <div class="cs-dropdown" id="cs-partner-dropdown"
-                                     data-mode="<?php echo esc_attr( $user_mode ); ?>"
-                                     data-required="false"
-                                     data-preferred="<?php echo esc_attr( $partner_config['preferred_id'] ?? 0 ); ?>">
-                                    <button type="button" class="cs-dropdown__trigger">
-                                        <span class="cs-dropdown__value">Choose a partner...</span>
-                                        <svg class="cs-dropdown__arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
-                                    </button>
-                                    <div class="cs-dropdown__menu">
-                                        <?php foreach ( $partners as $partner ) : ?>
-                                            <?php
-                                            $partner_id = $partner['user_id'] ?? $partner['id'];
-                                            $partner_name = $partner['name'];
-                                            $partner_photo = $partner['photo_url'] ?? '';
-                                            $partner_email = $partner['email'] ?? '';
-                                            $partner_phone = $partner['phone'] ?? '';
-                                            $partner_license = $partner['license'] ?? '';
-                                            $partner_company = $partner['company'] ?? '';
-                                            ?>
-                                            <div class="cs-dropdown__item"
-                                                 data-value="<?php echo esc_attr( $partner_id ); ?>"
-                                                 data-name="<?php echo esc_attr( $partner_name ); ?>"
-                                                 data-license="<?php echo esc_attr( $partner_license ); ?>"
-                                                 data-company="<?php echo esc_attr( $partner_company ); ?>"
-                                                 data-photo="<?php echo esc_attr( $partner_photo ); ?>"
-                                                 data-email="<?php echo esc_attr( $partner_email ); ?>"
-                                                 data-phone="<?php echo esc_attr( $partner_phone ); ?>">
-                                                <img src="<?php echo esc_url( $partner_photo ); ?>" alt="" class="cs-dropdown__photo">
-                                                <div class="cs-dropdown__info">
-                                                    <span class="cs-dropdown__name"><?php echo esc_html( $partner_name ); ?></span>
-                                                    <?php if ( $partner_company ) : ?>
-                                                        <span class="cs-dropdown__nmls"><?php echo esc_html( $partner_company ); ?></span>
-                                                    <?php endif; ?>
-                                                </div>
-                                            </div>
-                                        <?php endforeach; ?>
+                                <p class="cs-section-label" style="margin-top:24px;">Partner Real Estate Agent</p>
+                                <div class="cs-row">
+                                    <div class="cs-field cs-field--half">
+                                        <label class="cs-label">Partner Name</label>
+                                        <input type="text" id="cs-partner-name-input" class="cs-input" placeholder="Jane Smith">
+                                    </div>
+                                    <div class="cs-field cs-field--half">
+                                        <label class="cs-label">Phone</label>
+                                        <input type="tel" id="cs-partner-phone-input" class="cs-input" placeholder="(555) 123-4567">
                                     </div>
                                 </div>
-                                <p class="cs-helper">Select a real estate partner for co-branding</p>
+                                <div class="cs-field">
+                                    <label class="cs-label">Email</label>
+                                    <input type="email" id="cs-partner-email-input" class="cs-input" placeholder="jane@realestate.com">
+                                </div>
+
+                                <!-- Company Logo Upload -->
+                                <div class="cs-field" style="margin-top: 24px;">
+                                    <label class="cs-label">Company Logo</label>
+                                    <div class="cs-photo-upload" id="cs-partner-photo-upload" style="border: 2px dashed #cbd5e1; padding: 20px; border-radius: 8px; text-align: center; cursor: pointer;">
+                                        <input type="file" id="cs-partner-photo-file" accept="image/*" style="display: none;">
+                                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin: 0 auto 8px; opacity: 0.5;">
+                                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                            <polyline points="21 15 16 10 5 21"></polyline>
+                                        </svg>
+                                        <p style="margin: 0; font-weight: 500;">Click to upload or drag and drop</p>
+                                        <p style="margin: 4px 0 0 0; font-size: 12px; color: #94a3b8;">PNG, JPG or GIF (max 5MB)</p>
+                                    </div>
+                                    <div id="cs-partner-photo-preview" style="margin-top: 12px; display: none;">
+                                        <img id="cs-partner-photo-preview-img" src="" alt="Preview" style="width: 120px; height: 120px; border-radius: 8px; object-fit: contain; background: #f8fafc; padding: 8px; border: 1px solid #e2e8f0;">
+                                        <button type="button" id="cs-partner-photo-remove" class="cs-btn cs-btn--ghost cs-btn--sm" style="margin-left: 12px;">Remove</button>
+                                    </div>
+                                    <input type="hidden" id="cs-partner-photo-url" value="">
+                                </div>
+                                <p class="cs-helper">Enter your co-branding partner's contact information</p>
                             </div>
                         <?php else : ?>
                             <!-- Partner Mode: Select LO (required) -->
@@ -1563,20 +1559,31 @@ Smooth closing process"></textarea>
                         data.pageType = pageType;
 
                         if (pageType === "cobranded") {
-                            const partner = document.getElementById("cs-partner");
-                            if (!partner || !partner.value) {
-                                alert("Please select a partner for your co-branded page");
+                            const partnerName  = document.getElementById("cs-partner-name-input")?.value.trim() || "";
+                            const partnerEmail = document.getElementById("cs-partner-email-input")?.value.trim() || "";
+                            const partnerPhone = document.getElementById("cs-partner-phone-input")?.value.trim() || "";
+                            const partnerLogo  = document.getElementById("cs-partner-photo-url")?.value || "";
+
+                            if (!partnerName) {
+                                alert("Please enter the partner\'s name");
+                                return false;
+                            }
+                            if (!partnerEmail) {
+                                alert("Please enter the partner\'s email");
+                                return false;
+                            }
+                            if (!partnerPhone) {
+                                alert("Please enter the partner\'s phone number");
                                 return false;
                             }
 
                             data.partner = {
-                                id: partner.value,
-                                name: partner.dataset.name || "",
-                                license: partner.dataset.license || "",
-                                company: partner.dataset.company || "",
-                                photo: partner.dataset.photo || "",
-                                email: partner.dataset.email || "",
-                                phone: partner.dataset.phone || ""
+                                name:    partnerName,
+                                email:   partnerEmail,
+                                phone:   partnerPhone,
+                                photo:   partnerLogo,
+                                company: "",
+                                license: ""
                             };
                         } else {
                             data.partner = {};
@@ -1890,6 +1897,7 @@ Smooth closing process"></textarea>
 
             setupPhotoUpload("lo");
             setupPhotoUpload("realtor");
+            setupPhotoUpload("partner");
 
             showStep(0);
         });
@@ -1962,18 +1970,18 @@ Smooth closing process"></textarea>
                 update_post_meta( $page_id, '_frs_lo_photo', $data['branding']['loPhoto'] );
             }
 
-            // Optional Realtor partner
-            if ( ! empty( $data['partner']['id'] ) ) {
-                update_post_meta( $page_id, '_frs_realtor_id', $data['partner']['id'] );
-                update_post_meta( $page_id, '_frs_realtor_name', $data['partner']['name'] ?? '' );
+            // Optional Realtor partner (manual entry from Co-branded step)
+            if ( ! empty( $data['partner']['name'] ) ) {
+                update_post_meta( $page_id, '_frs_realtor_id', 0 );
+                update_post_meta( $page_id, '_frs_realtor_name', $data['partner']['name'] );
                 update_post_meta( $page_id, '_frs_realtor_phone', $data['partner']['phone'] ?? '' );
                 update_post_meta( $page_id, '_frs_realtor_email', $data['partner']['email'] ?? '' );
                 update_post_meta( $page_id, '_frs_realtor_license', $data['partner']['license'] ?? '' );
                 update_post_meta( $page_id, '_frs_realtor_company', $data['partner']['company'] ?? '' );
-                
-                // Realtor Photo (new feature - custom photo upload for partner)
-                if ( ! empty( $data['branding']['realtorPhoto'] ) ) {
-                    update_post_meta( $page_id, '_frs_realtor_photo', $data['branding']['realtorPhoto'] );
+
+                // Partner company logo uploaded in Co-branded step (starts empty, LO uploads)
+                if ( ! empty( $data['partner']['photo'] ) ) {
+                    update_post_meta( $page_id, '_frs_realtor_photo', $data['partner']['photo'] );
                 }
             }
         } else {

@@ -239,39 +239,42 @@ class Wizard {
                             </div>
 
                             <div id="an-partner-selection" class="an-partner-selection" style="display: none;">
-                                <label class="an-label" style="margin-top: 24px;">Select Partner</label>
-                                <div class="an-dropdown" id="an-partner-dropdown" data-mode="<?php echo esc_attr( $user_mode ); ?>" data-required="false">
-                                    <button type="button" class="an-dropdown__trigger">
-                                        <span class="an-dropdown__value">Choose a partner...</span>
-                                        <svg class="an-dropdown__arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
-                                    </button>
-                                    <div class="an-dropdown__menu">
-                                        <?php foreach ( $partners as $partner ) : ?>
-                                            <?php
-                                            $partner_id = $partner['user_id'] ?? $partner['id'];
-                                            $partner_name = $partner['name'];
-                                            $partner_photo = $partner['photo_url'] ?? '';
-                                            $partner_license = $partner['license'] ?? '';
-                                            $partner_company = $partner['company'] ?? '';
-                                            ?>
-                                            <div class="an-dropdown__item"
-                                                 data-value="<?php echo esc_attr( $partner_id ); ?>"
-                                                 data-name="<?php echo esc_attr( $partner_name ); ?>"
-                                                 data-license="<?php echo esc_attr( $partner_license ); ?>"
-                                                 data-company="<?php echo esc_attr( $partner_company ); ?>"
-                                                 data-photo="<?php echo esc_attr( $partner_photo ); ?>">
-                                                <img src="<?php echo esc_url( $partner_photo ); ?>" alt="" class="an-dropdown__photo">
-                                                <div class="an-dropdown__info">
-                                                    <span class="an-dropdown__name"><?php echo esc_html( $partner_name ); ?></span>
-                                                    <?php if ( $partner_company ) : ?>
-                                                        <span class="an-dropdown__nmls"><?php echo esc_html( $partner_company ); ?></span>
-                                                    <?php endif; ?>
-                                                </div>
-                                            </div>
-                                        <?php endforeach; ?>
+                                <p class="an-section-label" style="margin-top:24px;">Partner Real Estate Agent</p>
+                                <div class="an-row">
+                                    <div class="an-field an-field--half">
+                                        <label class="an-label">Partner Name</label>
+                                        <input type="text" id="an-partner-name-input" class="an-input" placeholder="Jane Smith">
+                                    </div>
+                                    <div class="an-field an-field--half">
+                                        <label class="an-label">Phone</label>
+                                        <input type="tel" id="an-partner-phone-input" class="an-input" placeholder="(555) 123-4567">
                                     </div>
                                 </div>
-                                <p class="an-helper">Select a real estate partner for co-branding</p>
+                                <div class="an-field">
+                                    <label class="an-label">Email</label>
+                                    <input type="email" id="an-partner-email-input" class="an-input" placeholder="jane@realestate.com">
+                                </div>
+
+                                <!-- Company Logo Upload -->
+                                <div class="an-field" style="margin-top: 24px;">
+                                    <label class="an-label">Company Logo</label>
+                                    <div class="an-photo-upload" id="an-partner-photo-upload" style="border: 2px dashed #cbd5e1; padding: 20px; border-radius: 8px; text-align: center; cursor: pointer;">
+                                        <input type="file" id="an-partner-photo-file" accept="image/*" style="display: none;">
+                                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin: 0 auto 8px; opacity: 0.5;">
+                                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                            <polyline points="21 15 16 10 5 21"></polyline>
+                                        </svg>
+                                        <p style="margin: 0; font-weight: 500;">Click to upload or drag and drop</p>
+                                        <p style="margin: 4px 0 0 0; font-size: 12px; color: #94a3b8;">PNG, JPG or GIF (max 5MB)</p>
+                                    </div>
+                                    <div id="an-partner-photo-preview" style="margin-top: 12px; display: none;">
+                                        <img id="an-partner-photo-preview-img" src="" alt="Preview" style="width: 120px; height: 120px; border-radius: 8px; object-fit: contain; background: #f8fafc; padding: 8px; border: 1px solid #e2e8f0;">
+                                        <button type="button" id="an-partner-photo-remove" class="an-btn an-btn--ghost an-btn--sm" style="margin-left: 12px;">Remove</button>
+                                    </div>
+                                    <input type="hidden" id="an-partner-photo-url" value="">
+                                </div>
+                                <p class="an-helper">Enter your co-branding partner's contact information</p>
                             </div>
                         <?php else : ?>
                             <label class="an-label"><?php echo esc_html( $partner_config['label'] ); ?></label>
@@ -725,14 +728,21 @@ class Wizard {
             update_post_meta( $post_id, '_frs_lo_email', sanitize_email( $_POST['lo_email'] ?? '' ) );
             update_post_meta( $post_id, '_frs_lo_nmls', sanitize_text_field( $_POST['lo_nmls'] ?? '' ) );
 
-            $partner_id = absint( $_POST['partner_id'] ?? 0 );
-            if ( $partner_id ) {
-                update_post_meta( $post_id, '_frs_realtor_id', $partner_id );
-                update_post_meta( $post_id, '_frs_realtor_name', sanitize_text_field( $_POST['partner_name'] ?? '' ) );
+            // Optional Realtor partner (manual entry from Co-branded step)
+            $partner_name = sanitize_text_field( $_POST['partner_name'] ?? '' );
+            if ( ! empty( $partner_name ) ) {
+                update_post_meta( $post_id, '_frs_realtor_id', 0 );
+                update_post_meta( $post_id, '_frs_realtor_name', $partner_name );
                 update_post_meta( $post_id, '_frs_realtor_phone', sanitize_text_field( $_POST['partner_phone'] ?? '' ) );
                 update_post_meta( $post_id, '_frs_realtor_email', sanitize_email( $_POST['partner_email'] ?? '' ) );
                 update_post_meta( $post_id, '_frs_realtor_license', sanitize_text_field( $_POST['partner_license'] ?? '' ) );
                 update_post_meta( $post_id, '_frs_realtor_company', sanitize_text_field( $_POST['partner_company'] ?? '' ) );
+
+                // Partner company logo uploaded in Co-branded step (starts empty, LO uploads)
+                $partner_photo = $_POST['partner_photo'] ?? '';
+                if ( ! empty( $partner_photo ) ) {
+                    update_post_meta( $post_id, '_frs_realtor_photo', wp_check_invalid_utf8( $partner_photo ) );
+                }
             }
         } else {
             update_post_meta( $post_id, '_frs_realtor_id', $user->ID );

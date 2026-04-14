@@ -203,39 +203,42 @@ class Wizard {
                             </div>
 
                             <div id="rq-partner-selection" class="rq-partner-selection" style="display: none;">
-                                <label class="rq-label" style="margin-top: 24px;">Select Partner</label>
-                                <div class="rq-dropdown" id="rq-partner-dropdown" data-mode="<?php echo esc_attr( $user_mode ); ?>" data-required="false">
-                                    <button type="button" class="rq-dropdown__trigger">
-                                        <span class="rq-dropdown__value">Choose a partner...</span>
-                                        <svg class="rq-dropdown__arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
-                                    </button>
-                                    <div class="rq-dropdown__menu">
-                                        <?php foreach ( $partners as $partner ) : ?>
-                                            <?php
-                                            $partner_id = $partner['user_id'] ?? $partner['id'];
-                                            $partner_name = $partner['name'];
-                                            $partner_photo = $partner['photo_url'] ?? '';
-                                            $partner_license = $partner['license'] ?? '';
-                                            $partner_company = $partner['company'] ?? '';
-                                            ?>
-                                            <div class="rq-dropdown__item"
-                                                 data-value="<?php echo esc_attr( $partner_id ); ?>"
-                                                 data-name="<?php echo esc_attr( $partner_name ); ?>"
-                                                 data-license="<?php echo esc_attr( $partner_license ); ?>"
-                                                 data-company="<?php echo esc_attr( $partner_company ); ?>"
-                                                 data-photo="<?php echo esc_attr( $partner_photo ); ?>">
-                                                <img src="<?php echo esc_url( $partner_photo ); ?>" alt="" class="rq-dropdown__photo">
-                                                <div class="rq-dropdown__info">
-                                                    <span class="rq-dropdown__name"><?php echo esc_html( $partner_name ); ?></span>
-                                                    <?php if ( $partner_company ) : ?>
-                                                        <span class="rq-dropdown__nmls"><?php echo esc_html( $partner_company ); ?></span>
-                                                    <?php endif; ?>
-                                                </div>
-                                            </div>
-                                        <?php endforeach; ?>
+                                <p class="rq-section-label" style="margin-top:24px;">Partner Real Estate Agent</p>
+                                <div class="rq-row">
+                                    <div class="rq-field rq-field--half">
+                                        <label class="rq-label">Partner Name</label>
+                                        <input type="text" id="rq-partner-name-input" class="rq-input" placeholder="Jane Smith">
+                                    </div>
+                                    <div class="rq-field rq-field--half">
+                                        <label class="rq-label">Phone</label>
+                                        <input type="tel" id="rq-partner-phone-input" class="rq-input" placeholder="(555) 123-4567">
                                     </div>
                                 </div>
-                                <p class="rq-helper">Select a real estate partner for co-branding</p>
+                                <div class="rq-field">
+                                    <label class="rq-label">Email</label>
+                                    <input type="email" id="rq-partner-email-input" class="rq-input" placeholder="jane@realestate.com">
+                                </div>
+
+                                <!-- Company Logo Upload -->
+                                <div class="rq-field" style="margin-top: 24px;">
+                                    <label class="rq-label">Company Logo</label>
+                                    <div class="rq-photo-upload" id="rq-partner-photo-upload" style="border: 2px dashed #cbd5e1; padding: 20px; border-radius: 8px; text-align: center; cursor: pointer;">
+                                        <input type="file" id="rq-partner-photo-file" accept="image/*" style="display: none;">
+                                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin: 0 auto 8px; opacity: 0.5;">
+                                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                            <polyline points="21 15 16 10 5 21"></polyline>
+                                        </svg>
+                                        <p style="margin: 0; font-weight: 500;">Click to upload or drag and drop</p>
+                                        <p style="margin: 4px 0 0 0; font-size: 12px; color: #94a3b8;">PNG, JPG or GIF (max 5MB)</p>
+                                    </div>
+                                    <div id="rq-partner-photo-preview" style="margin-top: 12px; display: none;">
+                                        <img id="rq-partner-photo-preview-img" src="" alt="Preview" style="width: 120px; height: 120px; border-radius: 8px; object-fit: contain; background: #f8fafc; padding: 8px; border: 1px solid #e2e8f0;">
+                                        <button type="button" id="rq-partner-photo-remove" class="rq-btn rq-btn--ghost rq-btn--sm" style="margin-left: 12px;">Remove</button>
+                                    </div>
+                                    <input type="hidden" id="rq-partner-photo-url" value="">
+                                </div>
+                                <p class="rq-helper">Enter your co-branding partner's contact information</p>
                             </div>
                         <?php else : ?>
                             <label class="rq-label"><?php echo esc_html( $partner_config['label'] ); ?></label>
@@ -1344,9 +1347,28 @@ UNUSED;
                             alert('Please select Solo Page or Co-branded');
                             return false;
                         }
-                        if (pageType === 'cobranded' && !selectedPartner) {
-                            alert('Please select a partner for co-branding');
-                            return false;
+                        if (pageType === 'cobranded') {
+                            const partnerName  = document.getElementById('rq-partner-name-input')?.value.trim() || '';
+                            const partnerEmail = document.getElementById('rq-partner-email-input')?.value.trim() || '';
+                            const partnerPhone = document.getElementById('rq-partner-phone-input')?.value.trim() || '';
+                            const partnerLogo  = document.getElementById('rq-partner-photo-url')?.value || '';
+
+                            if (!partnerName)  { alert('Please enter the partner\'s name');  return false; }
+                            if (!partnerEmail) { alert('Please enter the partner\'s email'); return false; }
+                            if (!partnerPhone) { alert('Please enter the partner\'s phone number'); return false; }
+
+                            selectedPartner = {
+                                id: 0,
+                                name: partnerName,
+                                email: partnerEmail,
+                                phone: partnerPhone,
+                                photo: partnerLogo,
+                                company: '',
+                                license: '',
+                                nmls: ''
+                            };
+                        } else {
+                            selectedPartner = null;
                         }
                     } else {
                         const partnerDropdown = document.getElementById('rq-partner-dropdown');
@@ -1424,6 +1446,7 @@ UNUSED;
                         data.partner_company = selectedPartner.company;
                         data.partner_phone = selectedPartner.phone;
                         data.partner_email = selectedPartner.email;
+                        data.partner_photo = selectedPartner.photo || '';
                     }
                 } else {
                     data.realtor_name = document.getElementById('rq-realtor-name')?.value || userData.name;
@@ -1468,6 +1491,50 @@ UNUSED;
                 nextBtn.classList.remove('is-loading');
                 nextBtn.disabled = false;
             }
+
+            // Partner (co-branded) logo upload
+            (function setupPartnerLogoUpload() {
+                const uploadDiv  = document.getElementById('rq-partner-photo-upload');
+                const fileInput  = document.getElementById('rq-partner-photo-file');
+                const preview    = document.getElementById('rq-partner-photo-preview');
+                const previewImg = document.getElementById('rq-partner-photo-preview-img');
+                const removeBtn  = document.getElementById('rq-partner-photo-remove');
+                const urlInput   = document.getElementById('rq-partner-photo-url');
+                if (!uploadDiv || !fileInput) return;
+
+                uploadDiv.addEventListener('click', () => fileInput.click());
+                uploadDiv.addEventListener('dragover', (e) => { e.preventDefault(); uploadDiv.style.borderColor = '#10b981'; });
+                uploadDiv.addEventListener('dragleave', () => { uploadDiv.style.borderColor = '#cbd5e1'; });
+                uploadDiv.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    uploadDiv.style.borderColor = '#cbd5e1';
+                    if (e.dataTransfer.files.length) {
+                        fileInput.files = e.dataTransfer.files;
+                        fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                });
+                fileInput.addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    if (!file.type.match(/image\/(jpeg|png|gif|webp)/)) { alert('Please upload an image (PNG, JPG, GIF, or WebP)'); return; }
+                    if (file.size > 5242880) { alert('File size must be less than 5MB'); return; }
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        urlInput.value = ev.target.result;
+                        previewImg.src = ev.target.result;
+                        preview.style.display = 'flex';
+                        preview.style.alignItems = 'center';
+                        uploadDiv.style.display = 'none';
+                    };
+                    reader.readAsDataURL(file);
+                });
+                if (removeBtn) removeBtn.addEventListener('click', () => {
+                    fileInput.value = '';
+                    urlInput.value = '';
+                    preview.style.display = 'none';
+                    uploadDiv.style.display = 'block';
+                });
+            })();
         })();
         </script>
 UNUSED;
@@ -1527,14 +1594,21 @@ UNUSED;
             update_post_meta( $post_id, '_frs_lo_email', sanitize_email( $_POST['lo_email'] ?? '' ) );
             update_post_meta( $post_id, '_frs_lo_nmls', sanitize_text_field( $_POST['lo_nmls'] ?? '' ) );
 
-            $partner_id = absint( $_POST['partner_id'] ?? 0 );
-            if ( $partner_id ) {
-                update_post_meta( $post_id, '_frs_realtor_id', $partner_id );
-                update_post_meta( $post_id, '_frs_realtor_name', sanitize_text_field( $_POST['partner_name'] ?? '' ) );
+            // Optional Realtor partner (manual entry from Co-branded step)
+            $partner_name = sanitize_text_field( $_POST['partner_name'] ?? '' );
+            if ( ! empty( $partner_name ) ) {
+                update_post_meta( $post_id, '_frs_realtor_id', 0 );
+                update_post_meta( $post_id, '_frs_realtor_name', $partner_name );
                 update_post_meta( $post_id, '_frs_realtor_phone', sanitize_text_field( $_POST['partner_phone'] ?? '' ) );
                 update_post_meta( $post_id, '_frs_realtor_email', sanitize_email( $_POST['partner_email'] ?? '' ) );
                 update_post_meta( $post_id, '_frs_realtor_license', sanitize_text_field( $_POST['partner_license'] ?? '' ) );
                 update_post_meta( $post_id, '_frs_realtor_company', sanitize_text_field( $_POST['partner_company'] ?? '' ) );
+
+                // Partner company logo uploaded in Co-branded step (starts empty, LO uploads)
+                $partner_photo = $_POST['partner_photo'] ?? '';
+                if ( ! empty( $partner_photo ) ) {
+                    update_post_meta( $post_id, '_frs_realtor_photo', wp_check_invalid_utf8( $partner_photo ) );
+                }
             }
         } else {
             update_post_meta( $post_id, '_frs_realtor_id', $user->ID );
